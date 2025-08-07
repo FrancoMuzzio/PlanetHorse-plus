@@ -11,13 +11,16 @@ const PlanetHorseUSD = {
   currentURL: window.location.href,
   debounceTimer: null,
   updateTimer: null,
+  pollingTimer: null,
+  lastBalances: new Map(), // Cache para detectar cambios
   
   // Initialize the extension
   init() {
+    console.log('PlanetHorse USD Extension loaded');
     this.setupNavigation();
     this.setupObserver();
+    this.setupPollingBackup();
     this.updateAllBadges();
-    console.log('🚀 PlanetHorse USD Viewer - Simplified');
   },
   
   // Setup navigation detection for SPA
@@ -25,129 +28,315 @@ const PlanetHorseUSD = {
     // URL change detection
     setInterval(() => {
       if (window.location.href !== this.currentURL) {
+
         this.currentURL = window.location.href;
+
         setTimeout(() => this.updateAllBadges(), 500);
       }
     }, 500);
     
     // Visibility change
+
     document.addEventListener('visibilitychange', () => {
+
+      
       if (!document.hidden) {
+
         setTimeout(() => this.updateAllBadges(), 300);
       }
     });
+    
+
   },
   
-  // Setup DOM observer with debouncing
+  // Setup DOM observer with ultra-aggressive logging
   setupObserver() {
+
     if (this.observer) this.observer.disconnect();
     
-    this.observer = new MutationObserver(() => {
-      if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    this.observer = new MutationObserver((mutations) => {
+
       
-      this.debounceTimer = setTimeout(() => {
-        this.updateAllBadges();
-      }, 200);
+      mutations.forEach((mutation, index) => {
+        const target = mutation.target;
+        
+        // Log específico para currency groups
+        if (target.className?.includes('currencyGroup') || target.closest?.('[class*="currencyGroup"]')) {
+  
+        }
+        
+        // Log para spans con números
+        if (target.tagName === 'SPAN' && target.textContent?.match(/^\d+$/)) {
+  
+        }
+      });
+      
+      // Filtrar solo mutaciones relevantes
+      const relevantMutations = mutations.some(mutation => {
+        const target = mutation.target;
+        const isRelevant = (
+          // Cambios en currency groups
+          target.className?.includes('currencyGroup') ||
+          target.closest?.('[class*="currencyGroup"]') ||
+          // Cambios en spans que podrían ser valores
+          (target.tagName === 'SPAN' && target.textContent?.match(/^\d+$/)) ||
+          // Cambios en elementos con imágenes de phorse
+          target.querySelector?.('img[alt*="phorse"]') ||
+          target.closest?.('[class*="currencyGroup"]')
+        );
+        
+        if (isRelevant) {
+
+        }
+        
+        return isRelevant;
+      });
+      
+      if (relevantMutations) {
+        if (this.debounceTimer) {
+
+          clearTimeout(this.debounceTimer);
+        }
+        
+
+        this.debounceTimer = setTimeout(() => {
+
+          this.updateAllBadges();
+        }, 100);
+      } else {
+
+      }
     });
     
     this.observer.observe(document.body, {
       childList: true,
       subtree: true,
-      attributes: false,
+      attributes: true,
       characterData: true
     });
+    
+
+  },
+  
+  // Setup polling backup
+  setupPollingBackup() {
+
+    this.pollingTimer = setInterval(() => {
+      if (!document.hidden) {
+
+        this.checkForBalanceChanges();
+      }
+    }, 5000);
+  },
+  
+  // Check for balance changes manually
+  checkForBalanceChanges() {
+    const timestamp = new Date().toISOString();
+
+    
+    const currencyGroups = document.querySelectorAll('[class*="currencyGroup"]');
+
+    
+    let changesDetected = false;
+    
+    currencyGroups.forEach((group, index) => {
+      const img = group.querySelector('img[alt*="phorse"]');
+      if (!img) return;
+      
+      // Find value element using robust content-based logic
+      const candidateSpans = group.querySelectorAll(`span:not(.${CONFIG.BADGE_CLASS})`);
+      let valueElement = null;
+      for (const span of candidateSpans) {
+        const text = span.textContent?.trim();
+        if (text && /^\d+$/.test(text)) {
+          valueElement = span;
+          break;
+        }
+      }
+      if (!valueElement && candidateSpans.length > 0) {
+        valueElement = candidateSpans[candidateSpans.length - 1];
+      }
+      if (!valueElement) return;
+      
+      const currentValue = valueElement.textContent?.trim();
+      const groupKey = `group-${index}-${group.className}`;
+      const previousValue = this.lastBalances.get(groupKey);
+      
+
+      
+      if (previousValue !== undefined && previousValue !== currentValue) {
+
+        changesDetected = true;
+      }
+      
+      this.lastBalances.set(groupKey, currentValue);
+    });
+    
+    if (changesDetected) {
+
+      this.updateAllBadges();
+    } else {
+
+    }
   },
   
   // Update all PlanetHorse token badges
   updateAllBadges() {
-    if (this.updateTimer) clearTimeout(this.updateTimer);
+
+    
+    if (this.updateTimer) {
+
+      clearTimeout(this.updateTimer);
+    }
     
     this.updateTimer = setTimeout(() => {
-      console.log('🔍 [DEBUG] Starting updateAllBadges');
+
       
-      // Find all PlanetHorse token elements
-      const allImages = document.querySelectorAll('[class*="currencyGroup"] img[alt*="phorse"]');
-      console.log('🔍 [DEBUG] Found images:', allImages.length);
+      // Find all PlanetHorse token elements with multiple selectors
+      const selectors = [
+        '[class*="currencyGroup"] img[alt*="phorse"]',
+        '.styles_currencyGroup__9k8gf img[alt*="phorse"]'
+      ];
+      
+      let allImages = [];
+      selectors.forEach((selector, i) => {
+        const found = document.querySelectorAll(selector);
+
+        found.forEach(img => {
+          if (!allImages.includes(img)) allImages.push(img);
+        });
+      });
+      
+
+      
+      if (allImages.length === 0) {
+
+        // Log all images on page for debugging
+        const allImgs = document.querySelectorAll('img');
+
+        Array.from(allImgs).slice(0, 10).forEach((img, i) => {
+
+        });
+      }
       
       allImages.forEach((img, index) => {
-        console.log(`🔍 [DEBUG] Processing image ${index}:`, {
-          alt: img.alt,
-          src: img.src.substring(0, 100),
-          currencyGroupClass: img.closest('[class*="currencyGroup"]')?.className,
-          containerClass: img.closest('[class*="countCurrency"]')?.className,
-          imageType: img.alt.includes('coin') ? 'phorse coin' : 'phorse'
-        });
+
         this.processPhorseElement(img);
       });
+      
+
     }, 50);
   },
   
   // Process individual PlanetHorse element
   processPhorseElement(img) {
-    console.log('🔍 [DEBUG] processPhorseElement called with img:', {
-      alt: img.alt,
-      src: img.src.substring(0, 100)
-    });
+
     
     // Skip if this is a medal or chest price (double-check safety)
     if (img.alt.includes('medal') || img.alt.includes('Medal')) {
-      console.log('🔍 [DEBUG] Skipping medal image');
+
       return;
     }
     if (img.alt === 'PHORSE') {
-      console.log('🔍 [DEBUG] Skipping chest price image');
+
       return;
     }
     
     const currencyGroup = img.closest('[class*="currencyGroup"]');
-    console.log('🔍 [DEBUG] currencyGroup found:', currencyGroup?.className);
-    if (!currencyGroup) return;
+
     
-    // Find the value element
-    const valueElement = currencyGroup.querySelector('span:last-child');
-    console.log('🔍 [DEBUG] valueElement found:', {
-      element: valueElement?.tagName,
-      text: valueElement?.textContent?.trim(),
-      searchedIn: 'currencyGroup (FIXED)',
-      currencyGroupClass: currencyGroup.className
-    });
-    
-    if (!valueElement || !valueElement.textContent.trim().match(/^\d+$/)) {
-      console.log('🔍 [DEBUG] Skipping - no valid valueElement');
+    if (!currencyGroup) {
+
+      // Log parent elements for debugging
+      let parent = img.parentElement;
+      let level = 0;
+      while (parent && level < 5) {
+
+        parent = parent.parentElement;
+        level++;
+      }
       return;
     }
     
-    const amount = parseFloat(valueElement.textContent.trim()) || 0;
-    console.log('🔍 [DEBUG] Amount parsed:', amount);
-    if (amount === 0) {
-      console.log('🔍 [DEBUG] Skipping - amount is 0');
+    // Find the value element using robust content-based logic (ignore existing badges)
+
+    
+    // Get all spans that are not our badge
+    const candidateSpans = currencyGroup.querySelectorAll(`span:not(.${CONFIG.BADGE_CLASS})`);
+    let valueElement = null;
+    
+    // Find the span with numeric content
+    for (const span of candidateSpans) {
+      const text = span.textContent?.trim();
+      if (text && /^\d+$/.test(text)) {
+        valueElement = span;
+        break;
+      }
+    }
+    
+    // Fallback: if no numeric content found, try the last non-badge span
+    if (!valueElement && candidateSpans.length > 0) {
+      valueElement = candidateSpans[candidateSpans.length - 1];
+    }
+
+    
+    // Log all spans in currencyGroup for debugging
+    const allSpans = currencyGroup.querySelectorAll('span');
+
+    
+    if (!valueElement) {
+
       return;
     }
     
-    console.log('🔍 [DEBUG] Proceeding to fetchPriceAndAddBadge for amount:', amount);
+    const textContent = valueElement.textContent.trim();
+    const isNumeric = /^\d+$/.test(textContent);
+    
+
+    
+    if (!isNumeric) {
+
+      return;
+    }
+    
+    const amount = parseFloat(textContent) || 0;
+
+    
+    if (isNaN(amount) || amount < 0) {
+
+      return;
+    }
+    
+
     this.fetchPriceAndAddBadge(amount, valueElement);
   },
   
   // Fetch price and add USD badge
   fetchPriceAndAddBadge(amount, targetElement) {
-    console.log('🔍 [DEBUG] fetchPriceAndAddBadge called with:', {
-      amount,
-      targetElement: targetElement?.tagName,
-      targetText: targetElement?.textContent?.trim()
-    });
+    const timestamp = new Date().toISOString();
+
     
     const apiUrl = `${CONFIG.API_BASE_URL}${CONFIG.TOKEN_ADDRESS}&vs_currencies=usd`;
+
     
     chrome.runtime.sendMessage(
       { action: 'getPHPrice', url: apiUrl, address: CONFIG.TOKEN_ADDRESS },
       response => {
-        if (response?.error || !response?.price) {
-          console.log('🔍 [DEBUG] No price response or error');
+
+        
+        if (response?.error) {
+          console.error('PlanetHorse Extension: API error:', response.error);
+          return;
+        }
+        
+        if (!response?.price) {
+
           return;
         }
         
         const usdValue = (amount * response.price).toFixed(2);
-        console.log('🔍 [DEBUG] Creating badge with USD value:', usdValue);
+
+        
         this.addUSDBadge(targetElement, usdValue);
       }
     );
@@ -155,33 +344,37 @@ const PlanetHorseUSD = {
   
   // Add USD badge to element
   addUSDBadge(targetElement, usdValue) {
-    console.log('🔍 [DEBUG] addUSDBadge called:', {
-      usdValue,
-      targetText: targetElement?.textContent?.trim(),
-      parentClass: targetElement?.parentElement?.className
-    });
+    const timestamp = new Date().toISOString();
+
     
     const parent = targetElement.parentElement;
     const expectedText = `≈ $${usdValue}`;
     
+
+    
     // Check if badge already exists with correct value
     const existingBadge = parent.querySelector(`.${CONFIG.BADGE_CLASS}`);
+
+    
     if (existingBadge && existingBadge.textContent === expectedText) {
-      console.log('🔍 [DEBUG] Badge already exists with correct value');
+
       return;
     }
     
     // Remove existing badge if value changed
     if (existingBadge) {
+
       existingBadge.remove();
     }
     
     // Create badge
+
     const badge = document.createElement('div');
     badge.className = CONFIG.BADGE_CLASS;
     badge.textContent = expectedText;
     
     // Style badge
+
     Object.assign(badge.style, {
       position: 'absolute',
       bottom: '-26px',
@@ -204,23 +397,49 @@ const PlanetHorseUSD = {
     });
     
     // Make parent relative for positioning
+
     if (parent.style.position !== 'relative') {
       parent.style.position = 'relative';
     }
     
     // Add badge
+
     parent.appendChild(badge);
-    console.log('🔍 [DEBUG] Badge added successfully to parent:', parent.className);
+    
+    // Verify badge was added
+    const verification = parent.querySelector(`.${CONFIG.BADGE_CLASS}`);
+
+    
+
   },
   
   // Cleanup method
   cleanup() {
-    if (this.observer) this.observer.disconnect();
-    if (this.debounceTimer) clearTimeout(this.debounceTimer);
-    if (this.updateTimer) clearTimeout(this.updateTimer);
+
+    
+    if (this.observer) {
+      this.observer.disconnect();
+
+    }
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+
+    }
+    if (this.updateTimer) {
+      clearTimeout(this.updateTimer);
+
+    }
+    if (this.pollingTimer) {
+      clearTimeout(this.pollingTimer);
+
+    }
     
     // Remove all badges
-    document.querySelectorAll(`.${CONFIG.BADGE_CLASS}`).forEach(badge => badge.remove());
+    const badges = document.querySelectorAll(`.${CONFIG.BADGE_CLASS}`);
+
+    badges.forEach(badge => badge.remove());
+    
+
   }
 };
 
