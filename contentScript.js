@@ -2,8 +2,13 @@
 const CONFIG = {
   TOKEN_ADDRESS: '0x7f8e304eb2894e57f8b930000f396319729bd1f1',
   API_BASE_URL: 'https://exchange-rate.skymavis.com/v2/prices?addresses=',
-  BADGE_CLASS: 'ph-usd-badge'
+  BADGE_CLASS: 'ph-usd-badge',
+  DEBUG: false // PRODUCTION: false, DEVELOPMENT: true
 };
+
+// ============= LOGGING SYSTEM =============
+const log = CONFIG.DEBUG ? console.log.bind(console) : () => {};
+const logError = CONFIG.DEBUG ? console.error.bind(console) : () => {};
 
 // ============= MAIN CLASS =============
 const PlanetHorseUSD = {
@@ -16,7 +21,7 @@ const PlanetHorseUSD = {
   
   // Initialize the extension
   init() {
-    console.log('PlanetHorse USD Extension loaded');
+    log('PlanetHorse USD Extension loaded');
     this.setupNavigation();
     this.setupObserver();
     this.setupPollingBackup();
@@ -314,28 +319,22 @@ const PlanetHorseUSD = {
   // Fetch price and add USD badge
   fetchPriceAndAddBadge(amount, targetElement) {
     const timestamp = new Date().toISOString();
-
     
     const apiUrl = `${CONFIG.API_BASE_URL}${CONFIG.TOKEN_ADDRESS}&vs_currencies=usd`;
-
     
     chrome.runtime.sendMessage(
       { action: 'getPHPrice', url: apiUrl, address: CONFIG.TOKEN_ADDRESS },
       response => {
-
-        
         if (response?.error) {
-          console.error('PlanetHorse Extension: API error:', response.error);
+          logError('PlanetHorse Extension: API error:', response.error);
           return;
         }
         
         if (!response?.price) {
-
           return;
         }
         
         const usdValue = (amount * response.price).toFixed(2);
-
         
         this.addUSDBadge(targetElement, usdValue);
       }
@@ -345,36 +344,28 @@ const PlanetHorseUSD = {
   // Add USD badge to element
   addUSDBadge(targetElement, usdValue) {
     const timestamp = new Date().toISOString();
-
     
     const parent = targetElement.parentElement;
     const expectedText = `≈ $${usdValue}`;
     
-
-    
     // Check if badge already exists with correct value
     const existingBadge = parent.querySelector(`.${CONFIG.BADGE_CLASS}`);
-
     
     if (existingBadge && existingBadge.textContent === expectedText) {
-
       return;
     }
     
     // Remove existing badge if value changed
     if (existingBadge) {
-
       existingBadge.remove();
     }
     
     // Create badge
-
     const badge = document.createElement('div');
     badge.className = CONFIG.BADGE_CLASS;
     badge.textContent = expectedText;
     
     // Style badge
-
     Object.assign(badge.style, {
       position: 'absolute',
       bottom: '-26px',
@@ -397,49 +388,35 @@ const PlanetHorseUSD = {
     });
     
     // Make parent relative for positioning
-
     if (parent.style.position !== 'relative') {
       parent.style.position = 'relative';
     }
     
     // Add badge
-
     parent.appendChild(badge);
     
     // Verify badge was added
     const verification = parent.querySelector(`.${CONFIG.BADGE_CLASS}`);
-
-    
-
   },
   
   // Cleanup method
   cleanup() {
-
-    
     if (this.observer) {
       this.observer.disconnect();
-
     }
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
-
     }
     if (this.updateTimer) {
       clearTimeout(this.updateTimer);
-
     }
     if (this.pollingTimer) {
       clearTimeout(this.pollingTimer);
-
     }
     
     // Remove all badges
     const badges = document.querySelectorAll(`.${CONFIG.BADGE_CLASS}`);
-
     badges.forEach(badge => badge.remove());
-    
-
   }
 };
 
