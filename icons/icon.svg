@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <!-- Gradientes para efecto metálico dorado -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF59D;stop-opacity:1" />
+      <stop offset="20%" style="stop-color:#FFD54F;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFC107;stop-opacity:1" />
+      <stop offset="80%" style="stop-color:#FFB300;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8F00;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Gradiente para borde -->
+    <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE082;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFD54F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFB300;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Sombra -->
+    <filter id="shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="2" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Textura de madera -->
+    <pattern id="woodTexture" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="#8B5A3C"/>
+      <path d="M0 20h40" stroke="#7A4A2C" stroke-width="0.5" opacity="0.4"/>
+      <path d="M0 10h40" stroke="#7A4A2C" stroke-width="0.3" opacity="0.3"/>
+      <path d="M0 30h40" stroke="#7A4A2C" stroke-width="0.3" opacity="0.3"/>
+      <path d="M0 5h40" stroke="#6A3A1C" stroke-width="0.2" opacity="0.2"/>
+      <path d="M0 35h40" stroke="#6A3A1C" stroke-width="0.2" opacity="0.2"/>
+    </pattern>
+  </defs>
+  
+  <!-- Fondo circular marrón con textura -->
+  <circle cx="64" cy="64" r="60" fill="url(#woodTexture)" filter="url(#shadow)"/>
+  
+  <!-- Borde exterior dorado ornamentado -->
+  <circle cx="64" cy="64" r="58" fill="none" stroke="url(#borderGradient)" stroke-width="3"/>
+  
+  <!-- Borde interior -->
+  <circle cx="64" cy="64" r="52" fill="none" stroke="#FFD54F" stroke-width="1" opacity="0.6"/>
+  
+  <!-- Moneda dorada principal -->
+  <g transform="translate(64, 64)">
+    <!-- Base de la moneda -->
+    <circle r="35" fill="url(#goldGradient)" filter="url(#shadow)"/>
+    
+    <!-- Borde de la moneda -->
+    <circle r="33" fill="none" stroke="#FF8F00" stroke-width="1.5"/>
+    <circle r="30" fill="none" stroke="#FFB300" stroke-width="0.5" stroke-dasharray="2,1" opacity="0.8"/>
+    
+    <!-- Letra P estilizada -->
+    <g transform="scale(1.8)">
+      <path d="M -8 -12 L -8 12 M -8 -12 L 2 -12 Q 8 -12 8 -6 Q 8 0 2 0 L -8 0" 
+            stroke="#8B5A3C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M -8 -12 L -8 12 M -8 -12 L 2 -12 Q 8 -12 8 -6 Q 8 0 2 0 L -8 0" 
+            stroke="#6B3A1C" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" 
+            transform="translate(0.5, 0.5)"/>
+    </g>
+    
+    <!-- Detalles decorativos de moneda -->
+    <circle r="28" fill="none" stroke="#FFE082" stroke-width="0.3" opacity="0.5"/>
+    
+    <!-- Signo + en esquina superior derecha -->
+    <g transform="translate(28, -28)">
+      <circle r="10" fill="#FF8F00"/>
+      <circle r="9" fill="url(#goldGradient)"/>
+      <path d="M -4 0 L 4 0 M 0 -4 L 0 4" stroke="#8B5A3C" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </g>
+  
+  <!-- Pequeñas estrellas decorativas Western -->
+  <g opacity="0.7">
+    <path d="M 20 20 L 21 23 L 24 23 L 22 25 L 23 28 L 20 26 L 17 28 L 18 25 L 16 23 L 19 23 Z" fill="#FFD54F"/>
+    <path d="M 108 20 L 109 23 L 112 23 L 110 25 L 111 28 L 108 26 L 105 28 L 106 25 L 104 23 L 107 23 Z" fill="#FFD54F"/>
+    <path d="M 20 108 L 21 111 L 24 111 L 22 113 L 23 116 L 20 114 L 17 116 L 18 113 L 16 111 L 19 111 Z" fill="#FFD54F"/>
+    <path d="M 108 108 L 109 111 L 112 111 L 110 113 L 111 116 L 108 114 L 105 116 L 106 113 L 104 111 L 107 111 Z" fill="#FFD54F"/>
+  </g>
+</svg>
