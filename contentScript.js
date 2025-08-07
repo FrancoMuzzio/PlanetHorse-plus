@@ -121,7 +121,7 @@ const PlanetHorseUSD = {
     if (!currencyGroup) return;
     
     // Find the value element (ignore existing badges)
-    const valueElement = currencyGroup.querySelector(`span:not(.${CONFIG.BADGE_CLASS}):last-of-type`);
+    const valueElement = currencyGroup.querySelector(`span:last-child:not(.${CONFIG.BADGE_CLASS})`);
     console.log('🔍 [DEBUG] valueElement found:', {
       element: valueElement?.tagName,
       text: valueElement?.textContent?.trim(),
