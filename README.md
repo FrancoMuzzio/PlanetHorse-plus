@@ -1,142 +1,157 @@
-# PlanetHorse USD Viewer
+# PlanetHorse+ (Unofficial)
 
 ![Version](https://img.shields.io/badge/version-1.0-blue.svg)
 ![Chrome Extension](https://img.shields.io/badge/platform-Chrome%20Extension-green.svg)
 ![JavaScript](https://img.shields.io/badge/language-JavaScript-yellow.svg)
 ![Manifest V3](https://img.shields.io/badge/manifest-v3-red.svg)
+![Unofficial](https://img.shields.io/badge/status-UNOFFICIAL-red.svg)
 
-A Chrome extension that automatically displays the USD value of your PlanetHorse tokens directly in the game interface.
+A comprehensive Chrome extension that enhances your PlanetHorse gaming experience with powerful utilities and features.
+
+## ⚠️ IMPORTANT DISCLAIMER
+
+**This is an UNOFFICIAL, third-party extension** not affiliated with, endorsed by, or connected to Sky Mavis or PlanetHorse in any way. 
+
+This extension is developed and maintained independently by the community for the community.
+
+---
 
 ## 📋 Description
 
-**PlanetHorse USD Viewer** is a browser extension that integrates non-invasively with the PlanetHorse website (planethorse.io) to provide real-time financial information. Players can instantly see the US dollar value of their PH tokens without needing to leave the game or perform manual calculations.
+**PlanetHorse+** is a browser extension that integrates seamlessly with the PlanetHorse website (planethorse.io) to provide enhanced gaming utilities. PlanetHorse+ approaches PlanetHorse enhancement through non-invasive integration, preserving the original game experience while adding valuable functionality.
 
-### ✨ Key Features
+## ✨ Current Features
 
-- **Real-time visualization**: Shows badges with automatically updated USD values
-- **Non-invasive integration**: Discretely integrates with the existing game UI
-- **Automatic detection**: Recognizes token balance changes and updates values
-- **SPA navigation**: Correctly handles single-page application navigation
-- **Smart visibility management**: Hides badges when they overlap with UI elements
+### 💰 Real-Time USD Value Display
+- **Live USD conversion**: Automatically displays US dollar values for your PH tokens
+- **Non-invasive badges**: Discretely integrates with the existing game UI
+- **Automatic updates**: Recognizes token balance changes and updates values instantly
+- **SPA navigation support**: Works seamlessly across all game sections
+- **Smart positioning**: Badges position intelligently to avoid UI conflicts
 - **Zero configuration**: Works immediately after installation
+
+## 🔮 Upcoming Features
+
+*PlanetHorse+ is designed for extensibility. Future releases may include:*
+
+- 📊 **Advanced Analytics**: Token performance tracking and historical data
+- 🚀 **Enhanced Game Stats**: Detailed race performance and earnings analysis
+- ⚡ **Quick Actions**: Fast-access tools for common game operations
+- 🔔 **Smart Notifications**: Market alerts and game event notifications
+- 📱 **Cross-Platform Sync**: Data synchronization across devices
+- 🎯 **Custom Dashboards**: Personalized game data visualization
+
+*Note: Future features depend on game updates and community feedback*
 
 ## 🚀 Installation
 
+### For Users
+
+1. **Install from Chrome Web Store** *(coming soon)*
+2. **Navigate to PlanetHorse**: Go to `https://planethorse.io/game`
+3. **Enjoy enhanced features**: The toolkit activates automatically
+
 ### For Development
 
-1. **Clone or download the repository**:
+1. **Clone the repository**:
    ```bash
    git clone [repository-url]
    cd planet-horse-extension
    ```
 
-2. **Open Chrome and go to extensions**:
+2. **Load in Chrome**:
    - Navigate to `chrome://extensions/`
    - Enable "Developer mode"
-
-3. **Load the extension**:
-   - Click "Load unpacked"
-   - Select the project folder `planet-horse-extension`
-
-4. **Done!** The extension will appear in your active extensions list.
+   - Click "Load unpacked" and select the project folder
 
 ### System Requirements
 
 - **Google Chrome** (version 88 or higher)
-- **Internet access** (to fetch token prices)
-- **Permissions**: The extension requires access to `planethorse.io` and `exchange-rate.skymavis.com`
+- **Internet access** (for real-time data features)
+- **Permissions**: Access to `planethorse.io` and external APIs
 
 ## 🎮 Usage
 
-1. **Install the extension** following the steps above
-2. **Navigate to PlanetHorse**: Go to `https://planethorse.io/game`
-3. **Automatic!**: USD value badges will automatically appear next to your PH tokens
+### Current Features Usage
 
-### Functionality
+**USD Value Display:**
+1. Install PlanetHorse+ and navigate to PlanetHorse
+2. USD value badges appear automatically next to PH token displays
+3. Values update in real-time as you navigate and play
+4. Works across all game sections where tokens are displayed
 
-- USD badges appear as floating elements next to PlanetHorse token icons
-- Values update automatically when you change pages or when your tokens change
-- The extension works in all game sections where PH tokens appear
-- If there are API connection issues, badges will show an error indicator
-
-## 🏗️ Project Structure
+## 🏗️ Technical Architecture
 
 ```
 planet-horse-extension/
-├── manifest.json           # Chrome extension configuration
-├── background.js           # Service worker - API communication
-├── contentScript.js        # Main script - DOM manipulation
-└── README.md              # This file
+├── manifest.json           # Extension configuration (Manifest V3)
+├── background.js           # Service worker - API communication & data processing
+├── contentScript.js        # UI integration & DOM manipulation
+├── icons/                  # Extension icons (16px, 48px, 128px)
+└── README.md              # Documentation
 ```
 
-### Architecture
+### Modern Extension Architecture
 
-The extension uses a **3-component architecture**:
+PlanetHorse+ uses **Chrome Extension Manifest V3** with a clean separation of concerns:
 
-1. **`manifest.json`**: 
-   - Permissions configuration and Chrome Extension v3 specifications
-   - Defines content scripts and service worker
+1. **Service Worker** (`background.js`):
+   - Handles external API communication
+   - Processes and validates data
+   - Manages cross-origin requests securely
 
-2. **`background.js`** (Service Worker):
-   - Handles communication with the Skymavis API
-   - Processes token price requests
-   - Manages CORS permissions and data validation
+2. **Content Script** (`contentScript.js`):
+   - Integrates with PlanetHorse UI
+   - Manages dynamic content updates
+   - Handles SPA navigation and DOM changes
 
-3. **`contentScript.js`** (Content Script):
-   - Injected into planethorse.io pages
-   - Detects PH token elements
-   - Creates and positions USD badges
-   - Observes dynamic DOM changes
+3. **Minimal Permissions**:
+   - Only requests necessary permissions
+   - Transparent about data usage
+   - Secure by design
 
 ## 🛠️ Technologies
 
-### Main Stack
-- **JavaScript ES6+**: Base language with modern features
-- **Chrome Extension API v3**: Modern extension architecture
-- **Native DOM APIs**: Direct DOM manipulation without frameworks
-- **Fetch API**: HTTP communication with external APIs
-- **MutationObserver API**: Dynamic change detection
+### Core Stack
+- **JavaScript ES6+**: Modern language features
+- **Chrome Extension API v3**: Latest extension platform
+- **Vanilla DOM APIs**: No external frameworks
+- **MutationObserver**: Real-time DOM change detection
+- **Fetch API**: Secure HTTP communication
 
-### External APIs
-- **Skymavis Exchange Rate API**: Token price provider
-  - Endpoint: `https://exchange-rate.skymavis.com/v2/prices`
-  - Token Address: `0x7f8e304eb2894e57f8b930000f396319729bd1f1`
+### External Integration
+- **Skymavis Exchange Rate API**: Real-time token pricing
+- **Token Address**: `0x7f8e304eb2894e57f8b930000f396319729bd1f1`
 
-### Technical Features
-- **No external dependencies**: Requires no npm, webpack, or additional frameworks
-- **Vanilla JavaScript**: Pure code with no build process
-- **Manifest V3**: Uses the latest and most secure version of Chrome Extensions
+### Design Principles
+- **Zero dependencies**: No build process required
+- **Performance focused**: Minimal resource usage
+- **Privacy conscious**: No data collection
+- **Compatibility first**: Works with game updates
 
 ## 💻 Development
 
-### Local Setup
+### Local Development
 
-Requires no build process or dependency installation:
+No build process required:
 
-1. **Clone the repository**
-2. **Edit files** directly with any text editor
-3. **Reload the extension** in `chrome://extensions/` to see changes
+1. **Clone and edit** files directly
+2. **Reload extension** in Chrome to see changes
+3. **Test on PlanetHorse** game interface
 
-### Testing
+### Testing Protocol
 
-1. **Load the extension** in developer mode
-2. **Navigate to PlanetHorse**: `https://planethorse.io/game*`
-3. **Verify**:
-   - USD badges appear next to PH tokens
-   - Automatic updates when changing pages
-   - Correct behavior in SPA navigation
-   - Appropriate visibility during scroll
-
-### Debugging
-
-- **Browser console**: Debug messages with 🚀 prefix
-- **Chrome DevTools**: Inspect elements and network requests  
-- **Background Script**: Debug in `chrome://extensions/` > "service worker"
-- **Content Script**: Debug in the game page
+1. **Load extension** in developer mode
+2. **Navigate to game**: `https://planethorse.io/game*`
+3. **Verify features**:
+   - USD badges display correctly
+   - Updates work across navigation
+   - Performance remains optimal
+   - UI integration is non-invasive
 
 ### Configuration
 
-Main parameters in `contentScript.js`:
+Main settings in `contentScript.js`:
 
 ```javascript
 const CONFIG = {
@@ -148,238 +163,58 @@ const CONFIG = {
 
 ## 🤝 Contributing
 
-### How to Contribute
-
-1. **Fork the repository**
-2. **Create a branch** for your feature: `git checkout -b feature/new-functionality`
-3. **Make your changes** following existing code conventions
-4. **Test thoroughly** in different game scenarios
-5. **Commit your changes**: `git commit -m 'Add new functionality'`
-6. **Push to your branch**: `git push origin feature/new-functionality`
-7. **Create a Pull Request**
-
 ### Development Guidelines
 
-- **Maintain style**: Follow existing code conventions
-- **Testing**: Test in multiple PlanetHorse scenarios
-- **Performance**: Consider impact on game performance
-- **Compatibility**: Ensure it works with SPA navigation
+- **Follow existing patterns**: Maintain code consistency
+- **Test thoroughly**: Verify across different game scenarios
+- **Performance matters**: Consider impact on game experience
+- **Document changes**: Update README for new features
+
+### Contributing Process
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/new-tool`
+3. Develop and test your enhancement
+4. Submit pull request with detailed description
+
+## 🐛 Issues & Support
 
 ### Reporting Issues
 
-If you find bugs or have suggestions:
+When reporting problems:
 
-1. **Check** that a similar issue doesn't exist
-2. **Include environment information**: Chrome version, OS, etc.
-3. **Steps to reproduce** the problem
-4. **Screenshots** if relevant
+1. **Check existing issues** first
+2. **Provide environment details**: Chrome version, OS
+3. **Include reproduction steps**
+4. **Add screenshots** if relevant
 
-## 📝 License
+### Community Support
 
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
+- **GitHub Issues**: Technical problems and feature requests
+- **Discussions**: General questions and ideas
+- **Pull Requests**: Code contributions welcome
 
-## 🙏 Credits
+## 📝 Legal
 
-- **PlanetHorse**: Original game developed by Sky Mavis
-- **Skymavis Exchange Rate API**: Token price data provider
-- **Chrome Extensions Documentation**: Guides and best practices
+### License
+This project is licensed under the MIT License - see LICENSE file for details.
 
----
+### Trademarks
+- PlanetHorse™ is a trademark of Sky Mavis
+- This extension is not affiliated with or endorsed by Sky Mavis
+- All game-related trademarks belong to their respective owners
 
-### 📧 Support
+### Disclaimer
+This extension is provided "as-is" without any warranties. Users install and use at their own risk.
 
-For technical support or development questions, please open an issue in this repository.
+## 🙏 Acknowledgments
 
-**Enjoy playing PlanetHorse with real-time financial information!** 🐴💰# PlanetHorse USD Viewer
-
-![Version](https://img.shields.io/badge/version-1.0-blue.svg)
-![Chrome Extension](https://img.shields.io/badge/platform-Chrome%20Extension-green.svg)
-![JavaScript](https://img.shields.io/badge/language-JavaScript-yellow.svg)
-![Manifest V3](https://img.shields.io/badge/manifest-v3-red.svg)
-
-A Chrome extension that automatically displays the USD value of your PlanetHorse tokens directly in the game interface.
-
-## 📋 Description
-
-**PlanetHorse USD Viewer** is a browser extension that integrates non-invasively with the PlanetHorse website (planethorse.io) to provide real-time financial information. Players can instantly see the US dollar value of their PH tokens without needing to leave the game or perform manual calculations.
-
-### ✨ Key Features
-
-- **Real-time visualization**: Shows badges with automatically updated USD values
-- **Non-invasive integration**: Discretely integrates with the existing game UI
-- **Automatic detection**: Recognizes token balance changes and updates values
-- **SPA navigation**: Correctly handles single-page application navigation
-- **Smart visibility management**: Hides badges when they overlap with UI elements
-- **Zero configuration**: Works immediately after installation
-
-## 🚀 Installation
-
-### For Development
-
-1. **Clone or download the repository**:
-   ```bash
-   git clone [repository-url]
-   cd planet-horse-extension
-   ```
-
-2. **Open Chrome and go to extensions**:
-   - Navigate to `chrome://extensions/`
-   - Enable "Developer mode"
-
-3. **Load the extension**:
-   - Click "Load unpacked"
-   - Select the project folder `planet-horse-extension`
-
-4. **Done!** The extension will appear in your active extensions list.
-
-### System Requirements
-
-- **Google Chrome** (version 88 or higher)
-- **Internet access** (to fetch token prices)
-- **Permissions**: The extension requires access to `planethorse.io` and `exchange-rate.skymavis.com`
-
-## 🎮 Usage
-
-1. **Install the extension** following the steps above
-2. **Navigate to PlanetHorse**: Go to `https://planethorse.io/game`
-3. **Automatic!**: USD value badges will automatically appear next to your PH tokens
-
-### Functionality
-
-- USD badges appear as floating elements next to PlanetHorse token icons
-- Values update automatically when you change pages or when your tokens change
-- The extension works in all game sections where PH tokens appear
-- If there are API connection issues, badges will show an error indicator
-
-## 🏗️ Project Structure
-
-```
-planet-horse-extension/
-├── manifest.json           # Chrome extension configuration
-├── background.js           # Service worker - API communication
-├── contentScript.js        # Main script - DOM manipulation
-└── README.md              # This file
-```
-
-### Architecture
-
-The extension uses a **3-component architecture**:
-
-1. **`manifest.json`**: 
-   - Permissions configuration and Chrome Extension v3 specifications
-   - Defines content scripts and service worker
-
-2. **`background.js`** (Service Worker):
-   - Handles communication with the Skymavis API
-   - Processes token price requests
-   - Manages CORS permissions and data validation
-
-3. **`contentScript.js`** (Content Script):
-   - Injected into planethorse.io pages
-   - Detects PH token elements
-   - Creates and positions USD badges
-   - Observes dynamic DOM changes
-
-## 🛠️ Technologies
-
-### Main Stack
-- **JavaScript ES6+**: Base language with modern features
-- **Chrome Extension API v3**: Modern extension architecture
-- **Native DOM APIs**: Direct DOM manipulation without frameworks
-- **Fetch API**: HTTP communication with external APIs
-- **MutationObserver API**: Dynamic change detection
-
-### External APIs
-- **Skymavis Exchange Rate API**: Token price provider
-  - Endpoint: `https://exchange-rate.skymavis.com/v2/prices`
-  - Token Address: `0x7f8e304eb2894e57f8b930000f396319729bd1f1`
-
-### Technical Features
-- **No external dependencies**: Requires no npm, webpack, or additional frameworks
-- **Vanilla JavaScript**: Pure code with no build process
-- **Manifest V3**: Uses the latest and most secure version of Chrome Extensions
-
-## 💻 Development
-
-### Local Setup
-
-Requires no build process or dependency installation:
-
-1. **Clone the repository**
-2. **Edit files** directly with any text editor
-3. **Reload the extension** in `chrome://extensions/` to see changes
-
-### Testing
-
-1. **Load the extension** in developer mode
-2. **Navigate to PlanetHorse**: `https://planethorse.io/game*`
-3. **Verify**:
-   - USD badges appear next to PH tokens
-   - Automatic updates when changing pages
-   - Correct behavior in SPA navigation
-   - Appropriate visibility during scroll
-
-### Debugging
-
-- **Browser console**: Debug messages with 🚀 prefix
-- **Chrome DevTools**: Inspect elements and network requests  
-- **Background Script**: Debug in `chrome://extensions/` > "service worker"
-- **Content Script**: Debug in the game page
-
-### Configuration
-
-Main parameters in `contentScript.js`:
-
-```javascript
-const CONFIG = {
-  TOKEN_ADDRESS: '0x7f8e304eb2894e57f8b930000f396319729bd1f1',
-  API_BASE_URL: 'https://exchange-rate.skymavis.com/v2/prices?addresses=',
-  BADGE_CLASS: 'ph-usd-badge'
-};
-```
-
-## 🤝 Contributing
-
-### How to Contribute
-
-1. **Fork the repository**
-2. **Create a branch** for your feature: `git checkout -b feature/new-functionality`
-3. **Make your changes** following existing code conventions
-4. **Test thoroughly** in different game scenarios
-5. **Commit your changes**: `git commit -m 'Add new functionality'`
-6. **Push to your branch**: `git push origin feature/new-functionality`
-7. **Create a Pull Request**
-
-### Development Guidelines
-
-- **Maintain style**: Follow existing code conventions
-- **Testing**: Test in multiple PlanetHorse scenarios
-- **Performance**: Consider impact on game performance
-- **Compatibility**: Ensure it works with SPA navigation
-
-### Reporting Issues
-
-If you find bugs or have suggestions:
-
-1. **Check** that a similar issue doesn't exist
-2. **Include environment information**: Chrome version, OS, etc.
-3. **Steps to reproduce** the problem
-4. **Screenshots** if relevant
-
-## 📝 License
-
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
-
-## 🙏 Credits
-
-- **PlanetHorse**: Original game developed by Sky Mavis
-- **Skymavis Exchange Rate API**: Token price data provider
-- **Chrome Extensions Documentation**: Guides and best practices
+- **Sky Mavis**: For creating PlanetHorse
+- **Community**: For feedback and feature requests
+- **Contributors**: For improving PlanetHorse+
 
 ---
 
-### 📧 Support
+**Enhance your PlanetHorse experience with community-driven tools!** 🐴⚡
 
-For technical support or development questions, please open an issue in this repository.
-
-**Enjoy playing PlanetHorse with real-time financial information!** 🐴💰
+*Remember: This is an unofficial, community-created extension designed to enhance your gaming experience while respecting the original game.*
