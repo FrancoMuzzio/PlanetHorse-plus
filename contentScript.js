@@ -178,7 +178,19 @@ const PlanetHorseUSD = {
       const img = group.querySelector('img[alt*="phorse"]');
       if (!img) return;
       
-      const valueElement = group.querySelector(`span:last-child:not(.${CONFIG.BADGE_CLASS})`);
+      // Find value element using robust content-based logic
+      const candidateSpans = group.querySelectorAll(`span:not(.${CONFIG.BADGE_CLASS})`);
+      let valueElement = null;
+      for (const span of candidateSpans) {
+        const text = span.textContent?.trim();
+        if (text && /^\d+$/.test(text)) {
+          valueElement = span;
+          break;
+        }
+      }
+      if (!valueElement && candidateSpans.length > 0) {
+        valueElement = candidateSpans[candidateSpans.length - 1];
+      }
       if (!valueElement) return;
       
       const currentValue = valueElement.textContent?.trim();
@@ -304,17 +316,34 @@ const PlanetHorseUSD = {
       return;
     }
     
-    // Find the value element (ignore existing badges)
-    const selector = `span:last-child:not(.${CONFIG.BADGE_CLASS})`;
-    console.log('🔍 [ULTRA-DEBUG] Searching for value element with selector:', selector);
+    // Find the value element using robust content-based logic (ignore existing badges)
+    console.log('🔍 [ULTRA-DEBUG] Searching for value element using content-based selector');
     
-    const valueElement = currencyGroup.querySelector(selector);
+    // Get all spans that are not our badge
+    const candidateSpans = currencyGroup.querySelectorAll(`span:not(.${CONFIG.BADGE_CLASS})`);
+    let valueElement = null;
+    
+    // Find the span with numeric content
+    for (const span of candidateSpans) {
+      const text = span.textContent?.trim();
+      if (text && /^\d+$/.test(text)) {
+        valueElement = span;
+        break;
+      }
+    }
+    
+    // Fallback: if no numeric content found, try the last non-badge span
+    if (!valueElement && candidateSpans.length > 0) {
+      valueElement = candidateSpans[candidateSpans.length - 1];
+    }
     console.log('🔍 [ULTRA-DEBUG] valueElement search result:', {
       found: !!valueElement,
       element: valueElement?.tagName,
       text: valueElement?.textContent?.trim(),
       className: valueElement?.className,
       parentClass: valueElement?.parentElement?.className,
+      candidateSpans: candidateSpans.length,
+      selectedMethod: valueElement ? (/^\d+$/.test(valueElement.textContent?.trim() || '') ? 'numeric-content' : 'fallback-last') : 'none',
       allSpans: currencyGroup.querySelectorAll('span').length
     });
     
