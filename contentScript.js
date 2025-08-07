@@ -42,12 +42,29 @@ const PlanetHorseUSD = {
   setupObserver() {
     if (this.observer) this.observer.disconnect();
     
-    this.observer = new MutationObserver(() => {
-      if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    this.observer = new MutationObserver((mutations) => {
+      // Filtrar solo mutaciones relevantes para mejorar performance
+      const relevantMutations = mutations.some(mutation => {
+        const target = mutation.target;
+        return (
+          // Cambios en currency groups
+          target.className?.includes('currencyGroup') ||
+          target.closest('[class*="currencyGroup"]') ||
+          // Cambios en spans que podrían ser valores
+          (target.tagName === 'SPAN' && target.textContent?.match(/^\d+$/)) ||
+          // Cambios en elementos con imágenes de phorse
+          target.querySelector?.('img[alt*="phorse"]') ||
+          target.closest?.('[class*="currencyGroup"]')
+        );
+      });
       
-      this.debounceTimer = setTimeout(() => {
-        this.updateAllBadges();
-      }, 200);
+      if (relevantMutations) {
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+        
+        this.debounceTimer = setTimeout(() => {
+          this.updateAllBadges();
+        }, 100); // Reducido de 200ms a 100ms para mejor respuesta
+      }
     });
     
     this.observer.observe(document.body, {
@@ -103,8 +120,8 @@ const PlanetHorseUSD = {
     console.log('🔍 [DEBUG] currencyGroup found:', currencyGroup?.className);
     if (!currencyGroup) return;
     
-    // Find the value element
-    const valueElement = currencyGroup.querySelector('span:last-child');
+    // Find the value element (ignore existing badges)
+    const valueElement = currencyGroup.querySelector(`span:not(.${CONFIG.BADGE_CLASS}):last-of-type`);
     console.log('🔍 [DEBUG] valueElement found:', {
       element: valueElement?.tagName,
       text: valueElement?.textContent?.trim(),
@@ -119,8 +136,8 @@ const PlanetHorseUSD = {
     
     const amount = parseFloat(valueElement.textContent.trim()) || 0;
     console.log('🔍 [DEBUG] Amount parsed:', amount);
-    if (amount === 0) {
-      console.log('🔍 [DEBUG] Skipping - amount is 0');
+    if (isNaN(amount) || amount < 0) {
+      console.log('🔍 [DEBUG] Skipping - invalid amount');
       return;
     }
     
