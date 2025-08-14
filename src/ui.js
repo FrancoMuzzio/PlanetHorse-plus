@@ -26,6 +26,7 @@ function findBalanceElement() {
     // Timeout para evitar esperar infinitamente
     setTimeout(() => {
       observer.disconnect();
+      resolve(null);
       debugLog('Balance element not found');
     }, 5000);
   });
