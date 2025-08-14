@@ -39,30 +39,62 @@ async function initializeBalance() {
   }
 }
 
-// Setup global observer for SPA navigation
+// Setup global observer for SPA navigation with error boundary
 function setupGlobalObserver() {
+  let errorCount = 0;
+  const MAX_ERRORS = 5; // Prevenir loops infinitos de errores
+  
   const globalObserver = new MutationObserver((mutations) => {
-    // Filter out changes made by our own extension
-    const hasRelevantChanges = mutations.some(mutation => {
-      // Ignore changes from our own elements
-      const addedNodes = Array.from(mutation.addedNodes);
-      const removedNodes = Array.from(mutation.removedNodes);
-      
-      const isOwnExtensionChange = [...addedNodes, ...removedNodes].some(node => {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          return node.classList.contains('phorse-converted') || 
-                 node.classList.contains('phorse-dollar-emoji');
-        }
-        return false;
+    try {
+      // Filter out changes made by our own extension
+      const hasRelevantChanges = mutations.some(mutation => {
+        // Ignore changes from our own elements
+        const addedNodes = Array.from(mutation.addedNodes);
+        const removedNodes = Array.from(mutation.removedNodes);
+        
+        const isOwnExtensionChange = [...addedNodes, ...removedNodes].some(node => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            return node.classList.contains('phorse-converted') || 
+                   node.classList.contains('phorse-dollar-emoji');
+          }
+          return false;
+        });
+        
+        return (addedNodes.length > 0 || removedNodes.length > 0) && !isOwnExtensionChange;
       });
       
-      return (addedNodes.length > 0 || removedNodes.length > 0) && !isOwnExtensionChange;
-    });
-    
-    if (hasRelevantChanges) {
-      // Debounce to avoid multiple executions
-      clearTimeout(window.phorseInitTimeout);
-      window.phorseInitTimeout = setTimeout(initializeBalance, 500);
+      if (hasRelevantChanges) {
+        // Debounce to avoid multiple executions
+        clearTimeout(window.phorseInitTimeout);
+        window.phorseInitTimeout = setTimeout(() => {
+          initializeBalance().catch(error => {
+            debugLog('Error in deferred initializeBalance:', error);
+          });
+        }, 500);
+      }
+      
+      // Reset error count on successful execution
+      errorCount = 0;
+      
+    } catch (error) {
+      errorCount++;
+      debugLog(`Error in global observer (${errorCount}/${MAX_ERRORS}):`, error);
+      
+      // Si alcanzamos el límite de errores, desconectar el observer
+      if (errorCount >= MAX_ERRORS) {
+        globalObserver.disconnect();
+        debugLog('Global observer disconnected due to repeated errors');
+        
+        // Opcionalmente, intentar reconectar después de un tiempo
+        setTimeout(() => {
+          debugLog('Attempting to reconnect global observer...');
+          errorCount = 0;
+          globalObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+          });
+        }, 30000); // Reintentar después de 30 segundos
+      }
     }
   });
 
