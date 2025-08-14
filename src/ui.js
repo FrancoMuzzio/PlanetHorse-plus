@@ -45,19 +45,14 @@ function formatPrice(value) {
 // Find existing converted price element
 function findConvertedPriceElement(balanceElement) {
   const parent = balanceElement.parentNode;
-  return parent ? parent.querySelector('.phorse-converted') : null;
+  return parent ? parent.querySelector(`.${CONFIG.CSS_CLASSES.CONVERTED_PRICE}`) : null;
 }
 
 // Setup grid layout on parent container
 function setupGridLayout(balanceElement) {
   const parent = balanceElement.parentNode;
-  if (parent && parent.className.startsWith('styles_currencyGroup__')) {
-    parent.style.cssText = `
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 2px 5px;
-      align-items: center;
-    `;
+  if (parent && parent.className.startsWith(CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX)) {
+    parent.style.cssText = CONFIG.CSS_STYLES.GRID_LAYOUT;
   }
 }
 
@@ -66,18 +61,18 @@ function createGridElements(balanceElement) {
   const parent = balanceElement.parentNode;
   
   // Apply text-align center to balance element
-  balanceElement.style.textAlign = 'center';
+  balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER;
   
   // Create dollar emoji
   const dollarEmoji = document.createElement('div');
   dollarEmoji.textContent = '💲';
-  dollarEmoji.classList.add('phorse-dollar-emoji');
-  dollarEmoji.style.textAlign = 'center';
+  dollarEmoji.classList.add(CONFIG.CSS_CLASSES.DOLLAR_EMOJI);
+  dollarEmoji.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER;
   
   // Create converted price
   const convertedPrice = document.createElement('span');
-  convertedPrice.classList.add('phorse-converted');
-  convertedPrice.style.textAlign = 'center';
+  convertedPrice.classList.add(CONFIG.CSS_CLASSES.CONVERTED_PRICE);
+  convertedPrice.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER;
   
   // Append to parent (grid will auto-place them)
   parent.appendChild(dollarEmoji);

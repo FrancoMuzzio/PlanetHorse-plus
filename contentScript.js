@@ -54,8 +54,8 @@ function setupGlobalObserver() {
         
         const isOwnExtensionChange = [...addedNodes, ...removedNodes].some(node => {
           if (node.nodeType === Node.ELEMENT_NODE) {
-            return node.classList.contains('phorse-converted') || 
-                   node.classList.contains('phorse-dollar-emoji');
+            return node.classList.contains(CONFIG.CSS_CLASSES.CONVERTED_PRICE) || 
+                   node.classList.contains(CONFIG.CSS_CLASSES.DOLLAR_EMOJI);
           }
           return false;
         });

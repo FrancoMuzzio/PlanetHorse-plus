@@ -4,7 +4,25 @@ const CONFIG = {
   API_BASE_URL: 'https://exchange-rate.skymavis.com/v2/prices?addresses=',
   BALANCE_ELEMENT_ID: 'phorse-balance',
   DEFAULT_CURRENCY: 'usd',
-  DEBUG: true
+  DEBUG: true,
+  
+  // CSS Classes configuration
+  CSS_CLASSES: {
+    CONVERTED_PRICE: 'phorse-converted',
+    DOLLAR_EMOJI: 'phorse-dollar-emoji',
+    CURRENCY_GROUP_PREFIX: 'styles_currencyGroup__'
+  },
+  
+  // CSS Styles configuration
+  CSS_STYLES: {
+    GRID_LAYOUT: `
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2px 5px;
+      align-items: center;
+    `,
+    TEXT_CENTER: 'text-align: center;'
+  }
 };
 
 // Debug logging function
