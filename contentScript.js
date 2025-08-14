@@ -42,7 +42,7 @@ async function initializeBalance() {
 // Setup global observer for SPA navigation with error boundary
 function setupGlobalObserver() {
   let errorCount = 0;
-  const MAX_ERRORS = 5; // Prevenir loops infinitos de errores
+  const MAX_ERRORS = 5; // Prevent infinite error loops
   
   const globalObserver = new MutationObserver((mutations) => {
     try {
@@ -80,12 +80,12 @@ function setupGlobalObserver() {
       errorCount++;
       debugLog(`Error in global observer (${errorCount}/${MAX_ERRORS}):`, error);
       
-      // Si alcanzamos el límite de errores, desconectar el observer
+      // If we reach error limit, disconnect observer
       if (errorCount >= MAX_ERRORS) {
         globalObserver.disconnect();
         debugLog('Global observer disconnected due to repeated errors');
         
-        // Opcionalmente, intentar reconectar después de un tiempo
+        // Optionally, try to reconnect after some time
         setTimeout(() => {
           debugLog('Attempting to reconnect global observer...');
           errorCount = 0;
@@ -93,7 +93,7 @@ function setupGlobalObserver() {
             childList: true,
             subtree: true
           });
-        }, 30000); // Reintentar después de 30 segundos
+        }, 30000); // Retry after 30 seconds
       }
     }
   });

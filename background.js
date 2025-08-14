@@ -11,6 +11,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       .catch(err => {
         sendResponse({ error: err.message });
       });
-    return true; // respuesta asíncrona
+    return true; // async response
   }
 });

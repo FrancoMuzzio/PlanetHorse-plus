@@ -1,14 +1,14 @@
 // Find balance element with observer
 function findBalanceElement() {
   return new Promise((resolve) => {
-    // Intento directo primero
+    // Direct attempt first
     const element = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
     if (element) {
       resolve(element);
       debugLog('Balance element found');
       return;
     }    
-    // Si no existe, esperar con observer
+    // If not exists, wait with observer
     const observer = new MutationObserver(() => {
       const element = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
       if (element) {
@@ -23,7 +23,7 @@ function findBalanceElement() {
       subtree: true
     });
 
-    // Timeout para evitar esperar infinitamente
+    // Timeout to avoid waiting indefinitely
     setTimeout(() => {
       observer.disconnect();
       resolve(null);
