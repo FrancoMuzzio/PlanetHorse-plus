@@ -23,15 +23,62 @@ Planet Horse is a Play-to-Earn horse racing game on the Ronin Network where play
    cd planet-horse-extension
    ```
 
-2. **Load in Chrome**:
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Build the extension**:
+   ```bash
+   npm run build
+   ```
+
+4. **Load in Chrome**:
    - Navigate to `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked"
-   - Select the project folder
+   - Select the `dist/` folder (not the project root)
 
 ## Usage
 
 Once installed, simply navigate to [Planet Horse](https://planethorse.io/game) and the extension will automatically display the USD value next to your PHORSE token balance. No configuration needed!
+
+## Development
+
+### Available Scripts
+
+- **`npm run build`**: Build the extension for production
+- **`npm run build:prod`**: Build with minification enabled
+- **`npm run watch`**: Build and watch for changes during development
+
+### Project Structure
+
+```
+src/
+├── content/
+│   ├── main.js     # Main orchestration and initialization
+│   ├── config.js   # Configuration constants and debug logging
+│   ├── api.js      # API communication with SkyMavis
+│   └── ui.js       # DOM manipulation and UI updates
+background.js       # Service worker for HTTP requests
+manifest.json       # Chrome extension manifest
+dist/              # Built extension files (generated)
+```
+
+### Development Workflow
+
+1. Make changes to files in `src/content/`
+2. Run `npm run build` or `npm run watch` for auto-rebuild
+3. Reload the extension in `chrome://extensions/`
+4. Hard refresh the Planet Horse page to see changes
+
+### Architecture
+
+- **Modular ES6**: Uses import/export for clean separation
+- **Build System**: esbuild bundles `src/content/*` → `dist/content.js`
+- **No External Dependencies**: Pure browser APIs only
+- **MutationObserver**: Detects SPA navigation changes
+- **Chrome Messaging**: Background script handles CORS-restricted API calls
 
 ## Support
 
@@ -54,16 +101,25 @@ Found an issue? Please report it on [GitHub Issues](https://github.com/[username
 
 Contributions are welcome! Please follow these guidelines:
 
+### Prerequisites
+- Node.js and npm installed
+- Basic understanding of Chrome extension development
+
+### Setup
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feat/new-feature`
-3. Make your changes
-4. Submit a pull request with a clear description
+3. Install dependencies: `npm install`
+4. Make your changes in `src/content/`
+5. Build and test: `npm run build`
+6. Test the extension by loading `dist/` in Chrome
+7. Submit a pull request with a clear description
 
 ### Conventions
 
 - **Branches**: Use [Conventional Branch](https://conventional-branch.github.io/) format
 - **Commits**: Use [Conventional Commits](https://www.conventionalcommits.org/)
 - **Code**: Function/variable names in English, comments in Spanish
+- **Build**: Always test that `npm run build` works before submitting PRs
 
 ## License
 

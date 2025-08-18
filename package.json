@@ -1,0 +1,26 @@
+{
+  "name": "planet-horse-extension",
+  "version": "1.0.0",
+  "description": "A Chrome extension that displays real-time USD value for your PH tokens on [Planet Horse](https://planethorse.io).",
+  "main": "background.js",
+  "devDependencies": {
+    "esbuild": "^0.25.9"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "build:prod": "node build.js --minify",
+    "watch": "node build.js --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FrancoMuzzio/PlanetHorse-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/FrancoMuzzio/PlanetHorse-/issues"
+  },
+  "homepage": "https://github.com/FrancoMuzzio/PlanetHorse-#readme"
+}

@@ -1,4 +1,7 @@
 /.claude
 /.serena
 /CLAUDE.md
-OPTIMIZATION_PLAN.md
+node_modules/
+dist/
+*.zip
+npm-debug.log

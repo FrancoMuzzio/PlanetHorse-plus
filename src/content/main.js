@@ -1,4 +1,7 @@
 // ============= MAIN ORCHESTRATION =============
+import './config.js';
+import './api.js';
+import './ui.js';
 
 /**
  * Watches balance element for content changes and updates USD price display
