@@ -1,28 +1,22 @@
 // ============= MAIN ORCHESTRATION =============
 import { CONFIG, debugLog } from './config.js';
-import { fetchTokenPrice } from './api.js';
-import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements } from './ui.js';
+import { fetchTokenPrice, fetchAllTokenPrices } from './api.js';
+import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements, updateConvertedPrice } from './ui.js';
 
 /**
- * Watches balance element for content changes and updates USD price display
- * @async
+ * Watches balance element for content changes and updates converted price display
  * @param {HTMLElement} element - The balance element to observe
  * @returns {void}
  */
-async function watchBalanceChanges(element) {
-  const contentObserver = new MutationObserver(async () => {
+function watchBalanceChanges(element) {
+  const contentObserver = new MutationObserver(() => {
     try {
-      const tokenPrice = await fetchTokenPrice(CONFIG.DEFAULT_CURRENCY);
-      debugLog('Token price:', tokenPrice);
-      addConvertedPrice(element, tokenPrice);
+      // Use cached data for immediate recalculation (no API call needed)
+      updateConvertedPrice(element);
+      debugLog('Balance updated using cached conversion data');
     } catch (error) {
-      // Manejar específicamente errores de timeout
-      if (error.message.includes('timeout') || error.message.includes('Request timeout') || error.message.includes('Client timeout')) {
-        debugLog('Timeout error during watch:', error.message);
-        handleTimeoutError();
-      } else {
-        debugLog('Error fetching token price:', error);
-      }
+      debugLog('Error updating converted price from cache:', error);
+      // If cache fails, the error will be handled by the UI layer
     }
   });
   
@@ -34,8 +28,8 @@ async function watchBalanceChanges(element) {
 }
 
 /**
- * Initializes the balance display with USD conversion
- * Finds balance element, fetches token price, and sets up observers
+ * Initializes the balance display with multi-currency conversion
+ * Finds balance element, fetches all token prices, and sets up observers
  * @async
  * @returns {Promise<void>}
  * @throws {Error} When token price fetch fails or timeout occurs
@@ -52,12 +46,13 @@ async function initializeBalance() {
       return;
     }
     
-    const tokenPrice = await fetchTokenPrice(CONFIG.DEFAULT_CURRENCY);
-    debugLog('Token price:', tokenPrice);
+    // Fetch all token prices in single API call
+    const priceData = await fetchAllTokenPrices();
+    debugLog('All token prices fetched and cached:', priceData);
     
-    addConvertedPrice(balanceElement, tokenPrice);
+    addConvertedPrice(balanceElement);
     watchBalanceChanges(balanceElement);
-    debugLog('Balance initialized successfully');
+    debugLog('Balance initialized successfully with multi-currency support');
   } catch (error) {
     // Manejar específicamente errores de timeout
     if (error.message.includes('timeout') || error.message.includes('Request timeout') || error.message.includes('Client timeout')) {
@@ -166,8 +161,9 @@ function handleTimeoutError() {
   // Reintentar después de 5 segundos
   setTimeout(async () => {
     try {
-      const tokenPrice = await fetchTokenPrice(CONFIG.DEFAULT_CURRENCY);
-      addConvertedPrice(balanceElement, tokenPrice);
+      const priceData = await fetchAllTokenPrices();
+      debugLog('Retry successful, price data cached:', priceData);
+      addConvertedPrice(balanceElement);
       errorSpan.style.color = ''; // Restaurar color original
     } catch (retryError) {
       debugLog('Retry failed:', retryError);

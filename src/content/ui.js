@@ -1,4 +1,5 @@
-import { CONFIG, debugLog } from './config.js';
+import { CONFIG, debugLog, getConversionInfo, getNextConversion } from './config.js';
+import { getConvertedPrice } from './api.js';
 
 /**
  * Finds or waits for the balance element in the DOM
@@ -82,7 +83,7 @@ export function setupGridLayout(balanceElement) {
 }
 
 /**
- * Creates dollar emoji and converted price elements for display
+ * Creates currency selector and converted price elements for display
  * @param {HTMLElement} balanceElement - The balance element to add siblings to
  * @returns {HTMLElement} The created converted price span element
  * @postcondition Parent element will contain two new child elements
@@ -93,11 +94,20 @@ export function createGridElements(balanceElement) {
   // Apply text-align center to balance element
   balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER;
   
-  // Create dollar emoji
-  const dollarEmoji = document.createElement('div');
-  dollarEmoji.textContent = '💲';
-  dollarEmoji.classList.add(CONFIG.CSS_CLASSES.DOLLAR_EMOJI);
-  dollarEmoji.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER;
+  // Create clickeable currency selector
+  const currencySelector = document.createElement('div');
+  const currentConversionInfo = getConversionInfo(CONFIG.CURRENT_CONVERSION);
+  currencySelector.textContent = currentConversionInfo.symbol;
+  currencySelector.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
+  currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' cursor: pointer;';
+  currencySelector.title = `Click to change currency (Current: ${currentConversionInfo.displayName})`;
+  
+  // Add click event listener for cycling between conversions
+  currencySelector.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleCurrencyChange(balanceElement);
+  });
   
   // Create converted price
   const convertedPrice = document.createElement('span');
@@ -105,7 +115,7 @@ export function createGridElements(balanceElement) {
   convertedPrice.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER;
   
   // Append to parent (grid will auto-place them)
-  parent.appendChild(dollarEmoji);
+  parent.appendChild(currencySelector);
   parent.appendChild(convertedPrice);
   
   return convertedPrice;
@@ -114,19 +124,99 @@ export function createGridElements(balanceElement) {
 /**
  * Main UI update function that adds or updates the converted price display
  * @param {HTMLElement} balanceElement - The balance element to enhance
- * @param {number} tokenPrice - The current token price in USD
+ * @param {number} tokenPrice - The current token price (deprecated - using cache now)
  * @returns {void}
- * @postcondition Balance element will have sibling elements showing USD value
+ * @postcondition Balance element will have sibling elements showing converted value
  */
-export function addConvertedPrice(balanceElement, tokenPrice) {
-  const convertedValue = calculateConvertedPrice(balanceElement.textContent, tokenPrice);
-  const formattedPrice = formatPrice(convertedValue);
+export function addConvertedPrice(balanceElement, tokenPrice = null) {
+  debugLog('💰 ADD CONVERTED PRICE START - Using conversion:', CONFIG.CURRENT_CONVERSION);
   
-  let convertedSpan = findConvertedPriceElement(balanceElement);
-  if (!convertedSpan) {
-    setupGridLayout(balanceElement);
-    convertedSpan = createGridElements(balanceElement);
+  try {
+    // Use new conversion system
+    const convertedValue = getConvertedPrice(CONFIG.CURRENT_CONVERSION, balanceElement.textContent);
+    const formattedPrice = formatPrice(convertedValue);
+    
+    let convertedSpan = findConvertedPriceElement(balanceElement);
+    if (!convertedSpan) {
+      setupGridLayout(balanceElement);
+      convertedSpan = createGridElements(balanceElement);
+    }
+    
+    convertedSpan.textContent = formattedPrice;
+    updateCurrencySelector(balanceElement);
+    
+  } catch (error) {
+    debugLog('Error in addConvertedPrice:', error);
+    
+    // Fallback to old system if new system fails
+    if (tokenPrice !== null) {
+      const convertedValue = calculateConvertedPrice(balanceElement.textContent, tokenPrice);
+      const formattedPrice = formatPrice(convertedValue);
+      
+      let convertedSpan = findConvertedPriceElement(balanceElement);
+      if (!convertedSpan) {
+        setupGridLayout(balanceElement);
+        convertedSpan = createGridElements(balanceElement);
+      }
+      
+      convertedSpan.textContent = formattedPrice;
+    } else {
+      debugLog('No fallback price available');
+    }
   }
   
-  convertedSpan.textContent = formattedPrice;
+  debugLog('💰 ADD CONVERTED PRICE END');
+}
+
+/**
+ * Handles currency selector click - cycles to next conversion
+ * @param {HTMLElement} balanceElement - The balance element
+ */
+function handleCurrencyChange(balanceElement) {
+  debugLog('🔄 CURRENCY CHANGE START');
+  debugLog('📍 Current conversion before:', CONFIG.CURRENT_CONVERSION);
+  
+  const nextConversion = getNextConversion(CONFIG.CURRENT_CONVERSION);
+  debugLog('📍 Next conversion calculated:', nextConversion);
+  
+  // Update current conversion
+  CONFIG.CURRENT_CONVERSION = nextConversion;
+  debugLog('📍 Current conversion updated to:', CONFIG.CURRENT_CONVERSION);
+  
+  // Update UI immediately
+  addConvertedPrice(balanceElement);
+  debugLog('🔄 CURRENCY CHANGE END');
+}
+
+/**
+ * Updates the currency selector symbol and tooltip
+ * @param {HTMLElement} balanceElement - The balance element
+ */
+function updateCurrencySelector(balanceElement) {
+  debugLog('🎯 UPDATE SELECTOR START');
+  debugLog('🎯 CONFIG.CURRENT_CONVERSION:', CONFIG.CURRENT_CONVERSION);
+  
+  const parent = balanceElement.parentNode;
+  const selector = parent?.querySelector(`.${CONFIG.CSS_CLASSES.CURRENCY_SELECTOR}`);
+  
+  debugLog('🎯 Selector element found:', !!selector);
+  
+  if (selector) {
+    const conversionInfo = getConversionInfo(CONFIG.CURRENT_CONVERSION);
+    debugLog('🎯 Conversion info retrieved:', conversionInfo);
+    
+    debugLog('🎯 Setting symbol from', selector.textContent, 'to', conversionInfo.symbol);
+    selector.textContent = conversionInfo.symbol;
+    selector.title = `Click to change currency (Current: ${conversionInfo.displayName})`;
+    debugLog('🎯 Selector updated - Symbol:', selector.textContent, 'Title:', selector.title);
+  }
+  debugLog('🎯 UPDATE SELECTOR END');
+}
+
+/**
+ * Updates converted price for existing display using current conversion
+ * @param {HTMLElement} balanceElement - The balance element
+ */
+export function updateConvertedPrice(balanceElement) {
+  addConvertedPrice(balanceElement);
 }
