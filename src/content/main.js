@@ -1,7 +1,7 @@
 // ============= MAIN ORCHESTRATION =============
-import './config.js';
-import './api.js';
-import './ui.js';
+import { CONFIG, debugLog } from './config.js';
+import { fetchTokenPrice } from './api.js';
+import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements } from './ui.js';
 
 /**
  * Watches balance element for content changes and updates USD price display

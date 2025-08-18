@@ -23,7 +23,7 @@
     "content_scripts": [
       {
         "matches": ["https://planethorse.io/game*"],
-        "js": ["src/config.js", "src/api.js", "src/ui.js", "contentScript.js"]
+        "js": ["content.js"]
       }
     ]
   }

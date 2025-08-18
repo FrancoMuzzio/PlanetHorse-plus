@@ -1,9 +1,11 @@
+import { CONFIG, debugLog } from './config.js';
+
 /**
  * Finds or waits for the balance element in the DOM
  * Uses MutationObserver if element is not immediately available
  * @returns {Promise<HTMLElement|null>} The balance element or null if not found within 5 seconds
  */
-function findBalanceElement() {
+export function findBalanceElement() {
   return new Promise((resolve) => {
     // Direct attempt first
     const element = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
@@ -61,7 +63,7 @@ function formatPrice(value) {
  * @param {HTMLElement} balanceElement - The balance element to search from
  * @returns {HTMLElement|null} The converted price element or null if not found
  */
-function findConvertedPriceElement(balanceElement) {
+export function findConvertedPriceElement(balanceElement) {
   const parent = balanceElement.parentNode;
   return parent ? parent.querySelector(`.${CONFIG.CSS_CLASSES.CONVERTED_PRICE}`) : null;
 }
@@ -72,7 +74,7 @@ function findConvertedPriceElement(balanceElement) {
  * @returns {void}
  * @precondition Parent element must have currency group class prefix
  */
-function setupGridLayout(balanceElement) {
+export function setupGridLayout(balanceElement) {
   const parent = balanceElement.parentNode;
   if (parent && parent.className.startsWith(CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX)) {
     parent.style.cssText = CONFIG.CSS_STYLES.GRID_LAYOUT;
@@ -85,7 +87,7 @@ function setupGridLayout(balanceElement) {
  * @returns {HTMLElement} The created converted price span element
  * @postcondition Parent element will contain two new child elements
  */
-function createGridElements(balanceElement) {
+export function createGridElements(balanceElement) {
   const parent = balanceElement.parentNode;
   
   // Apply text-align center to balance element
@@ -116,7 +118,7 @@ function createGridElements(balanceElement) {
  * @returns {void}
  * @postcondition Balance element will have sibling elements showing USD value
  */
-function addConvertedPrice(balanceElement, tokenPrice) {
+export function addConvertedPrice(balanceElement, tokenPrice) {
   const convertedValue = calculateConvertedPrice(balanceElement.textContent, tokenPrice);
   const formattedPrice = formatPrice(convertedValue);
   

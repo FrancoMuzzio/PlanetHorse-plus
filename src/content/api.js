@@ -1,3 +1,5 @@
+import { CONFIG } from './config.js';
+
 /**
  * Fetches current token price from SkyMavis API via background service worker
  * @async
@@ -5,7 +7,7 @@
  * @returns {Promise<number>} The token price in specified currency
  * @throws {Error} Throws on timeout (15s), runtime errors, or API failures
  */
-async function fetchTokenPrice(currency) {
+export async function fetchTokenPrice(currency) {
   return new Promise((resolve, reject) => {
     // Configurar timeout del lado del cliente (15 segundos)
     const clientTimeoutId = setTimeout(() => {
