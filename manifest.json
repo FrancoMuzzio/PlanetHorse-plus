@@ -1,11 +1,11 @@
 {
     "manifest_version": 3,
     "name": "PlanetHorse+",
-    "version": "1.0",
+    "version": "1.0.0",
     "content_security_policy": {
         "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none';"
     },
-    "description": "Display real-time USD value for your PH tokens - Unofficial PlanetHorse extension",
+    "description": "Real-time USD value for PH tokens",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
