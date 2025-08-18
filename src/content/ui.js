@@ -1,4 +1,4 @@
-import { CONFIG, debugLog, getConversionInfo, getNextConversion } from './config.js';
+import { CONFIG, debugLog, getConversionInfo, getNextConversion, getAvailableConversions, getConversionDisplayText } from './config.js';
 import { getConvertedPrice } from './api.js';
 
 /**
@@ -83,7 +83,7 @@ export function setupGridLayout(balanceElement) {
 }
 
 /**
- * Creates currency selector and converted price elements for display
+ * Creates currency selector dropdown and converted price elements for display
  * @param {HTMLElement} balanceElement - The balance element to add siblings to
  * @returns {HTMLElement} The created converted price span element
  * @postcondition Parent element will contain two new child elements
@@ -94,19 +94,31 @@ export function createGridElements(balanceElement) {
   // Apply text-align center to balance element
   balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER;
   
-  // Create clickeable currency selector
-  const currencySelector = document.createElement('div');
-  const currentConversionInfo = getConversionInfo(CONFIG.CURRENT_CONVERSION);
-  currencySelector.textContent = currentConversionInfo.symbol;
+  // Create dropdown currency selector
+  const currencySelector = document.createElement('select');
   currencySelector.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
-  currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' cursor: pointer;';
-  currencySelector.title = `Click to change currency (Current: ${currentConversionInfo.displayName})`;
   
-  // Add click event listener for cycling between conversions
-  currencySelector.addEventListener('click', (e) => {
+  // Generate options for all available conversions
+  const availableConversions = getAvailableConversions();
+  availableConversions.forEach(conversionKey => {
+    const option = document.createElement('option');
+    option.value = conversionKey;
+    option.textContent = getConversionDisplayText(conversionKey);
+    currencySelector.appendChild(option);
+  });
+  
+  // Set current selected value
+  currencySelector.value = CONFIG.CURRENT_CONVERSION;
+  
+  // Basic dropdown styling
+  currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + 
+    ' cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: white; font-size: 14px; padding: 2px 4px;';
+  
+  // Add change event listener for currency selection
+  currencySelector.addEventListener('change', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    handleCurrencyChange(balanceElement);
+    handleCurrencyChange(balanceElement, e.target.value);
   });
   
   // Create converted price
@@ -169,18 +181,17 @@ export function addConvertedPrice(balanceElement, tokenPrice = null) {
 }
 
 /**
- * Handles currency selector click - cycles to next conversion
+ * Handles currency selector change - sets specific conversion
  * @param {HTMLElement} balanceElement - The balance element
+ * @param {string} selectedValue - The selected conversion value from dropdown
  */
-function handleCurrencyChange(balanceElement) {
+function handleCurrencyChange(balanceElement, selectedValue) {
   debugLog('🔄 CURRENCY CHANGE START');
   debugLog('📍 Current conversion before:', CONFIG.CURRENT_CONVERSION);
+  debugLog('📍 Selected conversion:', selectedValue);
   
-  const nextConversion = getNextConversion(CONFIG.CURRENT_CONVERSION);
-  debugLog('📍 Next conversion calculated:', nextConversion);
-  
-  // Update current conversion
-  CONFIG.CURRENT_CONVERSION = nextConversion;
+  // Update current conversion directly
+  CONFIG.CURRENT_CONVERSION = selectedValue;
   debugLog('📍 Current conversion updated to:', CONFIG.CURRENT_CONVERSION);
   
   // Update UI immediately
@@ -189,7 +200,7 @@ function handleCurrencyChange(balanceElement) {
 }
 
 /**
- * Updates the currency selector symbol and tooltip
+ * Updates the currency selector dropdown value
  * @param {HTMLElement} balanceElement - The balance element
  */
 function updateCurrencySelector(balanceElement) {
@@ -202,13 +213,9 @@ function updateCurrencySelector(balanceElement) {
   debugLog('🎯 Selector element found:', !!selector);
   
   if (selector) {
-    const conversionInfo = getConversionInfo(CONFIG.CURRENT_CONVERSION);
-    debugLog('🎯 Conversion info retrieved:', conversionInfo);
-    
-    debugLog('🎯 Setting symbol from', selector.textContent, 'to', conversionInfo.symbol);
-    selector.textContent = conversionInfo.symbol;
-    selector.title = `Click to change currency (Current: ${conversionInfo.displayName})`;
-    debugLog('🎯 Selector updated - Symbol:', selector.textContent, 'Title:', selector.title);
+    debugLog('🎯 Setting dropdown value from', selector.value, 'to', CONFIG.CURRENT_CONVERSION);
+    selector.value = CONFIG.CURRENT_CONVERSION;
+    debugLog('🎯 Selector updated - Value:', selector.value);
   }
   debugLog('🎯 UPDATE SELECTOR END');
 }

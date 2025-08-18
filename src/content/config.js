@@ -126,3 +126,13 @@ export function getNextConversion(currentConversion) {
   
   return next;
 }
+
+/**
+ * Gets display text for dropdown options
+ * @param {string} conversionKey - The conversion key
+ * @returns {string} Display text with symbol and name (e.g., "💲 USD")
+ */
+export function getConversionDisplayText(conversionKey) {
+  const info = getConversionInfo(conversionKey);
+  return `${info.symbol} ${info.name}`;
+}
