@@ -1,4 +1,10 @@
-// Request price via background
+/**
+ * Fetches current token price from SkyMavis API via background service worker
+ * @async
+ * @param {string} currency - Currency code (e.g., 'usd')
+ * @returns {Promise<number>} The token price in specified currency
+ * @throws {Error} Throws on timeout (15s), runtime errors, or API failures
+ */
 async function fetchTokenPrice(currency) {
   return new Promise((resolve, reject) => {
     // Configurar timeout del lado del cliente (15 segundos)

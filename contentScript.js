@@ -1,6 +1,11 @@
 // ============= MAIN ORCHESTRATION =============
 
-// Watch balance element content changes
+/**
+ * Watches balance element for content changes and updates USD price display
+ * @async
+ * @param {HTMLElement} element - The balance element to observe
+ * @returns {void}
+ */
 async function watchBalanceChanges(element) {
   const contentObserver = new MutationObserver(async () => {
     try {
@@ -25,7 +30,13 @@ async function watchBalanceChanges(element) {
   });
 }
 
-// Initialize balance display
+/**
+ * Initializes the balance display with USD conversion
+ * Finds balance element, fetches token price, and sets up observers
+ * @async
+ * @returns {Promise<void>}
+ * @throws {Error} When token price fetch fails or timeout occurs
+ */
 async function initializeBalance() {
   try {
     const balanceElement = await findBalanceElement();
@@ -55,7 +66,12 @@ async function initializeBalance() {
   }
 }
 
-// Setup global observer for SPA navigation with error boundary
+/**
+ * Sets up global MutationObserver for SPA navigation
+ * Monitors DOM changes to re-initialize balance display when needed
+ * Includes error boundary to prevent infinite loops
+ * @returns {void}
+ */
 function setupGlobalObserver() {
   let errorCount = 0;
   const MAX_ERRORS = 5; // Prevent infinite error loops
@@ -122,7 +138,11 @@ function setupGlobalObserver() {
   debugLog('Global observer setup complete');
 }
 
-// Handle timeout errors with user feedback
+/**
+ * Handles timeout errors by displaying user feedback and retrying
+ * Shows temporary error message and attempts retry after 5 seconds
+ * @returns {void}
+ */
 function handleTimeoutError() {
   // Buscar el elemento de precio convertido o el balance para mostrar el error
   const balanceElement = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
@@ -153,7 +173,12 @@ function handleTimeoutError() {
   }, 5000);
 }
 
-// Initialize extension
+/**
+ * Main initialization function for the extension
+ * Initializes balance display and sets up global observer
+ * @async
+ * @returns {Promise<void>}
+ */
 async function initialize() {
   await initializeBalance();
   setupGlobalObserver();

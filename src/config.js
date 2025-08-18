@@ -25,7 +25,12 @@ const CONFIG = {
   }
 };
 
-// Debug logging function
+/**
+ * Conditional debug logging utility
+ * Only logs messages when CONFIG.DEBUG is true
+ * @param {...*} args - Arguments to log to console
+ * @returns {void}
+ */
 function debugLog(...args) {
   if (CONFIG.DEBUG) {
     console.log('[Planet Horse Extension]', ...args);
