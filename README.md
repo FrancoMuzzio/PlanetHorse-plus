@@ -1,120 +1,81 @@
 # PlanetHorse+
 
-Una extensión de Chrome no oficial que muestra el valor en USD de tus tokens PH en tiempo real.
+A Chrome extension that displays real-time USD value for your PH tokens on [Planet Horse](https://planethorse.io).
 
-## Descripción
+## What is Planet Horse?
 
-**PlanetHorse+** es una extensión de navegador que se integra de forma no invasiva con [PlanetHorse](https://planethorse.io) para mostrar automáticamente el valor equivalente en dólares estadounidenses de tus tokens PH. La extensión detecta tu balance actual y añade una conversión en tiempo real usando los precios oficiales de la API de SkyMavis.
+Planet Horse is a Play-to-Earn horse racing game on the Ronin Network where players can race, train, and evolve their horses while earning PHORSE tokens. This extension enhances your gaming experience by automatically showing the USD equivalent of your token balance.
 
-### Características principales
+## Features
 
-- **Conversión automática a USD**: Muestra el valor de tus tokens PH en dólares
-- **Actualización en tiempo real**: Se actualiza automáticamente cuando cambia tu balance
-- **Integración no invasiva**: Se añade discretamente sin interferir con la UI original
-- **Compatibilidad SPA**: Funciona perfectamente con la navegación del juego
-- **Sin configuración**: Funciona inmediatamente después de la instalación
+- **Real-time USD Conversion**: Automatically displays the current USD value of your PHORSE tokens
+- **Non-invasive Integration**: Seamlessly adds to the existing UI without disrupting gameplay
+- **Automatic Updates**: Refreshes whenever your balance changes
+- **Zero Configuration**: Works immediately after installation
 
-## Instalación
+## Installation
 
-### Para desarrollo
+### Development Mode
 
-1. **Clona el repositorio**:
+1. **Clone the repository**:
    ```bash
-   git clone [url-del-repositorio]
+   git clone [repository-url]
    cd planet-horse-extension
    ```
 
-2. **Carga la extensión en Chrome**:
-   - Ve a `chrome://extensions/`
-   - Activa el "Modo de desarrollador"
-   - Haz clic en "Cargar extensión sin empaquetar"
-   - Selecciona la carpeta del proyecto
+2. **Load in Chrome**:
+   - Navigate to `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select the project folder
 
-### Para uso normal
+## Usage
 
-La extensión estará disponible en Chrome Web Store próximamente.
+Once installed, simply navigate to [Planet Horse](https://planethorse.io/game) and the extension will automatically display the USD value next to your PHORSE token balance. No configuration needed!
 
-## Uso
+## Support
 
-1. **Instala la extensión** siguiendo los pasos anteriores
-2. **Ve a PlanetHorse**: Navega a `https://planethorse.io/game`
-3. **¡Listo!**: Verás automáticamente el valor en USD junto a tu balance de tokens PH
+### Found this helpful?
 
-La extensión funciona automáticamente en todas las secciones del juego donde se muestre tu balance.
+If you're new to Planet Horse and found this extension useful, you can use my referral link:
+- **Referral URL**: https://planethorse.io/?ref=kevlar
+- **Referral Code**: `kevlar`
 
-## Arquitectura técnica
+### Donations
 
-```
-planet-horse-extension/
-├── manifest.json           # Configuración de la extensión (Manifest V3)
-├── background.js           # Service Worker para peticiones HTTP
-├── contentScript.js        # Orquestación principal
-├── src/
-│   ├── config.js          # Configuración y debug
-│   ├── api.js             # Comunicación con la API
-│   └── ui.js              # Manipulación del DOM
-├── icons/                 # Iconos de la extensión
-└── tests/                 # Suite de pruebas
-```
+If you'd like to support the development of this extension, donations are welcome but never required:
+- **Ronin Address**: `0x27eB87e9a58624f590653b0F164d82eE2Bf2D9f6`
 
-### Stack tecnológico
+### Bug Reports
 
-- **JavaScript ES6+**: Sin dependencias externas
-- **Chrome Extension Manifest V3**: Última versión de la plataforma
-- **MutationObserver**: Detección de cambios en el DOM
-- **Fetch API**: Comunicación HTTP segura
-- **SkyMavis API**: Precios oficiales de tokens
+Found an issue? Please report it on [GitHub Issues](https://github.com/[username]/planet-horse-extension/issues).
 
-## Contribuciones
+## Contributing
 
-Las contribuciones son bienvenidas. Para cambios importantes, abre primero un issue para discutir los cambios propuestos.
+Contributions are welcome! Please follow these guidelines:
 
-### Proceso de contribución
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feat/new-feature`
+3. Make your changes
+4. Submit a pull request with a clear description
 
-1. Haz fork del repositorio
-2. Crea una rama para tu feature: `git checkout -b feat/nueva-funcionalidad`
-3. Realiza tus cambios siguiendo las convenciones del proyecto
-4. Asegúrate de que todo funcione correctamente
-5. Envía un pull request con una descripción detallada
+### Conventions
 
-### Convenciones
+- **Branches**: Use [Conventional Branch](https://conventional-branch.github.io/) format
+- **Commits**: Use [Conventional Commits](https://www.conventionalcommits.org/)
+- **Code**: Function/variable names in English, comments in Spanish
 
-- **Ramas**: Usar [Conventional Branch](https://conventional-branch.github.io/)
-- **Commits**: Usar [Conventional Commits](https://www.conventionalcommits.org/) en español
-- **Pull Requests**: Seguir convenciones de Conventional Commits en español
-- **Código**: Nombres de funciones y variables en inglés, comentarios en español
+## License
 
-## Soporte
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-Si encuentras algún problema o tienes sugerencias:
+## Disclaimer
 
-- **Issues**: Reporta bugs o solicita nuevas características en GitHub Issues
-- **Discussions**: Para preguntas generales y discusiones de la comunidad
+**This is an UNOFFICIAL extension** developed independently by the community. It is not affiliated with, endorsed by, or connected to Planet Horse or its developers.
 
-Al reportar un issue, incluye:
-- Versión de Chrome
-- Sistema operativo
-- Pasos para reproducir el problema
-- Capturas de pantalla si es relevante
-
-## Licencia
-
-Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
-## Aviso legal
-
-**Esta es una extensión NO OFICIAL** desarrollada por y para la comunidad. No está afiliada, respaldada o conectada con Sky Mavis o PlanetHorse de ninguna manera.
-
-- PlanetHorse™ es una marca registrada de Sky Mavis
-- Esta extensión se proporciona "tal como está" sin garantías
-- Los usuarios instalan y usan la extensión bajo su propio riesgo
-
-## Reconocimientos
-
-- **Sky Mavis**: Por crear PlanetHorse y proporcionar la API de precios
-- **Comunidad**: Por el feedback y las solicitudes de características
-- **Contribuidores**: Por mejorar PlanetHorse+
+- Planet Horse™ and all related assets are property of their respective owners
+- Use this extension at your own risk
 
 ---
 
-**¡Mejora tu experiencia en PlanetHorse con herramientas desarrolladas por la comunidad!** 🐴💰
+**Enhance your Planet Horse experience with community-built tools!** 🐴💰
