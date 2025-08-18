@@ -1,8 +1,7 @@
 @echo off
 echo Creando ZIP para Chrome Web Store...
-cd dist
-"C:\Program Files\WinRAR\WinRAR.exe" a -afzip -ep1 ..\planethorse-extension.zip *
-cd ..
+echo Excluyendo content.js.map...
+"C:\Program Files\WinRAR\WinRAR.exe" a -afzip -r -ep1 -xcontent.js.map planethorse-extension.zip dist\*
 echo.
 echo ✅ ZIP creado: planethorse-extension.zip
 echo Listo para subir a Chrome Web Store!
