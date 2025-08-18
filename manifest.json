@@ -5,7 +5,7 @@
     "content_security_policy": {
         "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none';"
     },
-    "description": "Unofficial PlanetHorse toolkit with enhanced game features and utilities",
+    "description": "Display real-time USD value for your PH tokens - Unofficial PlanetHorse extension",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
