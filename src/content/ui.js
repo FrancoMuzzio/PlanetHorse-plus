@@ -126,9 +126,8 @@ export function createGridElements(balanceElement) {
   // Set current selected value
   currencySelector.value = CONFIG.CURRENT_CONVERSION;
   
-  // Basic dropdown styling with grid positioning
-  currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN +
-    ' cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: white; font-size: 14px; padding: 2px 4px;';
+  // Apply dropdown styling from configuration with grid positioning
+  currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + CONFIG.CSS_STYLES.DROPDOWN_STYLES;
   
   // Add change event listener for currency selection
   currencySelector.addEventListener('change', (e) => {

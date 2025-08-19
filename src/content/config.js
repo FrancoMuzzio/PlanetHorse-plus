@@ -52,7 +52,8 @@ export const CONFIG = {
     GRID_ICON: 'right: 0 !important; left: auto !important; width: 32px !important; max-width: 32px !important; min-width: 32px !important; margin: 0 !important; grid-column: 1; grid-row: 1;',
     GRID_BALANCE: 'grid-column: 2; grid-row: 1;',
     GRID_DROPDOWN: 'grid-column: 1; grid-row: 2;',
-    GRID_CONVERTED: 'grid-column: 2; grid-row: 2;'
+    GRID_CONVERTED: 'grid-column: 2; grid-row: 2;',
+    DROPDOWN_STYLES: 'cursor: pointer; border: 1px solid #3a1a15; border-radius: 4px; background: #582c25; color: white; font-size: 14px; padding: 2px 4px; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;'
   }
 };
 
