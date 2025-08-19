@@ -5,7 +5,7 @@ export const CONFIG = {
   BALANCE_ELEMENT_ID: 'phorse-balance',
   DEFAULT_CURRENCY: 'usd',
   CURRENT_CONVERSION: 'usd', // Current selected conversion
-  DEBUG: true,
+  DEBUG: false,
   
   // Supported conversion types (scalable structure)
   CONVERSION_TYPES: {

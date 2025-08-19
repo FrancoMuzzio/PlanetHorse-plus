@@ -1,6 +1,6 @@
 # PlanetHorse+
 
-A Chrome extension that displays real-time USD value for your PH tokens on [Planet Horse](https://planethorse.io).
+A Chrome extension that displays real-time multi-currency conversion for your PH tokens on [Planet Horse](https://planethorse.io). Support for USD, EUR, and RON tokens with an interactive currency selector.
 
 ## What is Planet Horse?
 
@@ -8,7 +8,9 @@ Planet Horse is a Play-to-Earn horse racing game on the Ronin Network where play
 
 ## Features
 
-- **Real-time USD Conversion**: Automatically displays the current USD value of your PHORSE tokens
+- **Multi-Currency Support**: Convert PHORSE tokens to USD, EUR, or RON with real-time rates
+- **Interactive Currency Selector**: Easy-to-use dropdown to switch between conversion types
+- **Smart Caching**: Optimized performance with single API call for all exchange rates
 - **Non-invasive Integration**: Seamlessly adds to the existing UI without disrupting gameplay
 - **Automatic Updates**: Refreshes whenever your balance changes
 - **Zero Configuration**: Works immediately after installation
@@ -41,7 +43,7 @@ Planet Horse is a Play-to-Earn horse racing game on the Ronin Network where play
 
 ## Usage
 
-Once installed, simply navigate to [Planet Horse](https://planethorse.io/game) and the extension will automatically display the USD value next to your PHORSE token balance. No configuration needed!
+Once installed, simply navigate to [Planet Horse](https://planethorse.io/game) and the extension will automatically display a currency selector and converted value next to your PHORSE token balance. Click the dropdown to switch between USD (💲), EUR (💶), and RON (🏦) conversions. No configuration needed!
 
 ## Development
 
