@@ -49,7 +49,7 @@ export const CONFIG = {
       align-items: center;
     `,
     TEXT_CENTER: 'text-align: center;',
-    GRID_ICON: 'grid-column: 1; grid-row: 1; min-width: auto !important; max-width: 32px !important; width: auto; justify-self: end;',
+    GRID_ICON: 'right: 0 !important; left: auto !important; width: 32px !important; max-width: 32px !important; min-width: 32px !important; margin: 0 !important; grid-column: 1; grid-row: 1;',
     GRID_BALANCE: 'grid-column: 2; grid-row: 1;',
     GRID_DROPDOWN: 'grid-column: 1; grid-row: 2;',
     GRID_CONVERTED: 'grid-column: 2; grid-row: 2;'
