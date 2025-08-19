@@ -1,7 +1,7 @@
 // ============= MAIN ORCHESTRATION =============
 import { CONFIG, debugLog } from './config.js';
 import { fetchTokenPrice, fetchAllTokenPrices } from './api.js';
-import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements, updateConvertedPrice } from './ui.js';
+import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements, updateConvertedPrice, applyIconStyles } from './ui.js';
 
 /**
  * Watches balance element for content changes and updates converted price display
@@ -42,7 +42,8 @@ async function initializeBalance() {
     // Check if already initialized to avoid infinite loop
     const existingConverted = findConvertedPriceElement(balanceElement);
     if (existingConverted) {
-      debugLog('Balance already initialized, skipping');
+      debugLog('Balance already initialized, applying icon styles only');
+      applyIconStyles(balanceElement);
       return;
     }
     

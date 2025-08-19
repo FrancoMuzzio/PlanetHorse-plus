@@ -83,15 +83,17 @@ export function setupGridLayout(balanceElement) {
 }
 
 /**
- * Applies grid positioning to existing elements in the parent container
- * @param {HTMLElement} parent - The parent container with grid layout
- * @param {HTMLElement} balanceElement - The balance element to exclude from icon search
+ * Applies grid positioning styles to the PHORSE icon
+ * @param {HTMLElement} balanceElement - The balance element whose parent contains the icon
  */
-function positionExistingElements(parent, balanceElement) {
-  // Buscar específicamente el icono PHORSE
-  const phorseIcon = parent.querySelector('img[alt="phorse"]');
+export function applyIconStyles(balanceElement) {
+  const parent = balanceElement.parentNode;
+  if (!parent) return;
+  
+  // Buscar específicamente el icono PHORSE (puede tener alt="phorse" o alt="phorse coin")
+  const phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]');
   if (phorseIcon) {
-    debugLog('🐴 PHORSE icon found, applying grid positioning');
+    debugLog('🎯 Applying icon styles to PHORSE icon');
     phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
   }
 }
@@ -144,8 +146,6 @@ export function createGridElements(balanceElement) {
   parent.appendChild(currencySelector);
   parent.appendChild(convertedPrice);
   
-  // Position any existing elements (like icons) in the grid
-  positionExistingElements(parent, balanceElement);
   
   return convertedPrice;
 }
@@ -174,6 +174,9 @@ export function addConvertedPrice(balanceElement, tokenPrice = null) {
     convertedSpan.textContent = formattedPrice;
     updateCurrencySelector(balanceElement);
     
+    // Always apply icon styles to ensure consistent display
+    applyIconStyles(balanceElement);
+    
   } catch (error) {
     debugLog('Error in addConvertedPrice:', error);
     
@@ -189,6 +192,8 @@ export function addConvertedPrice(balanceElement, tokenPrice = null) {
       }
       
       convertedSpan.textContent = formattedPrice;
+      // Always apply icon styles to ensure consistent display
+      applyIconStyles(balanceElement);
     } else {
       debugLog('No fallback price available');
     }
