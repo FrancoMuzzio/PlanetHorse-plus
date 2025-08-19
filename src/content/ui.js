@@ -83,6 +83,20 @@ export function setupGridLayout(balanceElement) {
 }
 
 /**
+ * Applies grid positioning to existing elements in the parent container
+ * @param {HTMLElement} parent - The parent container with grid layout
+ * @param {HTMLElement} balanceElement - The balance element to exclude from icon search
+ */
+function positionExistingElements(parent, balanceElement) {
+  // Buscar específicamente el icono PHORSE
+  const phorseIcon = parent.querySelector('img[alt="phorse"]');
+  if (phorseIcon) {
+    debugLog('🐴 PHORSE icon found, applying grid positioning');
+    phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
+  }
+}
+
+/**
  * Creates currency selector dropdown and converted price elements for display
  * @param {HTMLElement} balanceElement - The balance element to add siblings to
  * @returns {HTMLElement} The created converted price span element
@@ -91,8 +105,8 @@ export function setupGridLayout(balanceElement) {
 export function createGridElements(balanceElement) {
   const parent = balanceElement.parentNode;
   
-  // Apply text-align center to balance element
-  balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER;
+  // Apply text-align center and grid positioning to balance element
+  balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_BALANCE;
   
   // Create dropdown currency selector
   const currencySelector = document.createElement('select');
@@ -110,8 +124,8 @@ export function createGridElements(balanceElement) {
   // Set current selected value
   currencySelector.value = CONFIG.CURRENT_CONVERSION;
   
-  // Basic dropdown styling
-  currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + 
+  // Basic dropdown styling with grid positioning
+  currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN +
     ' cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: white; font-size: 14px; padding: 2px 4px;';
   
   // Add change event listener for currency selection
@@ -124,11 +138,14 @@ export function createGridElements(balanceElement) {
   // Create converted price
   const convertedPrice = document.createElement('span');
   convertedPrice.classList.add(CONFIG.CSS_CLASSES.CONVERTED_PRICE);
-  convertedPrice.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER;
+  convertedPrice.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_CONVERTED;
   
   // Append to parent (grid will auto-place them)
   parent.appendChild(currencySelector);
   parent.appendChild(convertedPrice);
+  
+  // Position any existing elements (like icons) in the grid
+  positionExistingElements(parent, balanceElement);
   
   return convertedPrice;
 }

@@ -44,10 +44,15 @@ export const CONFIG = {
     GRID_LAYOUT: `
       display: grid;
       grid-template-columns: auto 1fr;
+      grid-template-rows: auto auto;
       gap: 2px 5px;
       align-items: center;
     `,
-    TEXT_CENTER: 'text-align: center;'
+    TEXT_CENTER: 'text-align: center;',
+    GRID_ICON: 'grid-column: 1; grid-row: 1; min-width: auto !important; max-width: 32px !important; width: auto; justify-self: end;',
+    GRID_BALANCE: 'grid-column: 2; grid-row: 1;',
+    GRID_DROPDOWN: 'grid-column: 1; grid-row: 2;',
+    GRID_CONVERTED: 'grid-column: 2; grid-row: 2;'
   }
 };
 
