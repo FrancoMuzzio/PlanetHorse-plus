@@ -1,7 +1,7 @@
 // ============= MAIN ORCHESTRATION =============
 import { CONFIG, debugLog } from './config.js';
 import { fetchTokenPrice, fetchAllTokenPrices } from './api.js';
-import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements, updateConvertedPrice, applyIconStyles } from './ui.js';
+import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements, updateConvertedPrice, applyIconStyles, findBalanceElementFromSelector, handleCurrencyChange } from './ui.js';
 
 /**
  * Watches balance element for content changes and updates converted price display
@@ -173,14 +173,41 @@ function handleTimeoutError() {
 }
 
 /**
+ * Sets up global event delegation for currency selector changes
+ * Handles all currency selector events using a single listener (KSS approach)
+ * @returns {void}
+ */
+function setupGlobalEventDelegation() {
+  document.addEventListener('change', (e) => {
+    // Check if the changed element is a currency selector
+    if (e.target && e.target.matches(`.${CONFIG.CSS_CLASSES.CURRENCY_SELECTOR}`)) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Find the associated balance element
+      const balanceElement = findBalanceElementFromSelector(e.target);
+      if (balanceElement) {
+        debugLog('🎯 Global event delegation: handling currency change from', e.target.value);
+        handleCurrencyChange(balanceElement, e.target.value);
+      } else {
+        debugLog('🎯 Global event delegation: balance element not found for selector');
+      }
+    }
+  });
+  
+  debugLog('🎯 Global event delegation setup complete - handling all currency selectors');
+}
+
+/**
  * Main initialization function for the extension
- * Initializes balance display and sets up global observer
+ * Initializes balance display and sets up global observer + event delegation
  * @async
  * @returns {Promise<void>}
  */
 async function initialize() {
   await initializeBalance();
   setupGlobalObserver();
+  setupGlobalEventDelegation();
 }
 
 // Initialize when DOM is ready

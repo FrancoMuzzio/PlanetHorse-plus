@@ -63,6 +63,7 @@ function formatPrice(value) {
   return value.toFixed(2);
 }
 
+
 /**
  * Finds an existing converted price element in the DOM
  * @param {HTMLElement} balanceElement - The balance element to search from
@@ -111,6 +112,17 @@ export function applyIconStyles(balanceElement) {
 }
 
 /**
+ * Finds the balance element from a currency selector using DOM traversal
+ * @param {HTMLElement} selector - The currency selector element
+ * @returns {HTMLElement|null} The corresponding balance element or null
+ */
+export function findBalanceElementFromSelector(selector) {
+  // Navigate up to parent container, then find balance element
+  const parent = selector.parentNode;
+  return parent ? parent.querySelector(`#${CONFIG.BALANCE_ELEMENT_ID}`) : null;
+}
+
+/**
  * Creates currency selector dropdown and converted price elements for display
  * @param {HTMLElement} balanceElement - The balance element to add siblings to
  * @returns {HTMLElement} The created converted price span element
@@ -141,12 +153,8 @@ export function createGridElements(balanceElement) {
   // Apply dropdown styling from configuration with grid positioning
   currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + CONFIG.CSS_STYLES.DROPDOWN_STYLES;
   
-  // Add change event listener for currency selection
-  currencySelector.addEventListener('change', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleCurrencyChange(balanceElement, e.target.value);
-  });
+  // Event delegation: No individual listeners needed - handled globally in main.js
+  debugLog('🎯 Currency selector created - will be handled by global event delegation');
   
   // Create converted price
   const convertedPrice = document.createElement('span');
@@ -218,7 +226,7 @@ export function addConvertedPrice(balanceElement, tokenPrice = null) {
  * @param {HTMLElement} balanceElement - The balance element
  * @param {string} selectedValue - The selected conversion value from dropdown
  */
-function handleCurrencyChange(balanceElement, selectedValue) {
+export function handleCurrencyChange(balanceElement, selectedValue) {
   debugLog('🔄 CURRENCY CHANGE START');
   debugLog('📍 Current conversion before:', getCurrentConversion());
   debugLog('📍 Selected conversion:', selectedValue);
