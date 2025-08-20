@@ -2,6 +2,9 @@ import { CONFIG, debugLog, getConversionInfo, getNextConversion, getAvailableCon
 import { getConvertedPrice } from './api.js';
 import { getCurrentConversion, setCurrentConversion } from './state.js';
 
+// Cache for PHORSE icon elements to avoid repeated DOM queries
+const iconCache = new WeakMap();
+
 /**
  * Finds or waits for the balance element in the DOM
  * Uses MutationObserver if element is not immediately available
@@ -85,14 +88,22 @@ export function setupGridLayout(balanceElement) {
 
 /**
  * Applies grid positioning styles to the PHORSE icon
+ * Uses caching to avoid repeated DOM queries for performance optimization
  * @param {HTMLElement} balanceElement - The balance element whose parent contains the icon
  */
 export function applyIconStyles(balanceElement) {
   const parent = balanceElement.parentNode;
   if (!parent) return;
   
-  // Look specifically for PHORSE icon (may have alt="phorse" or alt="phorse coin")
-  const phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]');
+  // Check cache first
+  let phorseIcon = iconCache.get(parent);
+  
+  // If not cached, perform DOM query and cache the result
+  if (phorseIcon === undefined) {
+    phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]');
+    iconCache.set(parent, phorseIcon); // Cache result (even if null)
+  }
+  
   if (phorseIcon) {
     debugLog('🎯 Applying icon styles to PHORSE icon');
     phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
