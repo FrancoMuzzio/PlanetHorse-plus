@@ -19,9 +19,9 @@ export async function fetchTokenPrice(currency) {
   
   // Fallback to single token request for backward compatibility
   return new Promise((resolve, reject) => {
-    // Configurar timeout del lado del cliente (15 segundos)
+    // Configure client-side timeout (15 seconds)
     const clientTimeoutId = setTimeout(() => {
-      reject(new Error('Client timeout: No se recibió respuesta del service worker'));
+      reject(new Error('Client timeout: No response received from service worker'));
     }, 15000); // 15 segundos (más que el timeout del fetch para dar margen)
 
     chrome.runtime.sendMessage(
@@ -76,9 +76,9 @@ export async function fetchAllTokenPrices() {
     
     debugLog('Fetching prices for addresses:', addresses);
     
-    // Configurar timeout del lado del cliente (15 segundos)
+    // Configure client-side timeout (15 seconds)
     const clientTimeoutId = setTimeout(() => {
-      reject(new Error('Client timeout: No se recibió respuesta del service worker'));
+      reject(new Error('Client timeout: No response received from service worker'));
     }, 15000);
 
     chrome.runtime.sendMessage(

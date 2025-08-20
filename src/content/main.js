@@ -55,7 +55,7 @@ async function initializeBalance() {
     watchBalanceChanges(balanceElement);
     debugLog('Balance initialized successfully with multi-currency support');
   } catch (error) {
-    // Manejar específicamente errores de timeout
+    // Handle timeout errors specifically
     if (error.message.includes('timeout') || error.message.includes('Request timeout') || error.message.includes('Client timeout')) {
       debugLog('Timeout error:', error.message);
       handleTimeoutError();
@@ -143,29 +143,29 @@ function setupGlobalObserver() {
  * @returns {void}
  */
 function handleTimeoutError() {
-  // Buscar el elemento de precio convertido o el balance para mostrar el error
+  // Find converted price element or balance to show error
   const balanceElement = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
   if (!balanceElement) return;
   
   let errorSpan = findConvertedPriceElement(balanceElement);
   if (!errorSpan) {
-    // Si no existe, crear el elemento para mostrar el error
+    // If it doesn't exist, create element to show error
     setupGridLayout(balanceElement);
     errorSpan = createGridElements(balanceElement);
   }
   
-  // Mostrar mensaje de error temporal
+  // Show temporary error message
   const originalContent = errorSpan.textContent;
   errorSpan.textContent = '⏱️ Timeout';
   errorSpan.style.color = '#ff6b6b';
   
-  // Reintentar después de 5 segundos
+  // Retry after 5 seconds
   setTimeout(async () => {
     try {
       const priceData = await fetchAllTokenPrices();
       debugLog('Retry successful, price data cached:', priceData);
       addConvertedPrice(balanceElement);
-      errorSpan.style.color = ''; // Restaurar color original
+      errorSpan.style.color = ''; // Restore original color
     } catch (retryError) {
       debugLog('Retry failed:', retryError);
       errorSpan.textContent = '❌ Error';

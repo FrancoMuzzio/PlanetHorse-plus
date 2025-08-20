@@ -90,7 +90,7 @@ export function applyIconStyles(balanceElement) {
   const parent = balanceElement.parentNode;
   if (!parent) return;
   
-  // Buscar específicamente el icono PHORSE (puede tener alt="phorse" o alt="phorse coin")
+  // Look specifically for PHORSE icon (may have alt="phorse" or alt="phorse coin")
   const phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]');
   if (phorseIcon) {
     debugLog('🎯 Applying icon styles to PHORSE icon');

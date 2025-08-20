@@ -1,10 +1,10 @@
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.action === 'getPHPrice') {
-    // Configurar timeout de 10 segundos para la solicitud
+    // Configure 10-second timeout for request
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 10000); // 10 segundos de timeout
+    }, 10000); // 10 second timeout
 
     fetch(msg.url, { signal: controller.signal })
       .then(res => {
@@ -17,9 +17,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       })
       .catch(err => {
         clearTimeout(timeoutId);
-        // Diferenciar error de timeout vs otros errores
+        // Differentiate timeout error vs other errors
         if (err.name === 'AbortError') {
-          sendResponse({ error: 'Request timeout: La API tardó demasiado en responder' });
+          sendResponse({ error: 'Request timeout: API took too long to respond' });
         } else {
           sendResponse({ error: err.message });
         }
