@@ -73,7 +73,6 @@ async function initializeBalance() {
  */
 function setupGlobalObserver() {
   let errorCount = 0;
-  const MAX_ERRORS = 5; // Prevent infinite error loops
   
   const globalObserver = new MutationObserver((mutations) => {
     try {
@@ -101,7 +100,7 @@ function setupGlobalObserver() {
           initializeBalance().catch(error => {
             debugLog('Error in deferred initializeBalance:', error);
           });
-        }, 500);
+        }, CONFIG.TIMEOUTS.DEBOUNCE_DELAY);
       }
       
       // Reset error count on successful execution
@@ -109,10 +108,10 @@ function setupGlobalObserver() {
       
     } catch (error) {
       errorCount++;
-      debugLog(`Error in global observer (${errorCount}/${MAX_ERRORS}):`, error);
+      debugLog(`Error in global observer (${errorCount}/${CONFIG.LIMITS.MAX_OBSERVER_ERRORS}):`, error);
       
       // If we reach error limit, disconnect observer
-      if (errorCount >= MAX_ERRORS) {
+      if (errorCount >= CONFIG.LIMITS.MAX_OBSERVER_ERRORS) {
         globalObserver.disconnect();
         debugLog('Global observer disconnected due to repeated errors');
         
@@ -124,7 +123,7 @@ function setupGlobalObserver() {
             childList: true,
             subtree: true
           });
-        }, 30000); // Retry after 30 seconds
+        }, CONFIG.TIMEOUTS.RECONNECT_DELAY);
       }
     }
   });
@@ -159,7 +158,7 @@ function handleTimeoutError() {
   errorSpan.textContent = '⏱️ Timeout';
   errorSpan.style.color = '#ff6b6b';
   
-  // Retry after 5 seconds
+  // Retry after configured delay
   setTimeout(async () => {
     try {
       const priceData = await fetchAllTokenPrices();
@@ -170,7 +169,7 @@ function handleTimeoutError() {
       debugLog('Retry failed:', retryError);
       errorSpan.textContent = '❌ Error';
     }
-  }, 5000);
+  }, CONFIG.TIMEOUTS.RETRY_DELAY);
 }
 
 /**

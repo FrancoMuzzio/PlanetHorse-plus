@@ -22,12 +22,13 @@ export async function fetchTokenPrice(currency) {
     // Configure client-side timeout (15 seconds)
     const clientTimeoutId = setTimeout(() => {
       reject(new Error('Client timeout: No response received from service worker'));
-    }, 15000); // 15 segundos (más que el timeout del fetch para dar margen)
+    }, CONFIG.TIMEOUTS.CLIENT_TIMEOUT);
 
     chrome.runtime.sendMessage(
       {
         action: 'getPHPrice',
-        url: `${CONFIG.API_BASE_URL}${CONFIG.TOKEN_ADDRESS}`
+        url: `${CONFIG.API_BASE_URL}${CONFIG.TOKEN_ADDRESS}`,
+        timeout: CONFIG.TIMEOUTS.SERVER_TIMEOUT
       },
       (response) => {
         clearTimeout(clientTimeoutId);
@@ -79,12 +80,13 @@ export async function fetchAllTokenPrices() {
     // Configure client-side timeout (15 seconds)
     const clientTimeoutId = setTimeout(() => {
       reject(new Error('Client timeout: No response received from service worker'));
-    }, 15000);
+    }, CONFIG.TIMEOUTS.CLIENT_TIMEOUT);
 
     chrome.runtime.sendMessage(
       {
         action: 'getPHPrice',
-        url: `${CONFIG.API_BASE_URL}${addressesParam}`
+        url: `${CONFIG.API_BASE_URL}${addressesParam}`,
+        timeout: CONFIG.TIMEOUTS.SERVER_TIMEOUT
       },
       (response) => {
         clearTimeout(clientTimeoutId);

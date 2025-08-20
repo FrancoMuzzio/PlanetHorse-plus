@@ -1,10 +1,10 @@
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.action === 'getPHPrice') {
-    // Configure 10-second timeout for request
+    // Configure timeout for request using value from config
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 10000); // 10 second timeout
+    }, msg.timeout || 10000); // Use provided timeout or fallback to 10 seconds
 
     fetch(msg.url, { signal: controller.signal })
       .then(res => {

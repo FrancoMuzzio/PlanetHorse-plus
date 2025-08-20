@@ -54,6 +54,20 @@ export const CONFIG = {
     GRID_DROPDOWN: 'grid-column: 1; grid-row: 2;',
     GRID_CONVERTED: 'grid-column: 2; grid-row: 2;',
     DROPDOWN_STYLES: 'cursor: pointer; border: 1px solid #3a1a15; border-radius: 4px; background: #582c25; color: white; font-size: 14px; padding: 2px 4px; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;'
+  },
+  
+  // Timeout configuration (in milliseconds)
+  TIMEOUTS: {
+    CLIENT_TIMEOUT: 15000,          // Client-side API timeout
+    SERVER_TIMEOUT: 10000,          // Background script fetch timeout
+    RETRY_DELAY: 5000,              // Error retry delay
+    RECONNECT_DELAY: 30000,         // Observer reconnect delay
+    DEBOUNCE_DELAY: 500             // DOM change debounce
+  },
+  
+  // Error handling limits
+  LIMITS: {
+    MAX_OBSERVER_ERRORS: 5          // Max errors before disconnecting observer
   }
 };
 
