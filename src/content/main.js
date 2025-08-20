@@ -94,6 +94,34 @@ function setupGlobalObserver() {
       });
       
       if (hasRelevantChanges) {
+        // Set up event delegation for any newly added currency group containers
+        const newCurrencyContainers = mutations.reduce((containers, mutation) => {
+          const addedNodes = Array.from(mutation.addedNodes);
+          addedNodes.forEach(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              // Check if node itself is a currency group container
+              if (node.className && node.className.startsWith(CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX)) {
+                containers.push(node);
+              }
+              // Check for currency group containers within added node
+              const nestedContainers = node.querySelectorAll && node.querySelectorAll(`[class*="${CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX}"]`);
+              if (nestedContainers) {
+                containers.push(...Array.from(nestedContainers));
+              }
+            }
+          });
+          return containers;
+        }, []);
+        
+        // Set up event delegation for new containers immediately
+        newCurrencyContainers.forEach(container => {
+          setupContainerEventDelegation(container);
+        });
+        
+        if (newCurrencyContainers.length > 0) {
+          debugLog('🎯 Set up event delegation for', newCurrencyContainers.length, 'new currency containers');
+        }
+        
         // Debounce to avoid multiple executions
         clearTimeout(window.phorseInitTimeout);
         window.phorseInitTimeout = setTimeout(() => {
@@ -173,12 +201,18 @@ function handleTimeoutError() {
 }
 
 /**
- * Sets up global event delegation for currency selector changes
- * Handles all currency selector events using a single listener (KSS approach)
+ * Sets up event delegation for currency selector changes within specific containers
+ * Attaches listeners to currency group containers for better performance
+ * @param {HTMLElement} container - The currency group container to attach listener to
  * @returns {void}
  */
-function setupGlobalEventDelegation() {
-  document.addEventListener('change', (e) => {
+function setupContainerEventDelegation(container) {
+  // Avoid duplicate listeners
+  if (container.hasAttribute('data-phorse-listener')) {
+    return;
+  }
+  
+  container.addEventListener('change', (e) => {
     // Check if the changed element is a currency selector
     if (e.target && e.target.matches(`.${CONFIG.CSS_CLASSES.CURRENCY_SELECTOR}`)) {
       e.preventDefault();
@@ -187,15 +221,33 @@ function setupGlobalEventDelegation() {
       // Find the associated balance element
       const balanceElement = findBalanceElementFromSelector(e.target);
       if (balanceElement) {
-        debugLog('🎯 Global event delegation: handling currency change from', e.target.value);
+        debugLog('🎯 Container event delegation: handling currency change from', e.target.value);
         handleCurrencyChange(balanceElement, e.target.value);
       } else {
-        debugLog('🎯 Global event delegation: balance element not found for selector');
+        debugLog('🎯 Container event delegation: balance element not found for selector');
       }
     }
   });
   
-  debugLog('🎯 Global event delegation setup complete - handling all currency selectors');
+  // Mark container as having listener to avoid duplicates
+  container.setAttribute('data-phorse-listener', 'true');
+  debugLog('🎯 Container event delegation setup for currency group container');
+}
+
+/**
+ * Sets up scoped event delegation for currency selector changes
+ * Finds all currency group containers and attaches targeted listeners (optimized approach)
+ * @returns {void}
+ */
+function setupGlobalEventDelegation() {
+  // Find all existing currency group containers
+  const currencyContainers = document.querySelectorAll(`[class*="${CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX}"]`);
+  
+  currencyContainers.forEach(container => {
+    setupContainerEventDelegation(container);
+  });
+  
+  debugLog('🎯 Scoped event delegation setup complete -', currencyContainers.length, 'containers configured');
 }
 
 /**
