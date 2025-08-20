@@ -1,5 +1,6 @@
 import { CONFIG, debugLog, getConversionInfo, getNextConversion, getAvailableConversions, getConversionDisplayText } from './config.js';
 import { getConvertedPrice } from './api.js';
+import { getCurrentConversion, setCurrentConversion } from './state.js';
 
 /**
  * Finds or waits for the balance element in the DOM
@@ -124,7 +125,7 @@ export function createGridElements(balanceElement) {
   });
   
   // Set current selected value
-  currencySelector.value = CONFIG.CURRENT_CONVERSION;
+  currencySelector.value = getCurrentConversion();
   
   // Apply dropdown styling from configuration with grid positioning
   currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + CONFIG.CSS_STYLES.DROPDOWN_STYLES;
@@ -157,11 +158,11 @@ export function createGridElements(balanceElement) {
  * @postcondition Balance element will have sibling elements showing converted value
  */
 export function addConvertedPrice(balanceElement, tokenPrice = null) {
-  debugLog('💰 ADD CONVERTED PRICE START - Using conversion:', CONFIG.CURRENT_CONVERSION);
+  debugLog('💰 ADD CONVERTED PRICE START - Using conversion:', getCurrentConversion());
   
   try {
     // Use new conversion system
-    const convertedValue = getConvertedPrice(CONFIG.CURRENT_CONVERSION, balanceElement.textContent);
+    const convertedValue = getConvertedPrice(getCurrentConversion(), balanceElement.textContent);
     const formattedPrice = formatPrice(convertedValue);
     
     let convertedSpan = findConvertedPriceElement(balanceElement);
@@ -208,12 +209,12 @@ export function addConvertedPrice(balanceElement, tokenPrice = null) {
  */
 function handleCurrencyChange(balanceElement, selectedValue) {
   debugLog('🔄 CURRENCY CHANGE START');
-  debugLog('📍 Current conversion before:', CONFIG.CURRENT_CONVERSION);
+  debugLog('📍 Current conversion before:', getCurrentConversion());
   debugLog('📍 Selected conversion:', selectedValue);
   
-  // Update current conversion directly
-  CONFIG.CURRENT_CONVERSION = selectedValue;
-  debugLog('📍 Current conversion updated to:', CONFIG.CURRENT_CONVERSION);
+  // Update current conversion using state management
+  setCurrentConversion(selectedValue);
+  debugLog('📍 Current conversion updated to:', getCurrentConversion());
   
   // Update UI immediately
   addConvertedPrice(balanceElement);
@@ -226,7 +227,7 @@ function handleCurrencyChange(balanceElement, selectedValue) {
  */
 function updateCurrencySelector(balanceElement) {
   debugLog('🎯 UPDATE SELECTOR START');
-  debugLog('🎯 CONFIG.CURRENT_CONVERSION:', CONFIG.CURRENT_CONVERSION);
+  debugLog('🎯 Current conversion:', getCurrentConversion());
   
   const parent = balanceElement.parentNode;
   const selector = parent?.querySelector(`.${CONFIG.CSS_CLASSES.CURRENCY_SELECTOR}`);
@@ -234,8 +235,8 @@ function updateCurrencySelector(balanceElement) {
   debugLog('🎯 Selector element found:', !!selector);
   
   if (selector) {
-    debugLog('🎯 Setting dropdown value from', selector.value, 'to', CONFIG.CURRENT_CONVERSION);
-    selector.value = CONFIG.CURRENT_CONVERSION;
+    debugLog('🎯 Setting dropdown value from', selector.value, 'to', getCurrentConversion());
+    selector.value = getCurrentConversion();
     debugLog('🎯 Selector updated - Value:', selector.value);
   }
   debugLog('🎯 UPDATE SELECTOR END');

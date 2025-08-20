@@ -4,7 +4,6 @@ export const CONFIG = {
   API_BASE_URL: 'https://exchange-rate.skymavis.com/v2/prices?addresses=',
   BALANCE_ELEMENT_ID: 'phorse-balance',
   DEFAULT_CURRENCY: 'usd',
-  CURRENT_CONVERSION: 'usd', // Current selected conversion
   DEBUG: false,
   
   // Supported conversion types (scalable structure)
