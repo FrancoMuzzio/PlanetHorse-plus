@@ -1,28 +1,22 @@
 // ============= MAIN ORCHESTRATION =============
 import { CONFIG, debugLog } from './config.js';
-import { fetchTokenPrice } from './api.js';
-import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements } from './ui.js';
+import { fetchTokenPrice, fetchAllTokenPrices } from './api.js';
+import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements, updateConvertedPrice, applyIconStyles, findBalanceElementFromSelector, handleCurrencyChange } from './ui.js';
 
 /**
- * Watches balance element for content changes and updates USD price display
- * @async
+ * Watches balance element for content changes and updates converted price display
  * @param {HTMLElement} element - The balance element to observe
  * @returns {void}
  */
-async function watchBalanceChanges(element) {
-  const contentObserver = new MutationObserver(async () => {
+function watchBalanceChanges(element) {
+  const contentObserver = new MutationObserver(() => {
     try {
-      const tokenPrice = await fetchTokenPrice(CONFIG.DEFAULT_CURRENCY);
-      debugLog('Token price:', tokenPrice);
-      addConvertedPrice(element, tokenPrice);
+      // Use cached data for immediate recalculation (no API call needed)
+      updateConvertedPrice(element);
+      debugLog('Balance updated using cached conversion data');
     } catch (error) {
-      // Manejar específicamente errores de timeout
-      if (error.message.includes('timeout') || error.message.includes('Request timeout') || error.message.includes('Client timeout')) {
-        debugLog('Timeout error during watch:', error.message);
-        handleTimeoutError();
-      } else {
-        debugLog('Error fetching token price:', error);
-      }
+      debugLog('Error updating converted price from cache:', error);
+      // If cache fails, the error will be handled by the UI layer
     }
   });
   
@@ -34,8 +28,8 @@ async function watchBalanceChanges(element) {
 }
 
 /**
- * Initializes the balance display with USD conversion
- * Finds balance element, fetches token price, and sets up observers
+ * Initializes the balance display with multi-currency conversion
+ * Finds balance element, fetches all token prices, and sets up observers
  * @async
  * @returns {Promise<void>}
  * @throws {Error} When token price fetch fails or timeout occurs
@@ -48,18 +42,20 @@ async function initializeBalance() {
     // Check if already initialized to avoid infinite loop
     const existingConverted = findConvertedPriceElement(balanceElement);
     if (existingConverted) {
-      debugLog('Balance already initialized, skipping');
+      debugLog('Balance already initialized, applying icon styles only');
+      applyIconStyles(balanceElement);
       return;
     }
     
-    const tokenPrice = await fetchTokenPrice(CONFIG.DEFAULT_CURRENCY);
-    debugLog('Token price:', tokenPrice);
+    // Fetch all token prices in single API call
+    const priceData = await fetchAllTokenPrices();
+    debugLog('All token prices fetched and cached:', priceData);
     
-    addConvertedPrice(balanceElement, tokenPrice);
+    addConvertedPrice(balanceElement);
     watchBalanceChanges(balanceElement);
-    debugLog('Balance initialized successfully');
+    debugLog('Balance initialized successfully with multi-currency support');
   } catch (error) {
-    // Manejar específicamente errores de timeout
+    // Handle timeout errors specifically
     if (error.message.includes('timeout') || error.message.includes('Request timeout') || error.message.includes('Client timeout')) {
       debugLog('Timeout error:', error.message);
       handleTimeoutError();
@@ -77,7 +73,6 @@ async function initializeBalance() {
  */
 function setupGlobalObserver() {
   let errorCount = 0;
-  const MAX_ERRORS = 5; // Prevent infinite error loops
   
   const globalObserver = new MutationObserver((mutations) => {
     try {
@@ -99,13 +94,41 @@ function setupGlobalObserver() {
       });
       
       if (hasRelevantChanges) {
+        // Set up event delegation for any newly added currency group containers
+        const newCurrencyContainers = mutations.reduce((containers, mutation) => {
+          const addedNodes = Array.from(mutation.addedNodes);
+          addedNodes.forEach(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              // Check if node itself is a currency group container
+              if (node.className && node.className.startsWith(CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX)) {
+                containers.push(node);
+              }
+              // Check for currency group containers within added node
+              const nestedContainers = node.querySelectorAll && node.querySelectorAll(`[class*="${CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX}"]`);
+              if (nestedContainers) {
+                containers.push(...Array.from(nestedContainers));
+              }
+            }
+          });
+          return containers;
+        }, []);
+        
+        // Set up event delegation for new containers immediately
+        newCurrencyContainers.forEach(container => {
+          setupContainerEventDelegation(container);
+        });
+        
+        if (newCurrencyContainers.length > 0) {
+          debugLog('🎯 Set up event delegation for', newCurrencyContainers.length, 'new currency containers');
+        }
+        
         // Debounce to avoid multiple executions
         clearTimeout(window.phorseInitTimeout);
         window.phorseInitTimeout = setTimeout(() => {
           initializeBalance().catch(error => {
             debugLog('Error in deferred initializeBalance:', error);
           });
-        }, 500);
+        }, CONFIG.TIMEOUTS.DEBOUNCE_DELAY);
       }
       
       // Reset error count on successful execution
@@ -113,10 +136,10 @@ function setupGlobalObserver() {
       
     } catch (error) {
       errorCount++;
-      debugLog(`Error in global observer (${errorCount}/${MAX_ERRORS}):`, error);
+      debugLog(`Error in global observer (${errorCount}/${CONFIG.LIMITS.MAX_OBSERVER_ERRORS}):`, error);
       
       // If we reach error limit, disconnect observer
-      if (errorCount >= MAX_ERRORS) {
+      if (errorCount >= CONFIG.LIMITS.MAX_OBSERVER_ERRORS) {
         globalObserver.disconnect();
         debugLog('Global observer disconnected due to repeated errors');
         
@@ -128,7 +151,7 @@ function setupGlobalObserver() {
             childList: true,
             subtree: true
           });
-        }, 30000); // Retry after 30 seconds
+        }, CONFIG.TIMEOUTS.RECONNECT_DELAY);
       }
     }
   });
@@ -147,44 +170,96 @@ function setupGlobalObserver() {
  * @returns {void}
  */
 function handleTimeoutError() {
-  // Buscar el elemento de precio convertido o el balance para mostrar el error
+  // Find converted price element or balance to show error
   const balanceElement = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
   if (!balanceElement) return;
   
   let errorSpan = findConvertedPriceElement(balanceElement);
   if (!errorSpan) {
-    // Si no existe, crear el elemento para mostrar el error
+    // If it doesn't exist, create element to show error
     setupGridLayout(balanceElement);
     errorSpan = createGridElements(balanceElement);
   }
   
-  // Mostrar mensaje de error temporal
+  // Show temporary error message
   const originalContent = errorSpan.textContent;
   errorSpan.textContent = '⏱️ Timeout';
   errorSpan.style.color = '#ff6b6b';
   
-  // Reintentar después de 5 segundos
+  // Retry after configured delay
   setTimeout(async () => {
     try {
-      const tokenPrice = await fetchTokenPrice(CONFIG.DEFAULT_CURRENCY);
-      addConvertedPrice(balanceElement, tokenPrice);
-      errorSpan.style.color = ''; // Restaurar color original
+      const priceData = await fetchAllTokenPrices();
+      debugLog('Retry successful, price data cached:', priceData);
+      addConvertedPrice(balanceElement);
+      errorSpan.style.color = ''; // Restore original color
     } catch (retryError) {
       debugLog('Retry failed:', retryError);
       errorSpan.textContent = '❌ Error';
     }
-  }, 5000);
+  }, CONFIG.TIMEOUTS.RETRY_DELAY);
+}
+
+/**
+ * Sets up event delegation for currency selector changes within specific containers
+ * Attaches listeners to currency group containers for better performance
+ * @param {HTMLElement} container - The currency group container to attach listener to
+ * @returns {void}
+ */
+function setupContainerEventDelegation(container) {
+  // Avoid duplicate listeners
+  if (container.hasAttribute('data-phorse-listener')) {
+    return;
+  }
+  
+  container.addEventListener('change', (e) => {
+    // Check if the changed element is a currency selector
+    if (e.target && e.target.matches(`.${CONFIG.CSS_CLASSES.CURRENCY_SELECTOR}`)) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Find the associated balance element
+      const balanceElement = findBalanceElementFromSelector(e.target);
+      if (balanceElement) {
+        debugLog('🎯 Container event delegation: handling currency change from', e.target.value);
+        handleCurrencyChange(balanceElement, e.target.value);
+      } else {
+        debugLog('🎯 Container event delegation: balance element not found for selector');
+      }
+    }
+  });
+  
+  // Mark container as having listener to avoid duplicates
+  container.setAttribute('data-phorse-listener', 'true');
+  debugLog('🎯 Container event delegation setup for currency group container');
+}
+
+/**
+ * Sets up scoped event delegation for currency selector changes
+ * Finds all currency group containers and attaches targeted listeners (optimized approach)
+ * @returns {void}
+ */
+function setupGlobalEventDelegation() {
+  // Find all existing currency group containers
+  const currencyContainers = document.querySelectorAll(`[class*="${CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX}"]`);
+  
+  currencyContainers.forEach(container => {
+    setupContainerEventDelegation(container);
+  });
+  
+  debugLog('🎯 Scoped event delegation setup complete -', currencyContainers.length, 'containers configured');
 }
 
 /**
  * Main initialization function for the extension
- * Initializes balance display and sets up global observer
+ * Initializes balance display and sets up global observer + event delegation
  * @async
  * @returns {Promise<void>}
  */
 async function initialize() {
   await initializeBalance();
   setupGlobalObserver();
+  setupGlobalEventDelegation();
 }
 
 // Initialize when DOM is ready
