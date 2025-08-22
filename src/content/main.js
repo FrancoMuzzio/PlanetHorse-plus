@@ -13,7 +13,6 @@ function watchBalanceChanges(element) {
     try {
       // Use cached data for immediate recalculation (no API call needed)
       updateConvertedPrice(element);
-      debugLog('Balance updated using cached conversion data');
     } catch (error) {
       debugLog('Error updating converted price from cache:', error);
       // If cache fails, the error will be handled by the UI layer
@@ -42,18 +41,16 @@ async function initializeBalance() {
     // Check if already initialized to avoid infinite loop
     const existingConverted = findConvertedPriceElement(balanceElement);
     if (existingConverted) {
-      debugLog('Balance already initialized, applying icon styles only');
       applyIconStyles(balanceElement);
       return;
     }
     
     // Fetch all token prices in single API call
     const priceData = await fetchAllTokenPrices();
-    debugLog('All token prices fetched and cached:', priceData);
     
     addConvertedPrice(balanceElement);
     watchBalanceChanges(balanceElement);
-    debugLog('Balance initialized successfully with multi-currency support');
+    debugLog('Balance initialized successfully');
   } catch (error) {
     // Handle timeout errors specifically
     if (error.message.includes('timeout') || error.message.includes('Request timeout') || error.message.includes('Client timeout')) {
@@ -117,10 +114,6 @@ function setupGlobalObserver() {
         newCurrencyContainers.forEach(container => {
           setupContainerEventDelegation(container);
         });
-        
-        if (newCurrencyContainers.length > 0) {
-          debugLog('🎯 Set up event delegation for', newCurrencyContainers.length, 'new currency containers');
-        }
         
         // Debounce to avoid multiple executions
         clearTimeout(window.phorseInitTimeout);
@@ -189,8 +182,7 @@ function handleTimeoutError() {
   // Retry after configured delay
   setTimeout(async () => {
     try {
-      const priceData = await fetchAllTokenPrices();
-      debugLog('Retry successful, price data cached:', priceData);
+      await fetchAllTokenPrices();
       addConvertedPrice(balanceElement);
       errorSpan.style.color = ''; // Restore original color
     } catch (retryError) {
@@ -221,17 +213,13 @@ function setupContainerEventDelegation(container) {
       // Find the associated balance element
       const balanceElement = findBalanceElementFromSelector(e.target);
       if (balanceElement) {
-        debugLog('🎯 Container event delegation: handling currency change from', e.target.value);
         handleCurrencyChange(balanceElement, e.target.value);
-      } else {
-        debugLog('🎯 Container event delegation: balance element not found for selector');
       }
     }
   });
   
   // Mark container as having listener to avoid duplicates
   container.setAttribute('data-phorse-listener', 'true');
-  debugLog('🎯 Container event delegation setup for currency group container');
 }
 
 /**
@@ -246,8 +234,6 @@ function setupGlobalEventDelegation() {
   currencyContainers.forEach(container => {
     setupContainerEventDelegation(container);
   });
-  
-  debugLog('🎯 Scoped event delegation setup complete -', currencyContainers.length, 'containers configured');
 }
 
 /**

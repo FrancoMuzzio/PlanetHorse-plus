@@ -16,7 +16,6 @@ export function findBalanceElement() {
     const element = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
     if (element) {
       resolve(element);
-      debugLog('Balance element found');
       return;
     }    
     // If not exists, wait with observer
@@ -25,7 +24,6 @@ export function findBalanceElement() {
       if (element) {
         observer.disconnect();
         resolve(element);
-        debugLog('Balance element found');
       }
     });
 
@@ -38,7 +36,6 @@ export function findBalanceElement() {
     setTimeout(() => {
       observer.disconnect();
       resolve(null);
-      debugLog('Balance element not found');
     }, 5000);
   });
 }
@@ -106,7 +103,6 @@ export function applyIconStyles(balanceElement) {
   }
   
   if (phorseIcon) {
-    debugLog('🎯 Applying icon styles to PHORSE icon');
     phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
   }
 }
@@ -154,7 +150,6 @@ export function createGridElements(balanceElement) {
   currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + CONFIG.CSS_STYLES.DROPDOWN_STYLES;
   
   // Event delegation: No individual listeners needed - handled globally in main.js
-  debugLog('🎯 Currency selector created - will be handled by global event delegation');
   
   // Create converted price
   const convertedPrice = document.createElement('span');
@@ -177,7 +172,6 @@ export function createGridElements(balanceElement) {
  * @postcondition Balance element will have sibling elements showing converted value
  */
 export function addConvertedPrice(balanceElement, tokenPrice = null) {
-  debugLog('💰 ADD CONVERTED PRICE START - Using conversion:', getCurrentConversion());
   
   try {
     // Use new conversion system
@@ -217,8 +211,6 @@ export function addConvertedPrice(balanceElement, tokenPrice = null) {
       debugLog('No fallback price available');
     }
   }
-  
-  debugLog('💰 ADD CONVERTED PRICE END');
 }
 
 /**
@@ -227,17 +219,11 @@ export function addConvertedPrice(balanceElement, tokenPrice = null) {
  * @param {string} selectedValue - The selected conversion value from dropdown
  */
 export function handleCurrencyChange(balanceElement, selectedValue) {
-  debugLog('🔄 CURRENCY CHANGE START');
-  debugLog('📍 Current conversion before:', getCurrentConversion());
-  debugLog('📍 Selected conversion:', selectedValue);
-  
   // Update current conversion using state management
   setCurrentConversion(selectedValue);
-  debugLog('📍 Current conversion updated to:', getCurrentConversion());
   
   // Update UI immediately
   addConvertedPrice(balanceElement);
-  debugLog('🔄 CURRENCY CHANGE END');
 }
 
 /**
@@ -245,20 +231,12 @@ export function handleCurrencyChange(balanceElement, selectedValue) {
  * @param {HTMLElement} balanceElement - The balance element
  */
 function updateCurrencySelector(balanceElement) {
-  debugLog('🎯 UPDATE SELECTOR START');
-  debugLog('🎯 Current conversion:', getCurrentConversion());
-  
   const parent = balanceElement.parentNode;
   const selector = parent?.querySelector(`.${CONFIG.CSS_CLASSES.CURRENCY_SELECTOR}`);
   
-  debugLog('🎯 Selector element found:', !!selector);
-  
   if (selector) {
-    debugLog('🎯 Setting dropdown value from', selector.value, 'to', getCurrentConversion());
     selector.value = getCurrentConversion();
-    debugLog('🎯 Selector updated - Value:', selector.value);
   }
-  debugLog('🎯 UPDATE SELECTOR END');
 }
 
 /**
