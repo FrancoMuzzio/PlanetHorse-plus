@@ -13,7 +13,6 @@ let currentConversion = CONFIG.DEFAULT_CURRENCY;
  * @returns {string} Current conversion key (e.g., 'usd', 'eur', 'ron')
  */
 export function getCurrentConversion() {
-  debugLog('🏛️ STATE GET:', currentConversion);
   return currentConversion;
 }
 
@@ -23,10 +22,6 @@ export function getCurrentConversion() {
  * @throws {Error} If conversion type is invalid
  */
 export function setCurrentConversion(newConversion) {
-  const oldConversion = currentConversion;
-  
-  debugLog('🏛️ STATE SET: Changing from', oldConversion, 'to', newConversion);
-  
   // Validate conversion exists in configuration
   const fiatTypes = Object.keys(CONFIG.CONVERSION_TYPES.fiat);
   const tokenTypes = Object.keys(CONFIG.CONVERSION_TYPES.tokens);
@@ -37,13 +32,11 @@ export function setCurrentConversion(newConversion) {
   }
   
   currentConversion = newConversion;
-  debugLog('🏛️ STATE SET: Successfully updated to', currentConversion);
 }
 
 /**
  * Resets conversion state to default
  */
 export function resetConversion() {
-  debugLog('🏛️ STATE RESET: Resetting to default:', CONFIG.DEFAULT_CURRENCY);
   currentConversion = CONFIG.DEFAULT_CURRENCY;
 }

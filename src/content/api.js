@@ -13,8 +13,7 @@ let cachedPriceData = null;
 export async function fetchTokenPrice(currency) {
   // Use cached data if available
   if (cachedPriceData) {
-    debugLog('Using cached price data for', currency);
-    return cachedPriceData.result[CONFIG.TOKEN_ADDRESS][currency];
+    return cachedPriceData.result[CONFIG.PHORSE_ADDRESS][currency];
   }
   
   // Fallback to single token request for backward compatibility
@@ -27,7 +26,7 @@ export async function fetchTokenPrice(currency) {
     chrome.runtime.sendMessage(
       {
         action: 'getPHPrice',
-        url: `${CONFIG.API_BASE_URL}${CONFIG.TOKEN_ADDRESS}`,
+        url: `${CONFIG.API_BASE_URL}${CONFIG.PHORSE_ADDRESS}`,
         timeout: CONFIG.TIMEOUTS.SERVER_TIMEOUT
       },
       (response) => {
@@ -41,7 +40,7 @@ export async function fetchTokenPrice(currency) {
           reject(new Error(response?.error || 'Unknown error'));
           return;
         }
-        resolve(response.data.result[CONFIG.TOKEN_ADDRESS][currency]);
+        resolve(response.data.result[CONFIG.PHORSE_ADDRESS][currency]);
       }
     );
   });
@@ -52,7 +51,7 @@ export async function fetchTokenPrice(currency) {
  * @returns {string[]} Array of token addresses
  */
 function getAllTokenAddresses() {
-  const addresses = [CONFIG.TOKEN_ADDRESS]; // PHORSE token
+  const addresses = [CONFIG.PHORSE_ADDRESS]; // PHORSE token
   
   // Add all token addresses from configuration
   Object.values(CONFIG.CONVERSION_TYPES.tokens).forEach(token => {
@@ -74,8 +73,6 @@ export async function fetchAllTokenPrices() {
   return new Promise((resolve, reject) => {
     const addresses = getAllTokenAddresses();
     const addressesParam = addresses.join(',');
-    
-    debugLog('Fetching prices for addresses:', addresses);
     
     // Configure client-side timeout (15 seconds)
     const clientTimeoutId = setTimeout(() => {
@@ -102,8 +99,6 @@ export async function fetchAllTokenPrices() {
         
         // Cache the complete response
         cachedPriceData = response.data;
-        debugLog('Cached price data:', cachedPriceData);
-        
         resolve(response.data);
       }
     );
@@ -127,14 +122,14 @@ export function getConvertedPrice(conversionKey, balance) {
   
   if (conversionType === 'fiat') {
     // Direct fiat conversion
-    const rate = cachedPriceData.result[CONFIG.TOKEN_ADDRESS][conversionKey];
+    const rate = cachedPriceData.result[CONFIG.PHORSE_ADDRESS][conversionKey];
     if (rate === undefined) {
       throw new Error(`Fiat rate not available for ${conversionKey}`);
     }
     return balanceValue * rate;
   } else if (conversionType === 'tokens') {
     // Token-to-token conversion via USD
-    const phorseUsdRate = cachedPriceData.result[CONFIG.TOKEN_ADDRESS].usd;
+    const phorseUsdRate = cachedPriceData.result[CONFIG.PHORSE_ADDRESS].usd;
     const tokenAddress = CONFIG.CONVERSION_TYPES.tokens[conversionKey].address;
     const tokenUsdRate = cachedPriceData.result[tokenAddress]?.usd;
     

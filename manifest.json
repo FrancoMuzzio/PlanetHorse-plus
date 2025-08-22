@@ -1,11 +1,11 @@
 {
     "manifest_version": 3,
     "name": "PlanetHorse+",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "content_security_policy": {
         "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none';"
     },
-    "description": "Real-time USD/EUR/RON value for PH tokens",
+    "description": "Real-time multi-currency value converter for PH tokens",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",

@@ -1,6 +1,6 @@
 // ============= CONFIGURATION =============
 export const CONFIG = {
-  TOKEN_ADDRESS: '0x7f8e304eb2894e57f8b930000f396319729bd1f1',
+  PHORSE_ADDRESS: '0x6ad39689cac97a3e647fabd31534555bc7edd5c6',
   API_BASE_URL: 'https://exchange-rate.skymavis.com/v2/prices?addresses=',
   BALANCE_ELEMENT_ID: 'phorse-balance',
   DEFAULT_CURRENCY: 'usd',
@@ -11,7 +11,7 @@ export const CONFIG = {
     tokens: {
       ron: {
         address: '0xe514d9deb7966c8be0ca922de8a064264ea6bcd4',
-        symbol: '🏛️',
+        symbol: '🌐',
         name: 'RON',
         displayName: 'Ronin Token'
       }
@@ -24,9 +24,14 @@ export const CONFIG = {
         displayName: 'US Dollar'
       },
       eur: {
-        symbol: '💶',
+        symbol: '💲',
         name: 'EUR',
         displayName: 'Euro'
+      },
+      ars: {
+        symbol: '💲',
+        name: 'ARS',
+        displayName: 'Argentine Peso'
       }
     }
   },
@@ -110,14 +115,8 @@ export function getConversionType(conversionKey) {
  * @returns {Object} Conversion configuration object
  */
 export function getConversionInfo(conversionKey) {
-  debugLog('ℹ️ GET CONVERSION INFO for:', conversionKey);
-  
   const type = getConversionType(conversionKey);
-  debugLog('ℹ️ Type determined:', type);
-  
   const info = CONFIG.CONVERSION_TYPES[type][conversionKey];
-  debugLog('ℹ️ Info retrieved:', info);
-  
   return info;
 }
 
@@ -128,22 +127,14 @@ export function getConversionInfo(conversionKey) {
  */
 export function getNextConversion(currentConversion) {
   const available = getAvailableConversions();
-  debugLog('🔍 Available conversions:', available);
-  debugLog('🔍 Looking for index of:', currentConversion);
-  
   const currentIndex = available.indexOf(currentConversion);
-  debugLog('🔍 Current index found:', currentIndex);
   
   if (currentIndex === -1) {
-    debugLog('🔍 Fallback to default:', CONFIG.DEFAULT_CURRENCY);
     return CONFIG.DEFAULT_CURRENCY;
   }
   
   const nextIndex = (currentIndex + 1) % available.length;
-  const next = available[nextIndex];
-  debugLog('🔍 Next index:', nextIndex, 'Next conversion:', next);
-  
-  return next;
+  return available[nextIndex];
 }
 
 /**
