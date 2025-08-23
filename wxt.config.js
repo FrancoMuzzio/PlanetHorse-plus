@@ -19,9 +19,8 @@ export default defineConfig({
     }
   },
 
-  // Development configuration  
-  dev: {
-    // Auto-open browser during development to Planet Horse game
-    openBrowser: "https://planethorse.io/game"
+  // Browser startup configuration (v0.20+ syntax)
+  webExt: {
+    startUrls: ["https://planethorse.io/game"]
   }
 });
