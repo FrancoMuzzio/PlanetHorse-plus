@@ -81,16 +81,19 @@ wxt.config.js          # WXT Framework configuration
    ```bash
    npm run dev
    ```
-2. **Load extension**: Load `.output/chrome-mv3/` in Chrome
-3. **Make changes**: Edit files in `src/content/` 
-4. **Auto-reload**: Extension automatically updates with your changes!
+   → **Auto-opens Chrome** at `https://planethorse.io/game`  
+   → **Extension pre-loaded** and ready for testing  
+   → **Zero manual setup** required!
+
+2. **Make changes**: Edit files in `src/content/` 
+3. **Auto-reload**: Extension automatically updates with your changes!
 
 #### **Production Build:**
 1. **Build extension**:
    ```bash
    npm run build
    ```
-2. **Test build**: Load `.output/chrome-mv3/` in Chrome
+2. **Test build**: Manually load `.output/chrome-mv3/` in Chrome for production testing
 3. **Create ZIP for store**:
    ```bash
    npm run zip
