@@ -4,12 +4,13 @@
   "description": "A Chrome extension that displays real-time USD value for your PH tokens on [Planet Horse](https://planethorse.io).",
   "main": "background.js",
   "devDependencies": {
-    "esbuild": "^0.25.9"
+    "wxt": "^0.20.8"
   },
   "scripts": {
-    "build": "node build.js",
-    "build:prod": "node build.js --minify",
-    "watch": "node build.js --watch"
+    "dev": "wxt",
+    "build": "wxt build",
+    "build:prod": "wxt build --mode production",
+    "zip": "wxt zip"
   },
   "repository": {
     "type": "git",
