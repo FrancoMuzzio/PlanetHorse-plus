@@ -7,6 +7,13 @@ export default defineConfig({
     version: '1.0.1', 
     description: 'Real-time multi-currency value converter for PH tokens',
     
+    // Icons
+    icons: {
+      16: '/icons/icon-16.png',
+      48: '/icons/icon-48.png',
+      128: '/icons/icon-128.png'
+    },
+    
     // Permissions
     permissions: [],
     host_permissions: [
