@@ -2,6 +2,8 @@
 // Service worker para manejar llamadas de API desde content scripts
 // Migrado desde background.js sin cambios en la funcionalidad
 
+import { defineBackground } from '#imports';
+
 export default defineBackground(() => {
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === 'getPHPrice') {
