@@ -21,7 +21,7 @@ export default defineConfig({
 
   // Development configuration  
   dev: {
-    // Auto-open browser during development
-    openBrowser: false
+    // Auto-open browser during development to Planet Horse game
+    openBrowser: "https://planethorse.io/game"
   }
 });
