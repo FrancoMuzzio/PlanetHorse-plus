@@ -1,5 +1,63 @@
 // ============= CONFIGURATION =============
-export const CONFIG = {
+
+// Type definitions
+export type ConversionKey = string;
+export type ConversionType = 'tokens' | 'fiat';
+
+export interface ConversionInfo {
+  symbol: string;
+  name: string;
+  displayName: string;
+  address?: string; // Only for token types
+}
+
+export interface ConversionTypes {
+  tokens: Record<string, ConversionInfo>;
+  fiat: Record<string, ConversionInfo>;
+}
+
+export interface CSSClasses {
+  CONVERTED_PRICE: string;
+  CURRENCY_SELECTOR: string;
+  CURRENCY_GROUP_PREFIX: string;
+}
+
+export interface CSSStyles {
+  GRID_LAYOUT: string;
+  TEXT_CENTER: string;
+  GRID_ICON: string;
+  GRID_BALANCE: string;
+  GRID_DROPDOWN: string;
+  GRID_CONVERTED: string;
+  DROPDOWN_STYLES: string;
+}
+
+export interface Timeouts {
+  CLIENT_TIMEOUT: number;
+  SERVER_TIMEOUT: number;
+  RETRY_DELAY: number;
+  RECONNECT_DELAY: number;
+  DEBOUNCE_DELAY: number;
+}
+
+export interface Limits {
+  MAX_OBSERVER_ERRORS: number;
+}
+
+export interface ConfigType {
+  PHORSE_ADDRESS: string;
+  API_BASE_URL: string;
+  BALANCE_ELEMENT_ID: string;
+  DEFAULT_CURRENCY: string;
+  DEBUG: boolean;
+  CONVERSION_TYPES: ConversionTypes;
+  CSS_CLASSES: CSSClasses;
+  CSS_STYLES: CSSStyles;
+  TIMEOUTS: Timeouts;
+  LIMITS: Limits;
+}
+
+export const CONFIG: ConfigType = {
   PHORSE_ADDRESS: '0x6ad39689cac97a3e647fabd31534555bc7edd5c6',
   API_BASE_URL: 'https://exchange-rate.skymavis.com/v2/prices?addresses=',
   BALANCE_ELEMENT_ID: 'phorse-balance',
@@ -78,10 +136,9 @@ export const CONFIG = {
 /**
  * Conditional debug logging utility
  * Only logs messages when CONFIG.DEBUG is true
- * @param {...*} args - Arguments to log to console
- * @returns {void}
+ * @param args - Arguments to log to console
  */
-export function debugLog(...args) {
+export function debugLog(...args: any[]): void {
   if (CONFIG.DEBUG) {
     console.log('[Planet Horse Extension]', ...args);
   }
@@ -89,9 +146,9 @@ export function debugLog(...args) {
 
 /**
  * Gets all available conversions in cycling order (fiat first, then tokens)
- * @returns {string[]} Array of conversion keys
+ * @returns Array of conversion keys
  */
-export function getAvailableConversions() {
+export function getAvailableConversions(): ConversionKey[] {
   const fiatKeys = Object.keys(CONFIG.CONVERSION_TYPES.fiat);
   const tokenKeys = Object.keys(CONFIG.CONVERSION_TYPES.tokens);
   return [...fiatKeys, ...tokenKeys];
@@ -99,11 +156,11 @@ export function getAvailableConversions() {
 
 /**
  * Gets the type of conversion (tokens or fiat)
- * @param {string} conversionKey - The conversion key to check
- * @returns {'tokens'|'fiat'} The conversion type
+ * @param conversionKey - The conversion key to check
+ * @returns The conversion type
  * @throws {Error} If conversion type is unknown
  */
-export function getConversionType(conversionKey) {
+export function getConversionType(conversionKey: ConversionKey): ConversionType {
   if (CONFIG.CONVERSION_TYPES.tokens[conversionKey]) return 'tokens';
   if (CONFIG.CONVERSION_TYPES.fiat[conversionKey]) return 'fiat';
   throw new Error(`Unknown conversion type: ${conversionKey}`);
@@ -111,10 +168,10 @@ export function getConversionType(conversionKey) {
 
 /**
  * Gets conversion information for a given key
- * @param {string} conversionKey - The conversion key
- * @returns {Object} Conversion configuration object
+ * @param conversionKey - The conversion key
+ * @returns Conversion configuration object
  */
-export function getConversionInfo(conversionKey) {
+export function getConversionInfo(conversionKey: ConversionKey): ConversionInfo {
   const type = getConversionType(conversionKey);
   const info = CONFIG.CONVERSION_TYPES[type][conversionKey];
   return info;
@@ -122,10 +179,10 @@ export function getConversionInfo(conversionKey) {
 
 /**
  * Gets the next conversion in the cycling order
- * @param {string} currentConversion - Current conversion key
- * @returns {string} Next conversion key
+ * @param currentConversion - Current conversion key
+ * @returns Next conversion key
  */
-export function getNextConversion(currentConversion) {
+export function getNextConversion(currentConversion: ConversionKey): ConversionKey {
   const available = getAvailableConversions();
   const currentIndex = available.indexOf(currentConversion);
   
@@ -139,10 +196,10 @@ export function getNextConversion(currentConversion) {
 
 /**
  * Gets display text for dropdown options
- * @param {string} conversionKey - The conversion key
- * @returns {string} Display text with symbol and name (e.g., "💲 USD")
+ * @param conversionKey - The conversion key
+ * @returns Display text with symbol and name (e.g., "💲 USD")
  */
-export function getConversionDisplayText(conversionKey) {
+export function getConversionDisplayText(conversionKey: ConversionKey): string {
   const info = getConversionInfo(conversionKey);
   return `${info.symbol} ${info.name}`;
 }

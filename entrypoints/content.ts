@@ -2,8 +2,7 @@
 // This file serves as the WXT entry point for content scripts
 // All business logic remains in src/content/ (unchanged)
 
-import { defineContentScript } from '#imports';
-
+// WXT auto-imports - no explicit import needed
 export default defineContentScript({
   matches: ['https://planethorse.io/game*'],
   async main() {

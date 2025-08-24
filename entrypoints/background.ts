@@ -2,10 +2,24 @@
 // Service worker para manejar llamadas de API desde content scripts
 // Migrado desde background.js sin cambios en la funcionalidad
 
-import { defineBackground } from '#imports';
+// WXT auto-imports - no explicit import needed
+interface ChromeMessage {
+  action: string;
+  url: string;
+  timeout?: number;
+}
+
+interface ChromeResponse {
+  data?: any;
+  error?: string;
+}
 
 export default defineBackground(() => {
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((
+    msg: ChromeMessage, 
+    sender: chrome.runtime.MessageSender, 
+    sendResponse: (response: ChromeResponse) => void
+  ): boolean => {
     if (msg.action === 'getPHPrice') {
       // Configure timeout for request using value from config
       const controller = new AbortController();
@@ -19,10 +33,10 @@ export default defineBackground(() => {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return res.json();
         })
-        .then(data => {
+        .then((data: any) => {
           sendResponse({ data });
         })
-        .catch(err => {
+        .catch((err: Error) => {
           clearTimeout(timeoutId);
           // Differentiate timeout error vs other errors
           if (err.name === 'AbortError') {
@@ -33,5 +47,6 @@ export default defineBackground(() => {
         });
       return true; // async response
     }
+    return false;
   });
 });
