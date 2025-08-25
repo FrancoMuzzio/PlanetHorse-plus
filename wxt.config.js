@@ -4,7 +4,6 @@ export default defineConfig({
   // Project metadata
   manifest: {
     name: 'PlanetHorse+',
-    version: '1.0.1', 
     description: 'Real-time multi-currency value converter for PH tokens',
     
     // Icons
