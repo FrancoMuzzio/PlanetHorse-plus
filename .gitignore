@@ -1,6 +1,7 @@
 /.claude
 /.serena
 /CLAUDE.md
+.wxt/
 node_modules/
 .output/
 *.zip

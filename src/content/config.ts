@@ -42,6 +42,10 @@ export interface Limits {
   MAX_OBSERVER_ERRORS: number;
 }
 
+export interface Features {
+  PRICE_CONVERTER_ENABLED: boolean;
+}
+
 export interface ConfigType {
   PHORSE_ADDRESS: string;
   API_BASE_URL: string;
@@ -53,6 +57,7 @@ export interface ConfigType {
   CSS_STYLES: CSSStyles;
   TIMEOUTS: Timeouts;
   LIMITS: Limits;
+  FEATURES: Features;
 }
 
 export const CONFIG: ConfigType = {
@@ -126,6 +131,11 @@ export const CONFIG: ConfigType = {
   // Error handling limits
   LIMITS: {
     MAX_OBSERVER_ERRORS: 5          // Max errors before disconnecting observer
+  },
+  
+  // Feature toggles
+  FEATURES: {
+    PRICE_CONVERTER_ENABLED: true   // Enable/disable price converter functionality
   }
 };
 

@@ -47,6 +47,12 @@ function watchBalanceChanges(element: HTMLElement): void {
  * @throws {Error} When token price fetch fails or timeout occurs
  */
 async function initializeBalance(): Promise<void> {
+  // Check if price converter is enabled
+  if (!CONFIG.FEATURES.PRICE_CONVERTER_ENABLED) {
+    debugLog('Price converter is disabled - skipping initialization');
+    return;
+  }
+  
   try {
     const balanceElement = await findBalanceElement();
     if (!balanceElement) return;
