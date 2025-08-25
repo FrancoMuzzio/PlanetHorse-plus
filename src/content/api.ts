@@ -25,53 +25,7 @@ interface ChromeResponse {
 // Cache for all token prices to avoid multiple API calls
 let cachedPriceData: SkyMavisApiResponse | null = null;
 
-/**
- * Fetches current token price from SkyMavis API via background service worker
- * @param currency - Currency code (e.g., 'usd')
- * @returns The token price in specified currency
- * @throws {Error} Throws on timeout (15s), runtime errors, or API failures
- */
-export async function fetchTokenPrice(currency: string): Promise<number> {
-  // Use cached data if available
-  if (cachedPriceData) {
-    return cachedPriceData.result[CONFIG.PHORSE_ADDRESS][currency];
-  }
-  
-  // Fallback to single token request for backward compatibility
-  return new Promise<number>((resolve, reject) => {
-    // Configure client-side timeout (15 seconds)
-    const clientTimeoutId = setTimeout(() => {
-      reject(new Error('Client timeout: No response received from service worker'));
-    }, CONFIG.TIMEOUTS.CLIENT_TIMEOUT);
-
-    chrome.runtime.sendMessage(
-      {
-        action: 'getPHPrice',
-        url: `${CONFIG.API_BASE_URL}${CONFIG.PHORSE_ADDRESS}`,
-        timeout: CONFIG.TIMEOUTS.SERVER_TIMEOUT
-      } as ChromeMessage,
-      (response: ChromeResponse) => {
-        clearTimeout(clientTimeoutId);
-        
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-        if (!response || response.error) {
-          reject(new Error(response?.error || 'Unknown error'));
-          return;
-        }
-        
-        if (!response.data?.result?.[CONFIG.PHORSE_ADDRESS]?.[currency]) {
-          reject(new Error(`Price not available for currency: ${currency}`));
-          return;
-        }
-        
-        resolve(response.data.result[CONFIG.PHORSE_ADDRESS][currency]);
-      }
-    );
-  });
-}
+// fetchTokenPrice function removed - use fetchAllTokenPrices() instead
 
 /**
  * Gets all token addresses needed for API request
@@ -93,38 +47,29 @@ function getAllTokenAddresses(): string[] {
 /**
  * Fetches all token prices from SkyMavis API via background service worker
  * @returns Complete price data object from API
- * @throws {Error} Throws on timeout (15s), runtime errors, or API failures
+ * @throws {Error} Throws on timeout (10s), runtime errors, or API failures
  */
 export async function fetchAllTokenPrices(): Promise<SkyMavisApiResponse> {
   return new Promise<SkyMavisApiResponse>((resolve, reject) => {
     const addresses = getAllTokenAddresses();
     const addressesParam = addresses.join(',');
     
-    // Configure client-side timeout (15 seconds)
-    const clientTimeoutId = setTimeout(() => {
-      reject(new Error('Client timeout: No response received from service worker'));
-    }, CONFIG.TIMEOUTS.CLIENT_TIMEOUT);
+    // Single timeout (10 seconds)
+    const timeoutId = setTimeout(() => {
+      reject(new Error('Connection failed'));
+    }, 10000);
 
     chrome.runtime.sendMessage(
       {
         action: 'getPHPrice',
         url: `${CONFIG.API_BASE_URL}${addressesParam}`,
-        timeout: CONFIG.TIMEOUTS.SERVER_TIMEOUT
+        timeout: 10000
       } as ChromeMessage,
       (response: ChromeResponse) => {
-        clearTimeout(clientTimeoutId);
+        clearTimeout(timeoutId);
         
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-        if (!response || response.error) {
-          reject(new Error(response?.error || 'Unknown error'));
-          return;
-        }
-        
-        if (!response.data) {
-          reject(new Error('No data received from API'));
+        if (chrome.runtime.lastError || !response || response.error || !response.data) {
+          reject(new Error('Connection failed'));
           return;
         }
         

@@ -1,9 +1,8 @@
-import { CONFIG, debugLog, getConversionInfo, getNextConversion, getAvailableConversions, getConversionDisplayText, type ConversionKey } from './config.js';
+import { CONFIG, debugLog, getAvailableConversions, getConversionDisplayText, type ConversionKey } from './config.js';
 import { getConvertedPrice } from './api.js';
 import { getCurrentConversion, setCurrentConversion } from './state.js';
 
-// Cache for PHORSE icon elements to avoid repeated DOM queries
-const iconCache = new WeakMap<Element, HTMLImageElement | null>();
+// Removed WeakMap cache - elements recreate frequently in SPA navigation
 
 /**
  * Finds or waits for the balance element in the DOM
@@ -82,28 +81,7 @@ export function setupGridLayout(balanceElement: HTMLElement): void {
   }
 }
 
-/**
- * Applies grid positioning styles to the PHORSE icon
- * Uses caching to avoid repeated DOM queries for performance optimization
- * @param balanceElement - The balance element whose parent contains the icon
- */
-export function applyIconStyles(balanceElement: HTMLElement): void {
-  const parent = balanceElement.parentNode as Element | null;
-  if (!parent) return;
-  
-  // Check cache first
-  let phorseIcon = iconCache.get(parent);
-  
-  // If not cached, perform DOM query and cache the result
-  if (phorseIcon === undefined) {
-    phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
-    iconCache.set(parent, phorseIcon); // Cache result (even if null)
-  }
-  
-  if (phorseIcon) {
-    phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
-  }
-}
+// applyIconStyles function inlined - code moved to call sites
 
 /**
  * Finds the balance element from a currency selector using DOM traversal
@@ -186,7 +164,13 @@ export function addConvertedPrice(balanceElement: HTMLElement, tokenPrice: numbe
     updateCurrencySelector(balanceElement);
     
     // Always apply icon styles to ensure consistent display
-    applyIconStyles(balanceElement);
+    const parent = balanceElement.parentNode as Element | null;
+    if (parent) {
+      const phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
+      if (phorseIcon) {
+        phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
+      }
+    }
     
   } catch (error) {
     debugLog('Error in addConvertedPrice:', error);
@@ -203,8 +187,14 @@ export function addConvertedPrice(balanceElement: HTMLElement, tokenPrice: numbe
       }
       
       convertedSpan.textContent = formattedPrice;
-      // Always apply icon styles to ensure consistent display
-      applyIconStyles(balanceElement);
+      // Always apply icon styles to ensure consistent display  
+      const parent = balanceElement.parentNode as Element | null;
+      if (parent) {
+        const phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
+        if (phorseIcon) {
+          phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
+        }
+      }
     } else {
       debugLog('No fallback price available');
     }

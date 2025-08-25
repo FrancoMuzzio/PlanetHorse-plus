@@ -1,6 +1,6 @@
 // ============= MAIN ORCHESTRATION =============
 import { CONFIG, debugLog } from './config.js';
-import { fetchTokenPrice, fetchAllTokenPrices } from './api.js';
+import { fetchAllTokenPrices } from './api.js';
 import { 
   findBalanceElement, 
   findConvertedPriceElement, 
@@ -8,7 +8,6 @@ import {
   setupGridLayout, 
   createGridElements, 
   updateConvertedPrice, 
-  applyIconStyles, 
   findBalanceElementFromSelector, 
   handleCurrencyChange 
 } from './ui.js';
@@ -55,7 +54,14 @@ async function initializeBalance(): Promise<void> {
     // Check if already initialized to avoid infinite loop
     const existingConverted = findConvertedPriceElement(balanceElement);
     if (existingConverted) {
-      applyIconStyles(balanceElement);
+      // Apply icon styles to ensure consistent display
+      const parent = balanceElement.parentNode as Element | null;
+      if (parent) {
+        const phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
+        if (phorseIcon) {
+          phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
+        }
+      }
       return;
     }
     
@@ -66,14 +72,8 @@ async function initializeBalance(): Promise<void> {
     watchBalanceChanges(balanceElement);
     debugLog('Balance initialized successfully');
   } catch (error) {
-    // Handle timeout errors specifically
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    if (errorMessage.includes('timeout') || errorMessage.includes('Request timeout') || errorMessage.includes('Client timeout')) {
-      debugLog('Timeout error:', errorMessage);
-      handleTimeoutError();
-    } else {
-      debugLog('Error initializing balance:', error);
-    }
+    debugLog('Error initializing balance:', error);
+    handleConnectionError();
   }
 }
 
@@ -174,24 +174,21 @@ function setupGlobalObserver(): void {
 }
 
 /**
- * Handles timeout errors by displaying user feedback and retrying
+ * Handles connection errors by displaying user feedback and retrying
  * Shows temporary error message and attempts retry after 5 seconds
  */
-function handleTimeoutError(): void {
-  // Find converted price element or balance to show error
+function handleConnectionError(): void {
   const balanceElement = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
   if (!balanceElement) return;
   
   let errorSpan = findConvertedPriceElement(balanceElement);
   if (!errorSpan) {
-    // If it doesn't exist, create element to show error
     setupGridLayout(balanceElement);
     errorSpan = createGridElements(balanceElement);
   }
   
   // Show temporary error message
-  const originalContent = errorSpan.textContent;
-  errorSpan.textContent = '⏱️ Timeout';
+  errorSpan.textContent = '❌ Error';
   errorSpan.style.color = '#ff6b6b';
   
   // Retry after configured delay

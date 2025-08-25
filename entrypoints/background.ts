@@ -21,11 +21,11 @@ export default defineBackground(() => {
     sendResponse: (response: ChromeResponse) => void
   ): boolean => {
     if (msg.action === 'getPHPrice') {
-      // Configure timeout for request using value from config
+      // Configure timeout for request 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
-      }, msg.timeout || 10000); // Use provided timeout or fallback to 10 seconds
+      }, msg.timeout || 10000);
 
       fetch(msg.url, { signal: controller.signal })
         .then(res => {
@@ -38,12 +38,7 @@ export default defineBackground(() => {
         })
         .catch((err: Error) => {
           clearTimeout(timeoutId);
-          // Differentiate timeout error vs other errors
-          if (err.name === 'AbortError') {
-            sendResponse({ error: 'Request timeout: API took too long to respond' });
-          } else {
-            sendResponse({ error: err.message });
-          }
+          sendResponse({ error: 'Connection failed' });
         });
       return true; // async response
     }

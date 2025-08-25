@@ -33,8 +33,6 @@ export interface CSSStyles {
 }
 
 export interface Timeouts {
-  CLIENT_TIMEOUT: number;
-  SERVER_TIMEOUT: number;
   RETRY_DELAY: number;
   RECONNECT_DELAY: number;
   DEBOUNCE_DELAY: number;
@@ -120,8 +118,6 @@ export const CONFIG: ConfigType = {
   
   // Timeout configuration (in milliseconds)
   TIMEOUTS: {
-    CLIENT_TIMEOUT: 15000,          // Client-side API timeout
-    SERVER_TIMEOUT: 10000,          // Background script fetch timeout
     RETRY_DELAY: 5000,              // Error retry delay
     RECONNECT_DELAY: 30000,         // Observer reconnect delay
     DEBOUNCE_DELAY: 500             // DOM change debounce
