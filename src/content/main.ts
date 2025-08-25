@@ -1,14 +1,29 @@
 // ============= MAIN ORCHESTRATION =============
-import { CONFIG, debugLog } from './config.js';
-import { fetchTokenPrice, fetchAllTokenPrices } from './api.js';
-import { findBalanceElement, findConvertedPriceElement, addConvertedPrice, setupGridLayout, createGridElements, updateConvertedPrice, applyIconStyles, findBalanceElementFromSelector, handleCurrencyChange } from './ui.js';
+import { CONFIG, debugLog } from './config';
+import { fetchAllTokenPrices } from './api';
+import { 
+  findBalanceElement, 
+  findConvertedPriceElement, 
+  addConvertedPrice, 
+  setupGridLayout, 
+  createGridElements, 
+  updateConvertedPrice, 
+  findBalanceElementFromSelector, 
+  handleCurrencyChange 
+} from './ui';
+
+// Extend Window interface for timeout storage
+declare global {
+  interface Window {
+    phorseInitTimeout?: number;
+  }
+}
 
 /**
  * Watches balance element for content changes and updates converted price display
- * @param {HTMLElement} element - The balance element to observe
- * @returns {void}
+ * @param element - The balance element to observe
  */
-function watchBalanceChanges(element) {
+function watchBalanceChanges(element: HTMLElement): void {
   const contentObserver = new MutationObserver(() => {
     try {
       // Use cached data for immediate recalculation (no API call needed)
@@ -29,11 +44,9 @@ function watchBalanceChanges(element) {
 /**
  * Initializes the balance display with multi-currency conversion
  * Finds balance element, fetches all token prices, and sets up observers
- * @async
- * @returns {Promise<void>}
  * @throws {Error} When token price fetch fails or timeout occurs
  */
-async function initializeBalance() {
+async function initializeBalance(): Promise<void> {
   try {
     const balanceElement = await findBalanceElement();
     if (!balanceElement) return;
@@ -41,7 +54,14 @@ async function initializeBalance() {
     // Check if already initialized to avoid infinite loop
     const existingConverted = findConvertedPriceElement(balanceElement);
     if (existingConverted) {
-      applyIconStyles(balanceElement);
+      // Apply icon styles to ensure consistent display
+      const parent = balanceElement.parentNode as Element | null;
+      if (parent) {
+        const phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
+        if (phorseIcon) {
+          phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
+        }
+      }
       return;
     }
     
@@ -52,13 +72,8 @@ async function initializeBalance() {
     watchBalanceChanges(balanceElement);
     debugLog('Balance initialized successfully');
   } catch (error) {
-    // Handle timeout errors specifically
-    if (error.message.includes('timeout') || error.message.includes('Request timeout') || error.message.includes('Client timeout')) {
-      debugLog('Timeout error:', error.message);
-      handleTimeoutError();
-    } else {
-      debugLog('Error initializing balance:', error);
-    }
+    debugLog('Error initializing balance:', error);
+    handleConnectionError();
   }
 }
 
@@ -66,12 +81,11 @@ async function initializeBalance() {
  * Sets up global MutationObserver for SPA navigation
  * Monitors DOM changes to re-initialize balance display when needed
  * Includes error boundary to prevent infinite loops
- * @returns {void}
  */
-function setupGlobalObserver() {
+function setupGlobalObserver(): void {
   let errorCount = 0;
   
-  const globalObserver = new MutationObserver((mutations) => {
+  const globalObserver = new MutationObserver((mutations: MutationRecord[]) => {
     try {
       // Filter out changes made by our own extension
       const hasRelevantChanges = mutations.some(mutation => {
@@ -81,8 +95,9 @@ function setupGlobalObserver() {
         
         const isOwnExtensionChange = [...addedNodes, ...removedNodes].some(node => {
           if (node.nodeType === Node.ELEMENT_NODE) {
-            return node.classList.contains(CONFIG.CSS_CLASSES.CONVERTED_PRICE) || 
-                   node.classList.contains(CONFIG.CSS_CLASSES.DOLLAR_EMOJI);
+            const element = node as Element;
+            return element.classList.contains(CONFIG.CSS_CLASSES.CONVERTED_PRICE) || 
+                   element.classList.contains(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
           }
           return false;
         });
@@ -92,16 +107,17 @@ function setupGlobalObserver() {
       
       if (hasRelevantChanges) {
         // Set up event delegation for any newly added currency group containers
-        const newCurrencyContainers = mutations.reduce((containers, mutation) => {
+        const newCurrencyContainers = mutations.reduce<Element[]>((containers, mutation) => {
           const addedNodes = Array.from(mutation.addedNodes);
           addedNodes.forEach(node => {
             if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
               // Check if node itself is a currency group container
-              if (node.className && node.className.startsWith(CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX)) {
-                containers.push(node);
+              if (element.className && element.className.startsWith(CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX)) {
+                containers.push(element);
               }
               // Check for currency group containers within added node
-              const nestedContainers = node.querySelectorAll && node.querySelectorAll(`[class*="${CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX}"]`);
+              const nestedContainers = element.querySelectorAll && element.querySelectorAll(`[class*="${CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX}"]`);
               if (nestedContainers) {
                 containers.push(...Array.from(nestedContainers));
               }
@@ -117,7 +133,7 @@ function setupGlobalObserver() {
         
         // Debounce to avoid multiple executions
         clearTimeout(window.phorseInitTimeout);
-        window.phorseInitTimeout = setTimeout(() => {
+        window.phorseInitTimeout = window.setTimeout(() => {
           initializeBalance().catch(error => {
             debugLog('Error in deferred initializeBalance:', error);
           });
@@ -158,25 +174,21 @@ function setupGlobalObserver() {
 }
 
 /**
- * Handles timeout errors by displaying user feedback and retrying
+ * Handles connection errors by displaying user feedback and retrying
  * Shows temporary error message and attempts retry after 5 seconds
- * @returns {void}
  */
-function handleTimeoutError() {
-  // Find converted price element or balance to show error
+function handleConnectionError(): void {
   const balanceElement = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
   if (!balanceElement) return;
   
   let errorSpan = findConvertedPriceElement(balanceElement);
   if (!errorSpan) {
-    // If it doesn't exist, create element to show error
     setupGridLayout(balanceElement);
     errorSpan = createGridElements(balanceElement);
   }
   
   // Show temporary error message
-  const originalContent = errorSpan.textContent;
-  errorSpan.textContent = '⏱️ Timeout';
+  errorSpan.textContent = '❌ Error';
   errorSpan.style.color = '#ff6b6b';
   
   // Retry after configured delay
@@ -184,10 +196,10 @@ function handleTimeoutError() {
     try {
       await fetchAllTokenPrices();
       addConvertedPrice(balanceElement);
-      errorSpan.style.color = ''; // Restore original color
+      errorSpan!.style.color = ''; // Restore original color
     } catch (retryError) {
       debugLog('Retry failed:', retryError);
-      errorSpan.textContent = '❌ Error';
+      errorSpan!.textContent = '❌ Error';
     }
   }, CONFIG.TIMEOUTS.RETRY_DELAY);
 }
@@ -195,25 +207,25 @@ function handleTimeoutError() {
 /**
  * Sets up event delegation for currency selector changes within specific containers
  * Attaches listeners to currency group containers for better performance
- * @param {HTMLElement} container - The currency group container to attach listener to
- * @returns {void}
+ * @param container - The currency group container to attach listener to
  */
-function setupContainerEventDelegation(container) {
+function setupContainerEventDelegation(container: Element): void {
   // Avoid duplicate listeners
   if (container.hasAttribute('data-phorse-listener')) {
     return;
   }
   
-  container.addEventListener('change', (e) => {
+  container.addEventListener('change', (e: Event) => {
+    const target = e.target as HTMLElement;
     // Check if the changed element is a currency selector
-    if (e.target && e.target.matches(`.${CONFIG.CSS_CLASSES.CURRENCY_SELECTOR}`)) {
+    if (target && target.matches(`.${CONFIG.CSS_CLASSES.CURRENCY_SELECTOR}`)) {
       e.preventDefault();
       e.stopPropagation();
       
       // Find the associated balance element
-      const balanceElement = findBalanceElementFromSelector(e.target);
-      if (balanceElement) {
-        handleCurrencyChange(balanceElement, e.target.value);
+      const balanceElement = findBalanceElementFromSelector(target);
+      if (balanceElement && 'value' in target) {
+        handleCurrencyChange(balanceElement, (target as HTMLSelectElement).value);
       }
     }
   });
@@ -225,9 +237,8 @@ function setupContainerEventDelegation(container) {
 /**
  * Sets up scoped event delegation for currency selector changes
  * Finds all currency group containers and attaches targeted listeners (optimized approach)
- * @returns {void}
  */
-function setupGlobalEventDelegation() {
+function setupGlobalEventDelegation(): void {
   // Find all existing currency group containers
   const currencyContainers = document.querySelectorAll(`[class*="${CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX}"]`);
   
@@ -239,10 +250,8 @@ function setupGlobalEventDelegation() {
 /**
  * Main initialization function for the extension
  * Initializes balance display and sets up global observer + event delegation
- * @async
- * @returns {Promise<void>}
  */
-async function initialize() {
+async function initialize(): Promise<void> {
   await initializeBalance();
   setupGlobalObserver();
   setupGlobalEventDelegation();
