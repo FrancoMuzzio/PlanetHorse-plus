@@ -1,4 +1,4 @@
-import { CONFIG, getConversionType, debugLog, type ConversionKey } from './config.js';
+import { CONFIG, getConversionType, debugLog, type ConversionKey } from './config';
 
 // API Response Types
 export interface PriceData {

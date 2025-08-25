@@ -1,4 +1,4 @@
-import { CONFIG, debugLog, type ConversionKey } from './config.js';
+import { CONFIG, debugLog, type ConversionKey } from './config';
 
 /**
  * State management for runtime conversion state

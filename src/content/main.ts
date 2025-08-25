@@ -1,6 +1,6 @@
 // ============= MAIN ORCHESTRATION =============
-import { CONFIG, debugLog } from './config.js';
-import { fetchAllTokenPrices } from './api.js';
+import { CONFIG, debugLog } from './config';
+import { fetchAllTokenPrices } from './api';
 import { 
   findBalanceElement, 
   findConvertedPriceElement, 
@@ -10,7 +10,7 @@ import {
   updateConvertedPrice, 
   findBalanceElementFromSelector, 
   handleCurrencyChange 
-} from './ui.js';
+} from './ui';
 
 // Extend Window interface for timeout storage
 declare global {

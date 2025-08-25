@@ -1,6 +1,6 @@
-import { CONFIG, debugLog, getAvailableConversions, getConversionDisplayText, type ConversionKey } from './config.js';
-import { getConvertedPrice } from './api.js';
-import { getCurrentConversion, setCurrentConversion } from './state.js';
+import { CONFIG, debugLog, getAvailableConversions, getConversionDisplayText, type ConversionKey } from './config';
+import { getConvertedPrice } from './api';
+import { getCurrentConversion, setCurrentConversion } from './state';
 
 // Removed WeakMap cache - elements recreate frequently in SPA navigation
 
