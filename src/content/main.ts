@@ -97,7 +97,7 @@ function setupGlobalObserver(): void {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
             return element.classList.contains(CONFIG.CSS_CLASSES.CONVERTED_PRICE) || 
-                   element.classList.contains(CONFIG.CSS_CLASSES.DOLLAR_EMOJI);
+                   element.classList.contains(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
           }
           return false;
         });

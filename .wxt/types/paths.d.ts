@@ -2,14 +2,18 @@
 import "wxt/browser";
 
 declare module "wxt/browser" {
-  type PublicPath =
+  export type PublicPath =
+    | ""
+    | "/"
     | "/background.js"
     | "/content-scripts/content.js"
     | "/icons/icon-128.png"
     | "/icons/icon-16.png"
     | "/icons/icon-48.png"
     | "/icons/icon.svg"
-  export interface ProjectRuntime extends Runtime.Static {
+  type HtmlPublicPath = Extract<PublicPath, `${string}.html`>
+  export interface WxtRuntime {
     getURL(path: PublicPath): string;
+    getURL(path: `${HtmlPublicPath}${string}`): string;
   }
 }

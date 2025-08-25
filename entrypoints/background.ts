@@ -2,7 +2,7 @@
 // Service worker para manejar llamadas de API desde content scripts
 // Migrado desde background.js sin cambios en la funcionalidad
 
-// WXT auto-imports - no explicit import needed
+import { defineBackground } from '#imports';
 interface ChromeMessage {
   action: string;
   url: string;
