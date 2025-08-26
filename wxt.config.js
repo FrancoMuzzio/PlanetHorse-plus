@@ -22,7 +22,19 @@ export default defineConfig({
     // Content Security Policy
     content_security_policy: {
       extension_pages: "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none';"
-    }
+    },
+
+    // Web accessible resources for content scripts
+    web_accessible_resources: [
+      {
+        resources: [
+          "icons/setting-gear.svg"
+        ],
+        matches: [
+          "https://planethorse.io/*"
+        ]
+      }
+    ]
   },
 
   // Browser startup configuration (v0.20+ syntax)
