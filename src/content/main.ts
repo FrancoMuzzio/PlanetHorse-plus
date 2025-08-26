@@ -1,6 +1,7 @@
 // ============= MAIN ORCHESTRATION =============
 import { CONFIG, debugLog } from './config';
 import { fetchAllTokenPrices } from './api';
+import { initializeConversionState } from './state';
 import { 
   findBalanceElement, 
   findConvertedPriceElement, 
@@ -255,9 +256,12 @@ function setupGlobalEventDelegation(): void {
 
 /**
  * Main initialization function for the extension
- * Initializes balance display and sets up global observer + event delegation
+ * Loads user preferences, initializes balance display and sets up global observer + event delegation
  */
 async function initialize(): Promise<void> {
+  // Load user's preferred currency first
+  await initializeConversionState();
+  
   await initializeBalance();
   setupGlobalObserver();
   setupGlobalEventDelegation();

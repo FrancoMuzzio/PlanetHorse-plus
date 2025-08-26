@@ -14,7 +14,7 @@ export default defineConfig({
     },
     
     // Permissions
-    permissions: [],
+    permissions: ['storage'],
     host_permissions: [
       'https://exchange-rate.skymavis.com/*'
     ],

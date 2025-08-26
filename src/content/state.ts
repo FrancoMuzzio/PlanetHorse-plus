@@ -1,4 +1,5 @@
 import { CONFIG, debugLog, type ConversionKey } from './config';
+import { loadUserPreferredCurrency, saveUserPreferredCurrency } from './storage';
 
 /**
  * State management for runtime conversion state
@@ -19,7 +20,7 @@ export function getCurrentConversion(): ConversionKey {
 }
 
 /**
- * Sets the current conversion state with validation and logging
+ * Sets the current conversion state with validation, logging, and persistence
  * @param newConversion - New conversion key to set
  * @throws {Error} If conversion type is invalid
  */
@@ -34,6 +35,11 @@ export function setCurrentConversion(newConversion: ConversionKey): void {
   }
   
   currentConversion = newConversion;
+  
+  // Persist user preference (non-blocking)
+  saveUserPreferredCurrency(newConversion).catch(error => {
+    debugLog('Failed to save user preferred currency:', error);
+  });
 }
 
 /**
@@ -41,4 +47,19 @@ export function setCurrentConversion(newConversion: ConversionKey): void {
  */
 export function resetConversion(): void {
   currentConversion = CONFIG.DEFAULT_CURRENCY;
+}
+
+/**
+ * Initializes conversion state by loading user's preferred currency from storage
+ * @returns Promise that resolves when state is initialized
+ */
+export async function initializeConversionState(): Promise<void> {
+  try {
+    const preferredCurrency = await loadUserPreferredCurrency();
+    currentConversion = preferredCurrency;
+    debugLog('Initialized conversion state with user preference:', preferredCurrency);
+  } catch (error) {
+    debugLog('Error initializing conversion state:', error);
+    currentConversion = CONFIG.DEFAULT_CURRENCY;
+  }
 }
