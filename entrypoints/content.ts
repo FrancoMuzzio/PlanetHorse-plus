@@ -3,10 +3,18 @@
 // All business logic remains in src/content/ (unchanged)
 
 import { defineContentScript } from '#imports';
+
 export default defineContentScript({
-  matches: ['https://planethorse.io/game*'],
-  async main() {
+  matches: ['*://planethorse.io/*'],
+  async main(ctx) {
     // Import and execute the main content script logic
-    await import('../src/content/main.js');
+    const { initialize } = await import('../src/content/main');
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => initialize(ctx));
+    } else {
+      initialize(ctx);
+    }
   },
 });

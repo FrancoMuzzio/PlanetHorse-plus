@@ -1,5 +1,5 @@
 // ============= MAIN ORCHESTRATION =============
-import { CONFIG, debugLog } from './config';
+import { CONFIG, debugLog, findElementByClassPrefix } from './config';
 import { fetchAllTokenPrices } from './api';
 import { initializeConversionState } from './state';
 import { 
@@ -12,6 +12,8 @@ import {
   findBalanceElementFromSelector, 
   handleCurrencyChange 
 } from './ui';
+import { createIntegratedUi } from 'wxt/utils/content-script-ui/integrated';
+import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 
 // Extend Window interface for timeout storage
 declare global {
@@ -19,6 +21,8 @@ declare global {
     phorseInitTimeout?: number;
   }
 }
+
+let modalUI: any = null;
 
 /**
  * Watches balance element for content changes and updates converted price display
@@ -255,21 +259,88 @@ function setupGlobalEventDelegation(): void {
 }
 
 /**
+ * Creates settings button UI using WXT native utilities
+ * @param ctx - WXT content script context
+ */
+async function createSettingsUI(ctx: any): Promise<void> {
+  if (!CONFIG.FEATURES.SETTINGS_MODAL_ENABLED) {
+    debugLog('Settings modal is disabled');
+    return;
+  }
+
+  // Create modal UI first
+  modalUI = await createShadowRootUi(ctx, {
+    name: 'phorse-settings-modal',
+    position: 'modal',
+    zIndex: 9999,
+    onMount: (container) => {
+      // Create modal header
+      const header = document.createElement('div');
+      header.style.cssText = 'padding: 15px 20px; border-bottom: 2px solid #8b4513; font-size: 18px; font-weight: bold; background: #582c25; color: white; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;';
+      header.textContent = 'Settings';
+
+      // Create modal body
+      const body = document.createElement('div');
+      body.style.cssText = 'padding: 20px; min-height: 100px; background: #582c25; color: white; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;';
+      body.textContent = 'Modal content will be added here...';
+
+      // Assemble modal
+      container.appendChild(header);
+      container.appendChild(body);
+      
+      debugLog('Modal UI mounted');
+    }
+  });
+
+  // Create button UI
+  const buttonUI = createIntegratedUi(ctx, {
+    position: 'inline',
+    anchor: `[class*="${CONFIG.CSS_CLASSES.ACTION_OPTIONS_PREFIX}"]`,
+    onMount: (container) => {
+      const button = document.createElement('button');
+      button.style.cssText = CONFIG.CSS_STYLES.SETTINGS_BUTTON_STYLES;
+      button.textContent = '⚙️';
+      button.title = 'Planet Horse Extension Settings';
+      
+      // Add click event listener
+      button.addEventListener('click', () => {
+        if (modalUI) {
+          modalUI.mount();
+        }
+      });
+      
+      // Add hover effects
+      button.addEventListener('mouseenter', () => {
+        button.style.backgroundColor = '#6b3729';
+      });
+      
+      button.addEventListener('mouseleave', () => {
+        button.style.backgroundColor = '#582c25';
+      });
+      
+      container.appendChild(button);
+      debugLog('Settings button mounted');
+    }
+  });
+
+  // Auto-mount button - WXT handles SPA navigation automatically
+  buttonUI.autoMount();
+}
+
+/**
  * Main initialization function for the extension
  * Loads user preferences, initializes balance display and sets up global observer + event delegation
  */
-async function initialize(): Promise<void> {
+async function initialize(ctx: any): Promise<void> {
   // Load user's preferred currency first
   await initializeConversionState();
   
   await initializeBalance();
+  await createSettingsUI(ctx);
+  
   setupGlobalObserver();
   setupGlobalEventDelegation();
 }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
-} else {
-  initialize();
-}
+// Export initialize function for WXT entrypoint
+export { initialize };

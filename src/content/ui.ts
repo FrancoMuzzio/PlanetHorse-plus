@@ -234,3 +234,4 @@ function updateCurrencySelector(balanceElement: HTMLElement): void {
 export function updateConvertedPrice(balanceElement: HTMLElement): void {
   addConvertedPrice(balanceElement);
 }
+

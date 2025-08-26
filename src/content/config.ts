@@ -20,6 +20,8 @@ export interface CSSClasses {
   CONVERTED_PRICE: string;
   CURRENCY_SELECTOR: string;
   CURRENCY_GROUP_PREFIX: string;
+  SETTINGS_BUTTON: string;
+  ACTION_OPTIONS_PREFIX: string;
 }
 
 export interface CSSStyles {
@@ -30,6 +32,7 @@ export interface CSSStyles {
   GRID_DROPDOWN: string;
   GRID_CONVERTED: string;
   DROPDOWN_STYLES: string;
+  SETTINGS_BUTTON_STYLES: string;
 }
 
 export interface Timeouts {
@@ -44,6 +47,7 @@ export interface Limits {
 
 export interface Features {
   PRICE_CONVERTER_ENABLED: boolean;
+  SETTINGS_MODAL_ENABLED: boolean;
 }
 
 export interface ConfigType {
@@ -65,7 +69,7 @@ export const CONFIG: ConfigType = {
   API_BASE_URL: 'https://exchange-rate.skymavis.com/v2/prices?addresses=',
   BALANCE_ELEMENT_ID: 'phorse-balance',
   DEFAULT_CURRENCY: 'usd',
-  DEBUG: false,
+  DEBUG: true,
   
   // Supported conversion types (scalable structure)
   CONVERSION_TYPES: {
@@ -101,7 +105,9 @@ export const CONFIG: ConfigType = {
   CSS_CLASSES: {
     CONVERTED_PRICE: 'phorse-converted',
     CURRENCY_SELECTOR: 'phorse-currency-selector',
-    CURRENCY_GROUP_PREFIX: 'styles_currencyGroup__'
+    CURRENCY_GROUP_PREFIX: 'styles_currencyGroup__',
+    SETTINGS_BUTTON: 'phorse-settings-btn',
+    ACTION_OPTIONS_PREFIX: 'styles_actionOptions__'
   },
   
   // CSS Styles configuration
@@ -118,7 +124,8 @@ export const CONFIG: ConfigType = {
     GRID_BALANCE: 'grid-column: 2; grid-row: 1;',
     GRID_DROPDOWN: 'grid-column: 1; grid-row: 2;',
     GRID_CONVERTED: 'grid-column: 2; grid-row: 2;',
-    DROPDOWN_STYLES: 'cursor: pointer; border: 1px solid #3a1a15; border-radius: 4px; background: #582c25; color: white; font-size: 14px; padding: 2px 4px; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;'
+    DROPDOWN_STYLES: 'cursor: pointer; border: 1px solid #3a1a15; border-radius: 4px; background: #582c25; color: white; font-size: 14px; padding: 2px 4px; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;',
+    SETTINGS_BUTTON_STYLES: 'cursor: pointer; background: #582c25; border: 2px solid #8b4513; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; transition: background-color 0.2s;'
   },
   
   // Timeout configuration (in milliseconds)
@@ -135,7 +142,8 @@ export const CONFIG: ConfigType = {
   
   // Feature toggles
   FEATURES: {
-    PRICE_CONVERTER_ENABLED: true   // Enable/disable price converter functionality
+    PRICE_CONVERTER_ENABLED: true,   // Enable/disable price converter functionality
+    SETTINGS_MODAL_ENABLED: true     // Enable/disable settings modal functionality
   }
 };
 
@@ -208,4 +216,20 @@ export function getNextConversion(currentConversion: ConversionKey): ConversionK
 export function getConversionDisplayText(conversionKey: ConversionKey): string {
   const info = getConversionInfo(conversionKey);
   return `${info.symbol} ${info.name}`;
+}
+
+/**
+ * Generic DRY function to find elements by CSS class prefix
+ * @param prefix - The CSS class prefix to search for (e.g., "styles_actionOptions__")
+ * @returns The first matching element or null if not found
+ */
+export function findElementByClassPrefix(prefix: string): HTMLElement | null {
+  try {
+    const element = document.querySelector(`[class*="${prefix}"]`) as HTMLElement | null;
+    debugLog(`findElementByClassPrefix("${prefix}"):`, element ? 'Found' : 'Not found');
+    return element;
+  } catch (error) {
+    debugLog(`Error in findElementByClassPrefix("${prefix}"):`, error);
+    return null;
+  }
 }
