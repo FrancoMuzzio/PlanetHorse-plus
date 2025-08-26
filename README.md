@@ -1,4 +1,4 @@
-# PlanetHorse+ v1.0.1
+# PlanetHorse+ v2.0.0
 
 A Chrome extension that displays real-time multi-currency conversion for your PH tokens on [Planet Horse](https://planethorse.io). Support for USD, EUR, ARS (fiat currencies) plus RON (token) with an interactive currency selector.
 
@@ -11,7 +11,8 @@ Planet Horse is a Play-to-Earn horse racing game on the Ronin Network where play
 ## Features
 
 - **Multi-Currency Support**: Convert PHORSE tokens to USD, EUR, ARS (fiat) or RON (token) with real-time rates
-- **Interactive Currency Selector**: Easy-to-use dropdown to switch between conversion types  
+- **Interactive Currency Selector**: Easy-to-use dropdown to switch between conversion types
+- **Settings Button & Modal**: Integrated settings interface with modal for extension configuration
 - **Smart Caching**: Optimized performance with single SkyMavis API call for all exchange rates
 - **Non-invasive Integration**: Seamlessly adds to the existing UI without disrupting gameplay
 - **Automatic Updates**: Refreshes whenever your balance changes
@@ -47,7 +48,12 @@ Planet Horse is a Play-to-Earn horse racing game on the Ronin Network where play
 
 ## Usage
 
-Once installed, simply navigate to [Planet Horse](https://planethorse.io/game) and the extension will automatically display a currency selector and converted value next to your PHORSE token balance. Click the dropdown to switch between USD (💲), EUR (💲), ARS (💲) fiat currencies, and RON (🌐) token conversions. No configuration needed!
+Once installed, simply navigate to [Planet Horse](https://planethorse.io/game) and the extension will automatically display:
+
+1. **Currency Selector & Converted Value**: Interactive dropdown next to your PHORSE token balance
+2. **Settings Button**: Gear icon (⚙️) for accessing extension settings and configuration
+
+Click the dropdown to switch between USD (💲), EUR (💲), ARS (💲) fiat currencies, and RON (🌐) token conversions. Click the settings button to access advanced configuration options. No initial setup required!
 
 ## Development
 
@@ -153,7 +159,7 @@ Contributions are welcome! Please follow these guidelines:
 - **Commits**: Use [Conventional Commits](https://www.conventionalcommits.org/)  
 - **Code**: TypeScript with strict typing, function/variable names in English, comments in English
 - **Build**: Always test that `npm run build` works before submitting PRs
-- **Testing**: Verify multi-currency conversion and UI functionality
+- **Testing**: Verify multi-currency conversion, settings modal, and UI functionality
 
 ### Development Tips
 
