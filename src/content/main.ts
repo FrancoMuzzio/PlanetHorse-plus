@@ -1,6 +1,7 @@
 // ============= MAIN ORCHESTRATION =============
 import { CONFIG, debugLog, findElementByClassPrefix } from './config';
 import { fetchAllTokenPrices } from './api';
+import settingGearIcon from '~/assets/icons/setting-gear.svg';
 import { initializeConversionState } from './state';
 import { 
   findBalanceElement, 
@@ -376,8 +377,7 @@ async function createSettingsUI(ctx: any): Promise<void> {
       
       // Load external gear SVG icon
       const gearIcon = document.createElement('img');
-      const svgUrl = chrome.runtime.getURL('icons/setting-gear.svg');
-      gearIcon.src = svgUrl;
+      gearIcon.src = settingGearIcon;
       gearIcon.style.cssText = 'width: 24px; height: 24px; pointer-events: none;';
       gearIcon.alt = 'Settings';
       
