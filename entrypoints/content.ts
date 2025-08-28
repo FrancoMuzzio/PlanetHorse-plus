@@ -3,6 +3,8 @@
 // All business logic remains in src/content/ (unchanged)
 
 import { defineContentScript } from '#imports';
+// Import CSS styles for the extension
+import '../src/content/styles/dropdown.css';
 
 export default defineContentScript({
   matches: ['*://planethorse.io/*'],

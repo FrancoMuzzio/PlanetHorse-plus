@@ -38,7 +38,8 @@ export function createCurrencyConversionUI(ctx: any) {
       // Create custom dropdown container
       const dropdownContainer = document.createElement('div');
       dropdownContainer.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
-      dropdownContainer.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + CONFIG.CSS_STYLES.POSITION_RELATIVE;
+      dropdownContainer.classList.add(CONFIG.CSS_CLASSES.DROPDOWN_CONTAINER);
+      dropdownContainer.classList.add(CONFIG.CSS_CLASSES.GRID_DROPDOWN);
       
       // Create dropdown button using utility
       const dropdownButtonComponents = createDropdownButton(getCurrentConversion());

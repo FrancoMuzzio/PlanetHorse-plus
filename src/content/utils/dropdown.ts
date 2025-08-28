@@ -21,7 +21,7 @@ export interface DropdownCallbacks {
  */
 export function createDropdownOptions(callbacks: DropdownCallbacks): HTMLElement {
   const optionsContainer = document.createElement('div');
-  optionsContainer.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_OPTIONS_CONTAINER;
+  optionsContainer.classList.add(CONFIG.CSS_CLASSES.DROPDOWN_OPTIONS);
 
   // Generate options for all available conversions
   const availableConversions = getAllValidConversions();
@@ -48,18 +48,12 @@ export function createDropdownOptions(callbacks: DropdownCallbacks): HTMLElement
  */
 function createDropdownOption(conversionKey: ConversionKey): HTMLElement {
   const option = document.createElement('div');
-  option.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_OPTION;
+  option.classList.add(CONFIG.CSS_CLASSES.DROPDOWN_OPTION);
   option.textContent = getConversionDisplayText(conversionKey);
   option.dataset.value = conversionKey;
   
-  // Add hover effects
-  option.addEventListener('mouseenter', () => {
-    option.style.backgroundColor = CONFIG.CSS_STYLES.DROPDOWN_OPTION_HOVER_BG;
-  });
-  
-  option.addEventListener('mouseleave', () => {
-    option.style.backgroundColor = 'transparent';
-  });
+  // Hover effects are now handled by CSS :hover pseudo-class
+  // No need for JavaScript event listeners
 
   return option;
 }
@@ -75,7 +69,7 @@ function createDropdownOption(conversionKey: ConversionKey): HTMLElement {
  */
 export function createDropdownButton(currentSelection: ConversionKey) {
   const dropdownButton = document.createElement('div');
-  dropdownButton.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_STYLES + ' ' + CONFIG.CSS_STYLES.DROPDOWN_BUTTON;
+  dropdownButton.classList.add(CONFIG.CSS_CLASSES.DROPDOWN_BUTTON);
   
   // Current selection display
   const currentSelectionSpan = document.createElement('span');
@@ -84,7 +78,7 @@ export function createDropdownButton(currentSelection: ConversionKey) {
   // Dropdown arrow
   const dropdownArrow = document.createElement('span');
   dropdownArrow.textContent = '▼';
-  dropdownArrow.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_ARROW;
+  dropdownArrow.classList.add(CONFIG.CSS_CLASSES.DROPDOWN_ARROW);
   
   dropdownButton.appendChild(currentSelectionSpan);
   dropdownButton.appendChild(dropdownArrow);

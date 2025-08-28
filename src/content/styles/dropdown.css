@@ -1,0 +1,80 @@
+/**
+ * Dropdown Component Styles
+ * Migrated from config.ts CSS_STYLES to improve maintainability
+ */
+
+/* Main dropdown container */
+.phorse-dropdown-container {
+  text-align: center;
+  position: relative;
+}
+
+/* Grid positioning for dropdown within currency conversion layout */
+.phorse-dropdown-container.phorse-grid-dropdown {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+/* Dropdown button (main button that shows current selection) */
+.phorse-dropdown-button {
+  border-radius: 5px;
+  background: #582c25;
+  color: white;
+  font-size: 10px;
+  max-height: 28px;
+  max-width: 160px;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border: none;
+  padding: 4px 8px;
+  justify-content: space-between;
+}
+
+/* Dropdown button hover effect */
+.phorse-dropdown-button:hover {
+  background: #6b3529;
+}
+
+/* Dropdown arrow */
+.phorse-dropdown-arrow {
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* Options container (dropdown list) */
+.phorse-dropdown-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #582c25;
+  border: 1px solid #3a1a15;
+  border-radius: 0 0 4px 4px;
+  border-top: none;
+  max-height: 120px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+}
+
+/* Individual dropdown option */
+.phorse-dropdown-option {
+  padding: 6px 8px;
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  border-bottom: 1px solid #3a1a15;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+/* Dropdown option hover effect */
+.phorse-dropdown-option:hover {
+  background-color: #6b3529;
+}
+
+/* Remove border from last option */
+.phorse-dropdown-option:last-child {
+  border-bottom: none;
+}

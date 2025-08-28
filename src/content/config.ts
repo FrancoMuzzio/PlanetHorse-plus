@@ -22,6 +22,14 @@ export interface CSSClasses {
   CURRENCY_GROUP_PREFIX: string;
   SETTINGS_BUTTON: string;
   ACTION_OPTIONS_PREFIX: string;
+  
+  // Dropdown Component Classes
+  DROPDOWN_CONTAINER: string;
+  DROPDOWN_BUTTON: string;
+  DROPDOWN_ARROW: string;
+  DROPDOWN_OPTIONS: string;
+  DROPDOWN_OPTION: string;
+  GRID_DROPDOWN: string;
 }
 
 export interface CSSStyles {
@@ -162,7 +170,15 @@ export const CONFIG: ConfigType = {
     CURRENCY_SELECTOR: 'phorse-currency-selector',
     CURRENCY_GROUP_PREFIX: 'styles_currencyGroup__',
     SETTINGS_BUTTON: 'phorse-settings-btn',
-    ACTION_OPTIONS_PREFIX: 'styles_actionOptions__'
+    ACTION_OPTIONS_PREFIX: 'styles_actionOptions__',
+    
+    // Dropdown Component Classes
+    DROPDOWN_CONTAINER: 'phorse-dropdown-container',
+    DROPDOWN_BUTTON: 'phorse-dropdown-button',
+    DROPDOWN_ARROW: 'phorse-dropdown-arrow',
+    DROPDOWN_OPTIONS: 'phorse-dropdown-options',
+    DROPDOWN_OPTION: 'phorse-dropdown-option',
+    GRID_DROPDOWN: 'phorse-grid-dropdown'
   },
   
   // CSS Styles configuration (using design tokens - tokens referenced directly in strings)
