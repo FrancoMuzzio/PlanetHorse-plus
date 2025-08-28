@@ -1,7 +1,6 @@
 import { CONFIG, debugLog, getConversionDisplayText, type ConversionKey } from './config';
 import { getConvertedPrice } from './api';
 import { getCurrentConversion, setCurrentConversion } from './state';
-import { createIntegratedUi } from 'wxt/utils/content-script-ui/integrated';
 import { formatPrice } from './utils/formatting';
 import { createDropdownOptions, createDropdownButton, setupDropdownToggle, type DropdownCallbacks } from './utils/dropdown';
 

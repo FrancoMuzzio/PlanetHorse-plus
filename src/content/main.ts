@@ -6,8 +6,6 @@ import { initializeConversionState } from './state';
 import { 
   createCurrencyConversionUI
 } from './ui';
-import { createIntegratedUi } from 'wxt/utils/content-script-ui/integrated';
-import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 
 // Window interface extension removed - no longer needed without manual timeout management
 

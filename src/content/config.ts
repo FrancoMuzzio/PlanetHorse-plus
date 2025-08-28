@@ -155,7 +155,7 @@ export const CONFIG: ConfigType = {
     GRID_DROPDOWN: 'grid-column: 1; grid-row: 2;',
     GRID_CONVERTED: 'grid-column: 2; grid-row: 2;',
     DROPDOWN_STYLES: `border-radius: 5px; background: #582c25; color: white; 
-      font-size: 16px; max-height: 28px; max-width: 160px; 
+      font-size: 10px; max-height: 28px; max-width: 160px; 
       font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;`,
     SETTINGS_BUTTON_STYLES: `cursor: none !important; background: transparent !important; 
       border: none !important; border-radius: 6px !important; 
