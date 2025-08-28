@@ -1,5 +1,6 @@
 import { CONFIG, debugLog, type ConversionKey } from './config';
 import { loadUserPreferredCurrency, getUserPreferredCurrencyStorageItem } from './storage';
+import { isValidConversion, createConversionValidationError } from './utils/validation';
 
 /**
  * State management for runtime conversion state
@@ -25,13 +26,9 @@ export function getCurrentConversion(): ConversionKey {
  * @throws {Error} If conversion type is invalid
  */
 export function setCurrentConversion(newConversion: ConversionKey): void {
-  // Validate conversion exists in configuration
-  const fiatTypes = Object.keys(CONFIG.CONVERSION_TYPES.fiat);
-  const tokenTypes = Object.keys(CONFIG.CONVERSION_TYPES.tokens);
-  const allTypes = [...fiatTypes, ...tokenTypes];
-  
-  if (!allTypes.includes(newConversion)) {
-    throw new Error(`Invalid conversion type: ${newConversion}. Valid types: ${allTypes.join(', ')}`);
+  // Validate conversion using utility function
+  if (!isValidConversion(newConversion)) {
+    throw createConversionValidationError(newConversion);
   }
   
   currentConversion = newConversion;

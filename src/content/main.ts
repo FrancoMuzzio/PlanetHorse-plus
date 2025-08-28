@@ -1,5 +1,5 @@
 // ============= MAIN ORCHESTRATION =============
-import { CONFIG, debugLog, findElementByClassPrefix } from './config';
+import { CONFIG, debugLog } from './config';
 import { fetchAllTokenPrices } from './api';
 import settingGearIcon from '~/assets/icons/setting-gear.svg';
 import { initializeConversionState } from './state';

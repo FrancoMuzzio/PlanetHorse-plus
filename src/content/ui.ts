@@ -1,7 +1,9 @@
-import { CONFIG, debugLog, getAvailableConversions, getConversionDisplayText, type ConversionKey } from './config';
+import { CONFIG, debugLog, getConversionDisplayText, type ConversionKey } from './config';
 import { getConvertedPrice } from './api';
 import { getCurrentConversion, setCurrentConversion } from './state';
 import { createIntegratedUi } from 'wxt/utils/content-script-ui/integrated';
+import { formatPrice } from './utils/formatting';
+import { createDropdownOptions, createDropdownButton, setupDropdownToggle, type DropdownCallbacks } from './utils/dropdown';
 
 // Removed WeakMap cache - elements recreate frequently in SPA navigation
 
@@ -34,92 +36,44 @@ export function createCurrencyConversionUI(ctx: any) {
       // Style the balance element for grid positioning
       balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_BALANCE;
 
-      // Create custom dropdown to avoid native <select> cursor issues
+      // Create custom dropdown container
       const dropdownContainer = document.createElement('div');
       dropdownContainer.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
       dropdownContainer.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + 'position: relative;';
       
-      // Create dropdown button (shows current selection)
-      const dropdownButton = document.createElement('div');
-      dropdownButton.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_STYLES + ' display: flex;  align-items: center;';
+      // Create dropdown button using utility
+      const dropdownButtonComponents = createDropdownButton(getCurrentConversion());
+      const { element: dropdownButton, updateSelection } = dropdownButtonComponents;
       
-      // Current selection display
-      const currentSelection = document.createElement('span');
-      currentSelection.textContent = getConversionDisplayText(getCurrentConversion());
+      // Create dropdown options using utility
+      const dropdownCallbacks: DropdownCallbacks = {
+        onSelectionChange: (newCurrency: ConversionKey) => {
+          // Update current selection display
+          updateSelection(newCurrency);
+          
+          // Update conversion state
+          setCurrentConversion(newCurrency);
+          
+          // Update converted price immediately
+          const newConvertedValue = getConvertedPrice(newCurrency, balanceElement.textContent || '0');
+          convertedPrice.textContent = formatPrice(newConvertedValue);
+          
+          debugLog(`Currency changed to: ${newCurrency}`);
+        }
+      };
       
-      // Dropdown arrow
-      const dropdownArrow = document.createElement('span');
-      dropdownArrow.textContent = '▼';
-      dropdownArrow.style.cssText = 'font-size: 10px; ;';
+      const optionsContainer = createDropdownOptions(dropdownCallbacks);
       
-      dropdownButton.appendChild(currentSelection);
-      dropdownButton.appendChild(dropdownArrow);
-      
-      // Create dropdown options container
-      const optionsContainer = document.createElement('div');
-      optionsContainer.style.cssText = `
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: #582c25;
-        border: 1px solid #3a1a15;
-        border-radius: 0 0 4px 4px;
-        border-top: none;
-        max-height: 120px;
-        overflow-y: auto;
-        z-index: 1000;
-        display: none;
-      `;
-      
-      // Generate options for all available conversions
-      const availableConversions = getAvailableConversions();
-      availableConversions.forEach(conversionKey => {
-        const option = document.createElement('div');
-        option.style.cssText = `
-          padding: 6px 8px;
-          color: white;
-          font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
-          border-bottom: 1px solid #3a1a15;
-        `;
-        option.textContent = getConversionDisplayText(conversionKey);
-        option.dataset.value = conversionKey;
-        
-        // Hover effects
-        option.addEventListener('mouseenter', () => {
-          option.style.backgroundColor = '#6b3529';
-        });
-        
-        option.addEventListener('mouseleave', () => {
-          option.style.backgroundColor = 'transparent';
-        });
-        
-        optionsContainer.appendChild(option);
-      });
-      
-      // Assemble custom dropdown
+      // Assemble dropdown
       dropdownContainer.appendChild(dropdownButton);
       dropdownContainer.appendChild(optionsContainer);
       
-      // Track dropdown state
-      let isOpen = false;
-      
-      // Toggle dropdown on button click
-      dropdownButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        isOpen = !isOpen;
-        optionsContainer.style.display = isOpen ? 'block' : 'none';
-        dropdownArrow.textContent = isOpen ? '▲' : '▼';
-      });
-      
-      // Close dropdown when clicking outside
-      document.addEventListener('click', () => {
-        if (isOpen) {
-          isOpen = false;
-          optionsContainer.style.display = 'none';
-          dropdownArrow.textContent = '▼';
-        }
-      });
+      // Setup dropdown toggle behavior
+      const cleanupDropdown = setupDropdownToggle(
+        dropdownButton, 
+        dropdownButtonComponents.arrow, 
+        optionsContainer
+      );
 
       // Create converted price span
       const convertedPrice = document.createElement('span');
@@ -130,30 +84,6 @@ export function createCurrencyConversionUI(ctx: any) {
       const convertedValue = getConvertedPrice(getCurrentConversion(), balanceElement.textContent || '0');
       convertedPrice.textContent = formatPrice(convertedValue);
 
-      // Add event listeners for dropdown option selection
-      optionsContainer.addEventListener('click', (e: Event) => {
-        const target = e.target as HTMLElement;
-        if (target.dataset.value) {
-          const newCurrency = target.dataset.value;
-          
-          // Update current selection display
-          currentSelection.textContent = getConversionDisplayText(newCurrency);
-          
-          // Update conversion state
-          setCurrentConversion(newCurrency);
-          
-          // Update converted price immediately
-          const newConvertedValue = getConvertedPrice(newCurrency, balanceElement.textContent || '0');
-          convertedPrice.textContent = formatPrice(newConvertedValue);
-          
-          // Close dropdown
-          isOpen = false;
-          optionsContainer.style.display = 'none';
-          dropdownArrow.textContent = '▼';
-          
-          debugLog(`Currency changed to: ${newCurrency}`);
-        }
-      });
 
       // Apply icon styles to ensure consistent display
       const phorseIcon = gridContainer?.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
@@ -169,6 +99,7 @@ export function createCurrencyConversionUI(ctx: any) {
 
       // Return cleanup function for unmounting
       return () => {
+        cleanupDropdown();
         debugLog('Currency conversion UI unmounted');
       };
     },
@@ -180,35 +111,14 @@ export function createCurrencyConversionUI(ctx: any) {
   });
 }
 
-// findBalanceElement() removed - WXT components handle element detection automatically
+// Obsolete functions moved to utils/formatting.ts and utils/dropdown.ts
+// This promotes modularity and reusability while following DRY principles
 
-/**
- * Calculates the USD value of the token balance
- * @param balanceText - The balance text to parse
- * @param tokenPrice - The current token price in USD
- * @returns The calculated USD value
- */
-function calculateConvertedPrice(balanceText: string, tokenPrice: number): number {
-  const balanceValue = parseFloat(balanceText) || 0;
-  return balanceValue * tokenPrice;
-}
+// Legacy functions removed and replaced:
+// - calculateConvertedPrice() -> utils/formatting.ts
+// - formatPrice() -> utils/formatting.ts
+// - Custom dropdown logic -> utils/dropdown.ts utilities
+// - Validation logic -> utils/validation.ts
 
-/**
- * Formats a numeric price value for display
- * @param value - The price value to format
- * @returns The formatted price with 2 decimal places
- */
-function formatPrice(value: number): string {
-  return value.toFixed(2);
-}
-
-// Obsolete UI utility functions removed - replaced by WXT component patterns
-
-// createGridElements() removed - replaced by WXT component in createCurrencyConversionUI()
-
-// Main UI functions removed - replaced by WXT component in createCurrencyConversionUI()
-// - addConvertedPrice() -> WXT component onMount callback
-// - handleCurrencyChange() -> Event listener within WXT component  
-// - updateCurrencySelector() -> Direct updates within WXT component
-// - updateConvertedPrice() -> Not needed with WXT component reactivity
+// WXT component patterns maintained with improved modular architecture
 

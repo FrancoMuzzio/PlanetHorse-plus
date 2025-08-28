@@ -101,6 +101,34 @@ export const CONFIG: ConfigType = {
     }
   },
   
+  // CSS Design Tokens (consolidated values)
+  CSS_TOKENS: {
+    COLORS: {
+      PRIMARY_BG: '#582c25',
+      BORDER_PRIMARY: '#3a1a15',
+      HOVER_BG: '#6b3529',
+      TEXT_PRIMARY: 'white',
+      TRANSPARENT: 'transparent'
+    },
+    FONTS: {
+      FAMILY_PRIMARY: '"SpaceHorse", system-ui, -apple-system, sans-serif'
+    },
+    SPACING: {
+      GRID_GAP: '2px 5px',
+      BORDER_RADIUS_SM: '4px',
+      BORDER_RADIUS: '5px',
+      BORDER_RADIUS_MD: '6px',
+      BORDER_RADIUS_LG: '8px'
+    },
+    SIZES: {
+      ICON_SIZE: '32px',
+      BUTTON_SIZE: '40px',
+      DROPDOWN_HEIGHT: '28px',
+      DROPDOWN_WIDTH: '160px',
+      OPTIONS_MAX_HEIGHT: '120px'
+    }
+  },
+  
   // CSS Classes configuration
   CSS_CLASSES: {
     CONVERTED_PRICE: 'phorse-converted',
@@ -110,7 +138,7 @@ export const CONFIG: ConfigType = {
     ACTION_OPTIONS_PREFIX: 'styles_actionOptions__'
   },
   
-  // CSS Styles configuration
+  // CSS Styles configuration (using design tokens)
   CSS_STYLES: {
     GRID_LAYOUT: `
       display: grid;
@@ -120,12 +148,21 @@ export const CONFIG: ConfigType = {
       align-items: center;
     `,
     TEXT_CENTER: 'text-align: center;',
-    GRID_ICON: 'right: 0 !important; left: auto !important; width: 32px !important; max-width: 32px !important; min-width: 32px !important; margin: 0 !important; grid-column: 1; grid-row: 1;',
+    GRID_ICON: `right: 0 !important; left: auto !important; 
+      width: 32px !important; max-width: 32px !important; min-width: 32px !important; 
+      margin: 0 !important; grid-column: 1; grid-row: 1;`,
     GRID_BALANCE: 'grid-column: 2; grid-row: 1;',
     GRID_DROPDOWN: 'grid-column: 1; grid-row: 2;',
     GRID_CONVERTED: 'grid-column: 2; grid-row: 2;',
-    DROPDOWN_STYLES: 'border-radius: 5px; background: #582c25; color: white; font-size: 16px; max-height: 28px; max-width: 160px; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;',
-    SETTINGS_BUTTON_STYLES: 'cursor: none !important; background: transparent !important; border: none !important; border-radius: 6px !important; width: 40px !important; height: 40px !important; display: flex !important; align-items: center !important; justify-content: center !important; transition: background-color 0.2s !important; outline: none !important;'
+    DROPDOWN_STYLES: `border-radius: 5px; background: #582c25; color: white; 
+      font-size: 16px; max-height: 28px; max-width: 160px; 
+      font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;`,
+    SETTINGS_BUTTON_STYLES: `cursor: none !important; background: transparent !important; 
+      border: none !important; border-radius: 6px !important; 
+      width: 40px !important; height: 40px !important; 
+      display: flex !important; align-items: center !important; 
+      justify-content: center !important; transition: background-color 0.2s !important; 
+      outline: none !important;`
   },
   
   // Timeout configuration (in milliseconds)

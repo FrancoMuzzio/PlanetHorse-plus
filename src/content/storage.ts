@@ -1,5 +1,6 @@
 import { CONFIG, debugLog, type ConversionKey } from './config';
 import { storage } from '#imports';
+import { isValidConversion } from './utils/validation';
 
 /**
  * Storage module for persisting user preferences using WXT Storage API
@@ -20,11 +21,7 @@ export async function loadUserPreferredCurrency(): Promise<ConversionKey> {
     const savedCurrency = await userPreferredCurrency.getValue();
     
     // Validate that saved currency is still valid (business logic validation)
-    const fiatTypes = Object.keys(CONFIG.CONVERSION_TYPES.fiat);
-    const tokenTypes = Object.keys(CONFIG.CONVERSION_TYPES.tokens);
-    const allTypes = [...fiatTypes, ...tokenTypes];
-    
-    if (allTypes.includes(savedCurrency)) {
+    if (isValidConversion(savedCurrency)) {
       debugLog('Loaded user preferred currency:', savedCurrency);
       return savedCurrency;
     } else {
