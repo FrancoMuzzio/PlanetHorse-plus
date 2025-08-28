@@ -1,43 +1,105 @@
 import { CONFIG, debugLog, getAvailableConversions, getConversionDisplayText, type ConversionKey } from './config';
 import { getConvertedPrice } from './api';
 import { getCurrentConversion, setCurrentConversion } from './state';
+import { createIntegratedUi } from 'wxt/utils/content-script-ui/integrated';
 
 // Removed WeakMap cache - elements recreate frequently in SPA navigation
 
 /**
- * Finds or waits for the balance element in the DOM
- * Uses MutationObserver if element is not immediately available
- * @returns The balance element or null if not found within 5 seconds
+ * Creates a WXT UI component for currency conversion display
+ * Replaces manual DOM manipulation with native WXT component
+ * @param ctx - WXT content script context
+ * @returns WXT UI component that handles currency conversion
  */
-export function findBalanceElement(): Promise<HTMLElement | null> {
-  return new Promise((resolve) => {
-    // Direct attempt first
-    const element = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
-    if (element) {
-      resolve(element);
-      return;
-    }    
-    // If not exists, wait with observer
-    const observer = new MutationObserver(() => {
-      const element = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
-      if (element) {
-        observer.disconnect();
-        resolve(element);
+export function createCurrencyConversionUI(ctx: any) {
+  return createIntegratedUi(ctx, {
+    position: 'inline',
+    anchor: `[class*="${CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX}"]`,
+    onMount: (container) => {
+      const balanceElement = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
+      if (!balanceElement) {
+        debugLog('Balance element not found during currency UI mount');
+        return;
       }
-    });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+      // Set up grid layout on the anchor element (styles_currencyGroup__)
+      const gridContainer = container.parentElement as HTMLElement | null;
+      if (gridContainer && gridContainer.className.includes(CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX)) {
+        gridContainer.style.cssText = CONFIG.CSS_STYLES.GRID_LAYOUT;
+      }
 
-    // Timeout to avoid waiting indefinitely
-    setTimeout(() => {
-      observer.disconnect();
-      resolve(null);
-    }, 5000);
+      // Make WXT container transparent to grid layout
+      container.style.cssText = 'display: contents;';
+
+      // Style the balance element for grid positioning
+      balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_BALANCE;
+
+      // Create currency selector dropdown
+      const currencySelector = document.createElement('select');
+      currencySelector.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
+      
+      // Generate options for all available conversions
+      const availableConversions = getAvailableConversions();
+      availableConversions.forEach(conversionKey => {
+        const option = document.createElement('option');
+        option.value = conversionKey;
+        option.textContent = getConversionDisplayText(conversionKey);
+        currencySelector.appendChild(option);
+      });
+      
+      // Set current selected value
+      currencySelector.value = getCurrentConversion();
+      
+      // Apply dropdown styling from configuration with grid positioning
+      currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + CONFIG.CSS_STYLES.DROPDOWN_STYLES;
+
+      // Create converted price span
+      const convertedPrice = document.createElement('span');
+      convertedPrice.classList.add(CONFIG.CSS_CLASSES.CONVERTED_PRICE);
+      convertedPrice.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_CONVERTED;
+
+      // Calculate and display initial converted price
+      const convertedValue = getConvertedPrice(getCurrentConversion(), balanceElement.textContent || '0');
+      convertedPrice.textContent = formatPrice(convertedValue);
+
+      // Add event listener for currency selector changes
+      currencySelector.addEventListener('change', (e: Event) => {
+        const target = e.target as HTMLSelectElement;
+        setCurrentConversion(target.value);
+        
+        // Update converted price immediately
+        const newConvertedValue = getConvertedPrice(target.value, balanceElement.textContent || '0');
+        convertedPrice.textContent = formatPrice(newConvertedValue);
+        
+        debugLog(`Currency changed to: ${target.value}`);
+      });
+
+      // Apply icon styles to ensure consistent display
+      const phorseIcon = gridContainer?.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
+      if (phorseIcon) {
+        phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
+      }
+
+      // Add elements to container (WXT will handle positioning)
+      container.appendChild(currencySelector);
+      container.appendChild(convertedPrice);
+
+      debugLog('Currency conversion UI mounted via WXT component');
+
+      // Return cleanup function for unmounting
+      return () => {
+        debugLog('Currency conversion UI unmounted');
+      };
+    },
+    onRemove: (cleanupFn) => {
+      if (cleanupFn && typeof cleanupFn === 'function') {
+        cleanupFn();
+      }
+    }
   });
 }
+
+// findBalanceElement() removed - WXT components handle element detection automatically
 
 /**
  * Calculates the USD value of the token balance
@@ -59,179 +121,13 @@ function formatPrice(value: number): string {
   return value.toFixed(2);
 }
 
-/**
- * Finds an existing converted price element in the DOM
- * @param balanceElement - The balance element to search from
- * @returns The converted price element or null if not found
- */
-export function findConvertedPriceElement(balanceElement: HTMLElement): HTMLElement | null {
-  const parent = balanceElement.parentNode as Element | null;
-  return parent ? parent.querySelector(`.${CONFIG.CSS_CLASSES.CONVERTED_PRICE}`) : null;
-}
+// Obsolete UI utility functions removed - replaced by WXT component patterns
 
-/**
- * Sets up CSS grid layout on the parent container
- * @param balanceElement - The balance element whose parent needs grid layout
- * @precondition Parent element must have currency group class prefix
- */
-export function setupGridLayout(balanceElement: HTMLElement): void {
-  const parent = balanceElement.parentNode as HTMLElement | null;
-  if (parent && parent.className.startsWith(CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX)) {
-    parent.style.cssText = CONFIG.CSS_STYLES.GRID_LAYOUT;
-  }
-}
+// createGridElements() removed - replaced by WXT component in createCurrencyConversionUI()
 
-// applyIconStyles function inlined - code moved to call sites
-
-/**
- * Finds the balance element from a currency selector using DOM traversal
- * @param selector - The currency selector element
- * @returns The corresponding balance element or null
- */
-export function findBalanceElementFromSelector(selector: HTMLElement): HTMLElement | null {
-  // Navigate up to parent container, then find balance element
-  const parent = selector.parentNode as Element | null;
-  return parent ? parent.querySelector(`#${CONFIG.BALANCE_ELEMENT_ID}`) : null;
-}
-
-/**
- * Creates currency selector dropdown and converted price elements for display
- * @param balanceElement - The balance element to add siblings to
- * @returns The created converted price span element
- * @postcondition Parent element will contain two new child elements
- */
-export function createGridElements(balanceElement: HTMLElement): HTMLElement {
-  const parent = balanceElement.parentNode as Element | null;
-  if (!parent) {
-    throw new Error('Balance element has no parent');
-  }
-  
-  // Apply text-align center and grid positioning to balance element
-  balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_BALANCE;
-  
-  // Create dropdown currency selector
-  const currencySelector = document.createElement('select');
-  currencySelector.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
-  
-  // Generate options for all available conversions
-  const availableConversions = getAvailableConversions();
-  availableConversions.forEach(conversionKey => {
-    const option = document.createElement('option');
-    option.value = conversionKey;
-    option.textContent = getConversionDisplayText(conversionKey);
-    currencySelector.appendChild(option);
-  });
-  
-  // Set current selected value
-  currencySelector.value = getCurrentConversion();
-  
-  // Apply dropdown styling from configuration with grid positioning
-  currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + CONFIG.CSS_STYLES.DROPDOWN_STYLES;
-  
-  // Event delegation: No individual listeners needed - handled globally in main.js
-  
-  // Create converted price
-  const convertedPrice = document.createElement('span');
-  convertedPrice.classList.add(CONFIG.CSS_CLASSES.CONVERTED_PRICE);
-  convertedPrice.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_CONVERTED;
-  
-  // Append to parent (grid will auto-place them)
-  parent.appendChild(currencySelector);
-  parent.appendChild(convertedPrice);
-  
-  return convertedPrice;
-}
-
-/**
- * Main UI update function that adds or updates the converted price display
- * @param balanceElement - The balance element to enhance
- * @param tokenPrice - The current token price (deprecated - using cache now)
- * @postcondition Balance element will have sibling elements showing converted value
- */
-export function addConvertedPrice(balanceElement: HTMLElement, tokenPrice: number | null = null): void {
-  try {
-    // Use new conversion system
-    const convertedValue = getConvertedPrice(getCurrentConversion(), balanceElement.textContent || '0');
-    const formattedPrice = formatPrice(convertedValue);
-    
-    let convertedSpan = findConvertedPriceElement(balanceElement);
-    if (!convertedSpan) {
-      setupGridLayout(balanceElement);
-      convertedSpan = createGridElements(balanceElement);
-    }
-    
-    convertedSpan.textContent = formattedPrice;
-    updateCurrencySelector(balanceElement);
-    
-    // Always apply icon styles to ensure consistent display
-    const parent = balanceElement.parentNode as Element | null;
-    if (parent) {
-      const phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
-      if (phorseIcon) {
-        phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
-      }
-    }
-    
-  } catch (error) {
-    debugLog('Error in addConvertedPrice:', error);
-    
-    // Fallback to old system if new system fails
-    if (tokenPrice !== null) {
-      const convertedValue = calculateConvertedPrice(balanceElement.textContent || '0', tokenPrice);
-      const formattedPrice = formatPrice(convertedValue);
-      
-      let convertedSpan = findConvertedPriceElement(balanceElement);
-      if (!convertedSpan) {
-        setupGridLayout(balanceElement);
-        convertedSpan = createGridElements(balanceElement);
-      }
-      
-      convertedSpan.textContent = formattedPrice;
-      // Always apply icon styles to ensure consistent display  
-      const parent = balanceElement.parentNode as Element | null;
-      if (parent) {
-        const phorseIcon = parent.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
-        if (phorseIcon) {
-          phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
-        }
-      }
-    } else {
-      debugLog('No fallback price available');
-    }
-  }
-}
-
-/**
- * Handles currency selector change - sets specific conversion
- * @param balanceElement - The balance element
- * @param selectedValue - The selected conversion value from dropdown
- */
-export function handleCurrencyChange(balanceElement: HTMLElement, selectedValue: string): void {
-  // Update current conversion using state management
-  setCurrentConversion(selectedValue);
-  
-  // Update UI immediately
-  addConvertedPrice(balanceElement);
-}
-
-/**
- * Updates the currency selector dropdown value
- * @param balanceElement - The balance element
- */
-function updateCurrencySelector(balanceElement: HTMLElement): void {
-  const parent = balanceElement.parentNode as Element | null;
-  const selector = parent?.querySelector(`.${CONFIG.CSS_CLASSES.CURRENCY_SELECTOR}`) as HTMLSelectElement | null;
-  
-  if (selector) {
-    selector.value = getCurrentConversion();
-  }
-}
-
-/**
- * Updates converted price for existing display using current conversion
- * @param balanceElement - The balance element
- */
-export function updateConvertedPrice(balanceElement: HTMLElement): void {
-  addConvertedPrice(balanceElement);
-}
+// Main UI functions removed - replaced by WXT component in createCurrencyConversionUI()
+// - addConvertedPrice() -> WXT component onMount callback
+// - handleCurrencyChange() -> Event listener within WXT component  
+// - updateCurrencySelector() -> Direct updates within WXT component
+// - updateConvertedPrice() -> Not needed with WXT component reactivity
 
