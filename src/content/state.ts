@@ -1,5 +1,5 @@
 import { CONFIG, debugLog, type ConversionKey } from './config';
-import { loadUserPreferredCurrency, saveUserPreferredCurrency } from './storage';
+import { loadUserPreferredCurrency, getUserPreferredCurrencyStorageItem } from './storage';
 
 /**
  * State management for runtime conversion state
@@ -36,8 +36,9 @@ export function setCurrentConversion(newConversion: ConversionKey): void {
   
   currentConversion = newConversion;
   
-  // Persist user preference (non-blocking)
-  saveUserPreferredCurrency(newConversion).catch(error => {
+  // Persist user preference using WXT storage (non-blocking)
+  const storageItem = getUserPreferredCurrencyStorageItem();
+  storageItem.setValue(newConversion).catch(error => {
     debugLog('Failed to save user preferred currency:', error);
   });
 }
