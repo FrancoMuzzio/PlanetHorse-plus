@@ -12,16 +12,69 @@ import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 // Window interface extension removed - no longer needed without manual timeout management
 
 let modalUI: any = null;
+let currencyUI: any = null;
+let buttonUI: any = null;
 
-// watchBalanceChanges() removed - WXT components handle balance updates automatically
+/**
+ * Cleans up existing WXT UI components
+ */
+function cleanupUIComponents(): void {
+  debugLog('Cleaning up existing UI components...');
+  
+  if (currencyUI) {
+    currencyUI.remove();
+    currencyUI = null;
+  }
+  
+  if (buttonUI) {
+    buttonUI.remove();
+    buttonUI = null;
+  }
+  
+  if (modalUI) {
+    modalUI.remove();
+    modalUI = null;
+  }
+  
+  debugLog('UI components cleaned up');
+}
 
-// initializeBalance() removed - replaced by WXT component with autoMount()
+/**
+ * Creates all UI components (DRY principle - shared between initialize and reinitialize)
+ * @param ctx - WXT content script context
+ */
+async function createUIComponents(ctx: any): Promise<void> {
+  // Check if price converter is enabled
+  if (!CONFIG.FEATURES.PRICE_CONVERTER_ENABLED) {
+    debugLog('Price converter is disabled - skipping UI creation');
+    return;
+  }
+  
+  // Create and auto-mount currency conversion UI component
+  currencyUI = createCurrencyConversionUI(ctx);
+  currencyUI.autoMount();
+  debugLog('Currency conversion UI created and mounted');
+  
+  // Create settings UI if enabled
+  if (CONFIG.FEATURES.SETTINGS_MODAL_ENABLED) {
+    await createSettingsUI(ctx);
+    debugLog('Settings UI created and mounted');
+  }
+}
 
-// Global MutationObserver removed - replaced with WXT autoMount() for SPA navigation
-
-// handleConnectionError() removed - WXT component handles connection errors internally
-
-// Event delegation functions removed - WXT components handle their own events internally
+/**
+ * Re-initializes all UI components after SPA navigation
+ * @param ctx - WXT content script context
+ */
+async function reinitializeComponents(ctx: any): Promise<void> {
+  debugLog('Re-initializing components after SPA navigation...');
+  
+  // Clean up existing components first
+  cleanupUIComponents();
+  
+  // Create all UI components using shared function
+  await createUIComponents(ctx);
+}
 
 /**
  * Creates settings button UI using WXT native utilities
@@ -127,8 +180,8 @@ async function createSettingsUI(ctx: any): Promise<void> {
     }
   });
 
-  // Create button UI
-  const buttonUI = createIntegratedUi(ctx, {
+  // Create button UI and store reference globally
+  buttonUI = createIntegratedUi(ctx, {
     position: 'inline',
     anchor: `[class*="${CONFIG.CSS_CLASSES.ACTION_OPTIONS_PREFIX}"]`,
     onMount: (container) => {
@@ -202,13 +255,26 @@ async function initialize(ctx: any): Promise<void> {
     // Continue initialization - UI will handle connection errors
   }
   
-  // Create and auto-mount currency conversion UI component
-  const currencyUI = createCurrencyConversionUI(ctx);
-  currencyUI.autoMount();
-  debugLog('Currency conversion UI set up with autoMount for SPA navigation');
+  // Create all UI components using shared function (DRY principle)
+  await createUIComponents(ctx);
   
-  // Create settings UI (already uses WXT patterns)
-  await createSettingsUI(ctx);
+  // Add SPA navigation detection via click events on specific buttons
+  // More efficient than MutationObserver or wxt:locationchange
+  document.addEventListener('click', (e: Event) => {
+    const target = e.target as HTMLElement;
+    
+    // Check if clicked element is a navigation button
+    if (target.matches('[class*="styles_buyButton__"], [class*="styles_racingButton__"]')) {
+      debugLog('Navigation button clicked, scheduling component re-initialization...');
+      
+      // Delay re-initialization to allow SPA navigation to complete
+      setTimeout(() => {
+        reinitializeComponents(ctx);
+      }, 200);
+    }
+  });
+  
+  debugLog('SPA navigation detection set up via button click listeners');
 }
 
 // Export initialize function for WXT entrypoint
