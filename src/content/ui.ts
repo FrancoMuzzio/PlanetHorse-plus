@@ -83,6 +83,18 @@ export function createCurrencyConversionUI(ctx: any) {
       const convertedValue = getConvertedPrice(getCurrentConversion(), balanceElement.textContent || '0');
       convertedPrice.textContent = formatPrice(convertedValue);
 
+      // Balance change detection via polling
+      let lastBalance = balanceElement.textContent || '0';
+      const balancePoller = setInterval(() => {
+        const currentBalance = balanceElement.textContent || '0';
+        if (currentBalance !== lastBalance) {
+          lastBalance = currentBalance;
+          // Update converted price when balance changes
+          const newConvertedValue = getConvertedPrice(getCurrentConversion(), currentBalance);
+          convertedPrice.textContent = formatPrice(newConvertedValue);
+          debugLog(`Balance changed to: ${currentBalance}, converted: ${formatPrice(newConvertedValue)}`);
+        }
+      }, 500);
 
       // Apply icon styles to ensure consistent display
       const phorseIcon = gridContainer?.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
@@ -98,6 +110,7 @@ export function createCurrencyConversionUI(ctx: any) {
 
       // Return cleanup function for unmounting
       return () => {
+        clearInterval(balancePoller);
         cleanupDropdown();
         debugLog('Currency conversion UI unmounted');
       };
