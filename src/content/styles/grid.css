@@ -1,0 +1,54 @@
+/**
+ * Grid Layout System Styles
+ * Migrated from config.ts CSS_STYLES to improve maintainability
+ * Handles 2x2 grid layout for currency conversion display
+ */
+
+/* Main grid layout container (2x2 grid for currency display) */
+[class*="styles_currencyGroup__"].phorse-grid-layout {
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  grid-template-rows: auto auto !important;
+  gap: 2px 5px !important;
+  align-items: center !important;
+}
+
+/* Grid positioning for PHORSE icon (position 1,1) */
+.phorse-grid-layout .phorse-grid-icon {
+  right: 0 !important;
+  left: auto !important;
+  width: 32px !important;
+  max-width: 32px !important;
+  min-width: 32px !important;
+  margin: 0 !important;
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+}
+
+/* Grid positioning for balance display (position 2,1) */
+.phorse-grid-layout .phorse-grid-balance {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+}
+
+/* Grid positioning for dropdown (position 1,2) */
+.phorse-grid-layout .phorse-grid-dropdown {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+}
+
+/* Grid positioning for converted price display (position 2,2) */
+.phorse-grid-layout .phorse-grid-converted {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+}
+
+/* Utility class for centering text */
+.phorse-grid-layout .phorse-text-center {
+  text-align: center !important;
+}
+
+/* Utility class for transparent containers (WXT integration) */
+.phorse-grid-layout .phorse-display-contents {
+  display: contents !important;
+}

@@ -26,14 +26,15 @@ export function createCurrencyConversionUI(ctx: any) {
       // Set up grid layout on the anchor element (styles_currencyGroup__)
       const gridContainer = container.parentElement as HTMLElement | null;
       if (gridContainer && gridContainer.className.includes(CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX)) {
-        gridContainer.style.cssText = CONFIG.CSS_STYLES.GRID_LAYOUT;
+        gridContainer.classList.add(CONFIG.CSS_CLASSES.GRID_LAYOUT);
       }
 
       // Make WXT container transparent to grid layout
-      container.style.cssText = CONFIG.CSS_STYLES.DISPLAY_CONTENTS;
+      container.classList.add(CONFIG.CSS_CLASSES.DISPLAY_CONTENTS);
 
       // Style the balance element for grid positioning
-      balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_BALANCE;
+      balanceElement.classList.add(CONFIG.CSS_CLASSES.TEXT_CENTER);
+      balanceElement.classList.add(CONFIG.CSS_CLASSES.GRID_BALANCE);
 
       // Create custom dropdown container
       const dropdownContainer = document.createElement('div');
@@ -78,7 +79,8 @@ export function createCurrencyConversionUI(ctx: any) {
       // Create converted price span
       const convertedPrice = document.createElement('span');
       convertedPrice.classList.add(CONFIG.CSS_CLASSES.CONVERTED_PRICE);
-      convertedPrice.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_CONVERTED;
+      convertedPrice.classList.add(CONFIG.CSS_CLASSES.TEXT_CENTER);
+      convertedPrice.classList.add(CONFIG.CSS_CLASSES.GRID_CONVERTED);
 
       // Calculate and display initial converted price
       const convertedValue = getConvertedPrice(getCurrentConversion(), balanceElement.textContent || '0');
@@ -99,8 +101,9 @@ export function createCurrencyConversionUI(ctx: any) {
 
       // Apply icon styles to ensure consistent display
       const phorseIcon = gridContainer?.querySelector('img[alt="phorse"], img[alt="phorse coin"]') as HTMLImageElement | null;
-      if (phorseIcon) {
-        phorseIcon.style.cssText += ' ' + CONFIG.CSS_STYLES.GRID_ICON;
+      const phorseIconContainer = phorseIcon?.parentElement;
+      if (phorseIconContainer) {
+        phorseIconContainer.classList.add(CONFIG.CSS_CLASSES.GRID_ICON);
       }
 
       // Add elements to container (WXT will handle positioning)

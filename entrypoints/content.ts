@@ -5,6 +5,7 @@
 import { defineContentScript } from '#imports';
 // Import CSS styles for the extension
 import '../src/content/styles/dropdown.css';
+import '../src/content/styles/grid.css';
 
 export default defineContentScript({
   matches: ['*://planethorse.io/*'],

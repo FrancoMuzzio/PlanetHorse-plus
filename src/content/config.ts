@@ -30,6 +30,14 @@ export interface CSSClasses {
   DROPDOWN_OPTIONS: string;
   DROPDOWN_OPTION: string;
   GRID_DROPDOWN: string;
+  
+  // Grid Layout System Classes
+  GRID_LAYOUT: string;
+  GRID_ICON: string;
+  GRID_BALANCE: string;
+  GRID_CONVERTED: string;
+  TEXT_CENTER: string;
+  DISPLAY_CONTENTS: string;
 }
 
 export interface CSSStyles {
@@ -178,7 +186,15 @@ export const CONFIG: ConfigType = {
     DROPDOWN_ARROW: 'phorse-dropdown-arrow',
     DROPDOWN_OPTIONS: 'phorse-dropdown-options',
     DROPDOWN_OPTION: 'phorse-dropdown-option',
-    GRID_DROPDOWN: 'phorse-grid-dropdown'
+    GRID_DROPDOWN: 'phorse-grid-dropdown',
+    
+    // Grid Layout System Classes
+    GRID_LAYOUT: 'phorse-grid-layout',
+    GRID_ICON: 'phorse-grid-icon',
+    GRID_BALANCE: 'phorse-grid-balance',
+    GRID_CONVERTED: 'phorse-grid-converted',
+    TEXT_CENTER: 'phorse-text-center',
+    DISPLAY_CONTENTS: 'phorse-display-contents'
   },
   
   // CSS Styles configuration (using design tokens - tokens referenced directly in strings)
