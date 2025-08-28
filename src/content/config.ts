@@ -124,7 +124,7 @@ export const CONFIG: ConfigType = {
     GRID_BALANCE: 'grid-column: 2; grid-row: 1;',
     GRID_DROPDOWN: 'grid-column: 1; grid-row: 2;',
     GRID_CONVERTED: 'grid-column: 2; grid-row: 2;',
-    DROPDOWN_STYLES: 'cursor: pointer; border: 1px solid #3a1a15; border-radius: 4px; background: #582c25; color: white; font-size: 14px; padding: 2px 4px; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;',
+    DROPDOWN_STYLES: 'cursor: none !important; border: 1px solid #3a1a15; border-radius: 4px; background: #582c25; color: white; font-size: 14px; padding: 2px 4px; font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;',
     SETTINGS_BUTTON_STYLES: 'cursor: none !important; background: transparent !important; border: none !important; border-radius: 6px !important; width: 40px !important; height: 40px !important; display: flex !important; align-items: center !important; justify-content: center !important; transition: background-color 0.2s !important; outline: none !important;'
   },
   

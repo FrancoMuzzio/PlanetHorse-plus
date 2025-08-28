@@ -34,24 +34,96 @@ export function createCurrencyConversionUI(ctx: any) {
       // Style the balance element for grid positioning
       balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_BALANCE;
 
-      // Create currency selector dropdown
-      const currencySelector = document.createElement('select');
-      currencySelector.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
+      // Create custom dropdown to avoid native <select> cursor issues
+      const dropdownContainer = document.createElement('div');
+      dropdownContainer.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
+      dropdownContainer.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + 'position: relative; cursor: none !important;';
+      
+      // Create dropdown button (shows current selection)
+      const dropdownButton = document.createElement('div');
+      dropdownButton.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_STYLES + ' display: flex; justify-content: space-between; align-items: center; cursor: none !important;';
+      
+      // Current selection display
+      const currentSelection = document.createElement('span');
+      currentSelection.textContent = getConversionDisplayText(getCurrentConversion());
+      currentSelection.style.cssText = 'cursor: none !important;';
+      
+      // Dropdown arrow
+      const dropdownArrow = document.createElement('span');
+      dropdownArrow.textContent = '▼';
+      dropdownArrow.style.cssText = 'font-size: 10px; margin-left: 4px; cursor: none !important;';
+      
+      dropdownButton.appendChild(currentSelection);
+      dropdownButton.appendChild(dropdownArrow);
+      
+      // Create dropdown options container
+      const optionsContainer = document.createElement('div');
+      optionsContainer.style.cssText = `
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #582c25;
+        border: 1px solid #3a1a15;
+        border-radius: 0 0 4px 4px;
+        border-top: none;
+        max-height: 120px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        cursor: none !important;
+      `;
       
       // Generate options for all available conversions
       const availableConversions = getAvailableConversions();
       availableConversions.forEach(conversionKey => {
-        const option = document.createElement('option');
-        option.value = conversionKey;
+        const option = document.createElement('div');
+        option.style.cssText = `
+          padding: 4px 8px;
+          color: white;
+          font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+          font-size: 14px;
+          cursor: none !important;
+          border-bottom: 1px solid #3a1a15;
+        `;
         option.textContent = getConversionDisplayText(conversionKey);
-        currencySelector.appendChild(option);
+        option.dataset.value = conversionKey;
+        
+        // Hover effects
+        option.addEventListener('mouseenter', () => {
+          option.style.backgroundColor = '#6b3529';
+        });
+        
+        option.addEventListener('mouseleave', () => {
+          option.style.backgroundColor = 'transparent';
+        });
+        
+        optionsContainer.appendChild(option);
       });
       
-      // Set current selected value
-      currencySelector.value = getCurrentConversion();
+      // Assemble custom dropdown
+      dropdownContainer.appendChild(dropdownButton);
+      dropdownContainer.appendChild(optionsContainer);
       
-      // Apply dropdown styling from configuration with grid positioning
-      currencySelector.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + CONFIG.CSS_STYLES.DROPDOWN_STYLES;
+      // Track dropdown state
+      let isOpen = false;
+      
+      // Toggle dropdown on button click
+      dropdownButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isOpen = !isOpen;
+        optionsContainer.style.display = isOpen ? 'block' : 'none';
+        dropdownArrow.textContent = isOpen ? '▲' : '▼';
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', () => {
+        if (isOpen) {
+          isOpen = false;
+          optionsContainer.style.display = 'none';
+          dropdownArrow.textContent = '▼';
+        }
+      });
 
       // Create converted price span
       const convertedPrice = document.createElement('span');
@@ -62,16 +134,29 @@ export function createCurrencyConversionUI(ctx: any) {
       const convertedValue = getConvertedPrice(getCurrentConversion(), balanceElement.textContent || '0');
       convertedPrice.textContent = formatPrice(convertedValue);
 
-      // Add event listener for currency selector changes
-      currencySelector.addEventListener('change', (e: Event) => {
-        const target = e.target as HTMLSelectElement;
-        setCurrentConversion(target.value);
-        
-        // Update converted price immediately
-        const newConvertedValue = getConvertedPrice(target.value, balanceElement.textContent || '0');
-        convertedPrice.textContent = formatPrice(newConvertedValue);
-        
-        debugLog(`Currency changed to: ${target.value}`);
+      // Add event listeners for dropdown option selection
+      optionsContainer.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLElement;
+        if (target.dataset.value) {
+          const newCurrency = target.dataset.value;
+          
+          // Update current selection display
+          currentSelection.textContent = getConversionDisplayText(newCurrency);
+          
+          // Update conversion state
+          setCurrentConversion(newCurrency);
+          
+          // Update converted price immediately
+          const newConvertedValue = getConvertedPrice(newCurrency, balanceElement.textContent || '0');
+          convertedPrice.textContent = formatPrice(newConvertedValue);
+          
+          // Close dropdown
+          isOpen = false;
+          optionsContainer.style.display = 'none';
+          dropdownArrow.textContent = '▼';
+          
+          debugLog(`Currency changed to: ${newCurrency}`);
+        }
       });
 
       // Apply icon styles to ensure consistent display
@@ -81,7 +166,7 @@ export function createCurrencyConversionUI(ctx: any) {
       }
 
       // Add elements to container (WXT will handle positioning)
-      container.appendChild(currencySelector);
+      container.appendChild(dropdownContainer);
       container.appendChild(convertedPrice);
 
       debugLog('Currency conversion UI mounted via WXT component');
