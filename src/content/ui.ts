@@ -37,21 +37,20 @@ export function createCurrencyConversionUI(ctx: any) {
       // Create custom dropdown to avoid native <select> cursor issues
       const dropdownContainer = document.createElement('div');
       dropdownContainer.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
-      dropdownContainer.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + 'position: relative; cursor: none !important;';
+      dropdownContainer.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + 'position: relative;';
       
       // Create dropdown button (shows current selection)
       const dropdownButton = document.createElement('div');
-      dropdownButton.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_STYLES + ' display: flex; justify-content: space-between; align-items: center; cursor: none !important;';
+      dropdownButton.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_STYLES + ' display: flex;  align-items: center;';
       
       // Current selection display
       const currentSelection = document.createElement('span');
       currentSelection.textContent = getConversionDisplayText(getCurrentConversion());
-      currentSelection.style.cssText = 'cursor: none !important;';
       
       // Dropdown arrow
       const dropdownArrow = document.createElement('span');
       dropdownArrow.textContent = '▼';
-      dropdownArrow.style.cssText = 'font-size: 10px; margin-left: 4px; cursor: none !important;';
+      dropdownArrow.style.cssText = 'font-size: 10px; ;';
       
       dropdownButton.appendChild(currentSelection);
       dropdownButton.appendChild(dropdownArrow);
@@ -71,7 +70,6 @@ export function createCurrencyConversionUI(ctx: any) {
         overflow-y: auto;
         z-index: 1000;
         display: none;
-        cursor: none !important;
       `;
       
       // Generate options for all available conversions
@@ -79,11 +77,9 @@ export function createCurrencyConversionUI(ctx: any) {
       availableConversions.forEach(conversionKey => {
         const option = document.createElement('div');
         option.style.cssText = `
-          padding: 4px 8px;
+          padding: 6px 8px;
           color: white;
           font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
-          font-size: 14px;
-          cursor: none !important;
           border-bottom: 1px solid #3a1a15;
         `;
         option.textContent = getConversionDisplayText(conversionKey);
