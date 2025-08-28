@@ -21,20 +21,7 @@ export interface DropdownCallbacks {
  */
 export function createDropdownOptions(callbacks: DropdownCallbacks): HTMLElement {
   const optionsContainer = document.createElement('div');
-  optionsContainer.style.cssText = `
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: ${CONFIG.CSS_TOKENS.COLORS.PRIMARY_BG};
-    border: 1px solid ${CONFIG.CSS_TOKENS.COLORS.BORDER_PRIMARY};
-    border-radius: 0 0 ${CONFIG.CSS_TOKENS.SPACING.BORDER_RADIUS_SM} ${CONFIG.CSS_TOKENS.SPACING.BORDER_RADIUS_SM};
-    border-top: none;
-    max-height: ${CONFIG.CSS_TOKENS.SIZES.OPTIONS_MAX_HEIGHT};
-    overflow-y: auto;
-    z-index: 1000;
-    display: none;
-  `;
+  optionsContainer.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_OPTIONS_CONTAINER;
 
   // Generate options for all available conversions
   const availableConversions = getAllValidConversions();
@@ -61,22 +48,17 @@ export function createDropdownOptions(callbacks: DropdownCallbacks): HTMLElement
  */
 function createDropdownOption(conversionKey: ConversionKey): HTMLElement {
   const option = document.createElement('div');
-  option.style.cssText = `
-    padding: 6px 8px;
-    color: ${CONFIG.CSS_TOKENS.COLORS.TEXT_PRIMARY};
-    font-family: ${CONFIG.CSS_TOKENS.FONTS.FAMILY_PRIMARY};
-    border-bottom: 1px solid ${CONFIG.CSS_TOKENS.COLORS.BORDER_PRIMARY};
-  `;
+  option.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_OPTION;
   option.textContent = getConversionDisplayText(conversionKey);
   option.dataset.value = conversionKey;
   
   // Add hover effects
   option.addEventListener('mouseenter', () => {
-    option.style.backgroundColor = CONFIG.CSS_TOKENS.COLORS.HOVER_BG;
+    option.style.backgroundColor = CONFIG.CSS_STYLES.DROPDOWN_OPTION_HOVER_BG;
   });
   
   option.addEventListener('mouseleave', () => {
-    option.style.backgroundColor = CONFIG.CSS_TOKENS.COLORS.TRANSPARENT;
+    option.style.backgroundColor = 'transparent';
   });
 
   return option;
@@ -93,7 +75,7 @@ function createDropdownOption(conversionKey: ConversionKey): HTMLElement {
  */
 export function createDropdownButton(currentSelection: ConversionKey) {
   const dropdownButton = document.createElement('div');
-  dropdownButton.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_STYLES + ' display: flex; align-items: center;';
+  dropdownButton.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_STYLES + ' ' + CONFIG.CSS_STYLES.DROPDOWN_BUTTON;
   
   // Current selection display
   const currentSelectionSpan = document.createElement('span');
@@ -102,7 +84,7 @@ export function createDropdownButton(currentSelection: ConversionKey) {
   // Dropdown arrow
   const dropdownArrow = document.createElement('span');
   dropdownArrow.textContent = '▼';
-  dropdownArrow.style.cssText = 'font-size: 10px;';
+  dropdownArrow.style.cssText = CONFIG.CSS_STYLES.DROPDOWN_ARROW;
   
   dropdownButton.appendChild(currentSelectionSpan);
   dropdownButton.appendChild(dropdownArrow);

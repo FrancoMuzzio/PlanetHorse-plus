@@ -30,7 +30,7 @@ export function createCurrencyConversionUI(ctx: any) {
       }
 
       // Make WXT container transparent to grid layout
-      container.style.cssText = 'display: contents;';
+      container.style.cssText = CONFIG.CSS_STYLES.DISPLAY_CONTENTS;
 
       // Style the balance element for grid positioning
       balanceElement.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_BALANCE;
@@ -38,7 +38,7 @@ export function createCurrencyConversionUI(ctx: any) {
       // Create custom dropdown container
       const dropdownContainer = document.createElement('div');
       dropdownContainer.classList.add(CONFIG.CSS_CLASSES.CURRENCY_SELECTOR);
-      dropdownContainer.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + 'position: relative;';
+      dropdownContainer.style.cssText = CONFIG.CSS_STYLES.TEXT_CENTER + ' ' + CONFIG.CSS_STYLES.GRID_DROPDOWN + ' ' + CONFIG.CSS_STYLES.POSITION_RELATIVE;
       
       // Create dropdown button using utility
       const dropdownButtonComponents = createDropdownButton(getCurrentConversion());
