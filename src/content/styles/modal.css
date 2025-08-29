@@ -1,0 +1,132 @@
+/**
+ * Modal System Styles
+ * Migrated from config.ts CSS_STYLES to improve maintainability
+ * Used for settings modal and other modal interfaces
+ */
+
+/* Modal overlay container (full screen backdrop) */
+.phorse-modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+/* Modal content box */
+.phorse-modal-content {
+  background: #582c25;
+  border: 3px solid #3a1a15;
+  border-radius: 8px;
+  min-width: 400px;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* Modal header section */
+.phorse-modal-header {
+  padding: 15px 20px; 
+  border-bottom: 2px solid #3a1a15; 
+  font-size: 18px; 
+  font-weight: bold; 
+  background: #582c25; 
+  color: white; 
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+}
+
+/* Modal close button */
+.phorse-modal-close-button {
+  cursor: pointer;
+  background: transparent; 
+  border: none; 
+  padding: 4px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 24px; 
+  height: 24px; 
+  position: relative;
+}
+
+/* Modal close button hover effect */
+.phorse-modal-close-button:hover {
+  opacity: 0.7;
+}
+
+/* Modal close icon styling */
+.phorse-modal-close-icon {
+  position: absolute; 
+  inset: 0px; 
+  box-sizing: border-box; 
+  padding: 0px; 
+  border: none; 
+  margin: auto; 
+  display: block; 
+  width: 0px; 
+  height: 0px; 
+  min-width: 100%; 
+  max-width: 100%; 
+  min-height: 100%; 
+  max-height: 100%; 
+}
+
+/* Modal body section */
+.phorse-modal-body {
+  padding: 20px; 
+  min-height: 100px; 
+  background: #582c25; 
+  color: white; 
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
+  border-radius: 0 0 8px 8px; 
+}
+
+/* Settings Button and Related Styles */
+
+/* Transparent container for WXT UI integration */
+.phorse-transparent-container {
+  background: transparent !important; 
+  border: none !important; 
+  padding: 0 !important; 
+  margin: 0 !important;
+}
+
+/* Settings button styling */
+.phorse-settings-button {
+  cursor: pointer;
+  background: transparent !important; 
+  border: none !important; 
+  border-radius: 6px !important; 
+  width: 40px !important; 
+  height: 40px !important; 
+  display: flex !important; 
+  align-items: center !important; 
+  justify-content: center !important; 
+  transition: background-color 0.2s !important; 
+  outline: none !important;
+}
+
+/* Settings button hover effect */
+.phorse-settings-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  cursor: pointer;
+}
+
+/* Gear icon styling */
+.phorse-gear-icon {
+  width: 24px; 
+  height: 24px; 
+  pointer-events: none;
+}
+
+/* Gear icon hover effect */
+.phorse-settings-button:hover .phorse-gear-icon {
+  filter: brightness(1.2) !important;
+}

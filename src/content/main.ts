@@ -3,6 +3,7 @@ import { CONFIG, debugLog } from './config';
 import { fetchAllTokenPrices } from './api';
 import settingGearIcon from '~/assets/icons/setting-gear.svg';
 import { initializeConversionState } from './state';
+import { createShadowRootUi, createIntegratedUi } from '#imports';
 import { 
   createCurrencyConversionUI
 } from './ui';
@@ -12,6 +13,30 @@ import {
 let modalUI: any = null;
 let currencyUI: any = null;
 let buttonUI: any = null;
+let modalContainer: HTMLElement | null = null;
+let isModalVisible: boolean = false;
+
+/**
+ * Shows the settings modal
+ */
+function showModal(): void {
+  if (modalContainer && !isModalVisible) {
+    modalContainer.classList.add('visible');
+    isModalVisible = true;
+    debugLog('Modal shown');
+  }
+}
+
+/**
+ * Hides the settings modal
+ */
+function hideModal(): void {
+  if (modalContainer && isModalVisible) {
+    modalContainer.classList.remove('visible');
+    isModalVisible = false;
+    debugLog('Modal hidden');
+  }
+}
 
 /**
  * Cleans up existing WXT UI components
@@ -84,131 +109,230 @@ async function createSettingsUI(ctx: any): Promise<void> {
     return;
   }
 
-  // Create modal UI first
-  modalUI = await createShadowRootUi(ctx, {
-    name: 'phorse-settings-modal',
-    position: 'modal',
-    zIndex: 9999,
-    onMount: (container) => {
-      // Apply modal container styles for centering
-      container.style.cssText = CONFIG.CSS_STYLES.MODAL_CONTAINER;
-
-      // Add click-to-close on backdrop
-      container.addEventListener('click', (e) => {
-        if (e.target === container && modalUI) {
-          modalUI.remove();
-        }
-      });
-
-      // Create modal content wrapper
-      const modalContent = document.createElement('div');
-      modalContent.style.cssText = CONFIG.CSS_STYLES.MODAL_CONTENT;
-
-      // Create modal header
-      const header = document.createElement('div');
-      header.style.cssText = CONFIG.CSS_STYLES.MODAL_HEADER;
-      
-      const titleSpan = document.createElement('span');
-      titleSpan.textContent = 'Settings';
-      header.appendChild(titleSpan);
-
-      // Create close button using page's close icon
-      const closeButton = document.createElement('button');
-      closeButton.style.cssText = CONFIG.CSS_STYLES.MODAL_CLOSE_BUTTON;
-      closeButton.title = 'Cerrar';
-      
-      // Create close icon image
-      const closeIcon = document.createElement('img');
-      closeIcon.alt = 'Close';
-      closeIcon.src = '/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ffechar.6bf40c51.png&w=64&q=75';
-      closeIcon.style.cssText = CONFIG.CSS_STYLES.MODAL_CLOSE_ICON;
-      closeIcon.setAttribute('decoding', 'async');
-      closeIcon.setAttribute('data-nimg', 'intrinsic');
-      
-      // Add close functionality
-      closeButton.addEventListener('click', () => {
-        if (modalUI) {
-          modalUI.remove();
-        }
-      });
-      
-      // Add hover effects
-      closeButton.addEventListener('mouseenter', () => {
-        closeButton.style.opacity = CONFIG.CSS_STYLES.MODAL_CLOSE_BUTTON_HOVER;
-      });
-      
-      closeButton.addEventListener('mouseleave', () => {
-        closeButton.style.opacity = '1';
-      });
-      
-      closeButton.appendChild(closeIcon);
-      header.appendChild(closeButton);
-
-      // Create modal body
-      const body = document.createElement('div');
-      body.style.cssText = CONFIG.CSS_STYLES.MODAL_BODY;
-      body.textContent = 'Modal content will be added here...';
-
-      // Assemble modal
-      modalContent.appendChild(header);
-      modalContent.appendChild(body);
-      container.appendChild(modalContent);
-      
-      debugLog('Modal UI mounted');
-    }
-  });
-
-  // Create button UI and store reference globally
-  buttonUI = createIntegratedUi(ctx, {
-    position: 'inline',
-    anchor: `[class*="${CONFIG.CSS_CLASSES.ACTION_OPTIONS_PREFIX}"]`,
-    onMount: (container) => {
-      // Simple container reset
-      container.style.cssText = CONFIG.CSS_STYLES.TRANSPARENT_CONTAINER;
-      
-      const button = document.createElement('div');
-      button.style.cssText = CONFIG.CSS_STYLES.SETTINGS_BUTTON_STYLES;
-      button.title = 'Planet Horse Extension Settings';
-      
-      // Load external gear SVG icon
-      const gearIcon = document.createElement('img');
-      gearIcon.src = settingGearIcon;
-      gearIcon.style.cssText = CONFIG.CSS_STYLES.GEAR_ICON;
-      gearIcon.alt = 'Settings';
-      
-      button.appendChild(gearIcon);
-      
-      // Add click event listener
-      button.addEventListener('click', () => {
-        if (modalUI) {
-          modalUI.mount();
-        }
-      });
-      
-      // Add hover effects for gear icon
-      button.addEventListener('mouseenter', () => {
-        button.style.setProperty('background-color', CONFIG.CSS_STYLES.BUTTON_HOVER_BG, 'important');
-        button.style.setProperty('cursor', 'none', 'important');
+  // Only create modal if it doesn't exist
+  if (!modalUI) {
+    // Create modal UI with correct 'overlay' position
+    modalUI = await createShadowRootUi(ctx, {
+      name: 'phorse-settings-modal',
+      position: 'overlay',
+      anchor: 'body',
+      zIndex: 100,
+      onMount: (container) => {
+        // Store container reference for show/hide control
+        modalContainer = container;
         
-        // Apply brightness filter for visual feedback
-        gearIcon.style.setProperty('filter', CONFIG.CSS_STYLES.GEAR_ICON_HOVER, 'important');
-      });
-      
-      button.addEventListener('mouseleave', () => {
-        button.style.setProperty('background-color', 'transparent', 'important');
-        button.style.setProperty('cursor', 'none', 'important');
+        // Inject CSS styles into Shadow DOM
+        const style = document.createElement('style');
+        style.textContent = `
+          /* Global cursor none for all elements to allow game cursor */
+          * {
+            cursor: none !important;
+          }
+          
+          /* Modal overlay container (full screen backdrop) */
+          .phorse-modal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.8);
+            width: 100vw;
+            height: 100vh;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            cursor: none !important;
+          }
+          
+          .phorse-modal-container.visible {
+            display: flex; /* Show when visible class is added */
+          }
+          
+          /* Modal content box */
+          .phorse-modal-content {
+            background: #582c25;
+            border: 3px solid #3a1a15;
+            border-radius: 8px;
+            min-width: 400px;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            cursor: none !important;
+          }
+          
+          /* Modal header section */
+          .phorse-modal-header {
+            padding: 15px 20px; 
+            border-bottom: 2px solid #3a1a15; 
+            font-size: 18px; 
+            font-weight: bold; 
+            background: #582c25; 
+            color: white; 
+            font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            cursor: none !important;
+          }
+          
+          /* Modal close button */
+          .phorse-modal-close-button {
+            cursor: none !important;
+            background: transparent; 
+            border: none; 
+            padding: 4px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 24px; 
+            height: 24px; 
+            position: relative;
+          }
+          
+          .phorse-modal-close-button:hover {
+            opacity: 0.7;
+          }
+          
+          /* Modal close icon styling */
+          .phorse-modal-close-icon {
+            position: absolute; 
+            inset: 0px; 
+            box-sizing: border-box; 
+            padding: 0px; 
+            border: none; 
+            margin: auto; 
+            display: block; 
+            width: 0px; 
+            height: 0px; 
+            min-width: 100%; 
+            max-width: 100%; 
+            min-height: 100%; 
+            max-height: 100%; 
+            cursor: none !important;
+          }
+          
+          /* Modal body section */
+          .phorse-modal-body {
+            padding: 20px; 
+            min-height: 100px; 
+            background: #582c25; 
+            color: white; 
+            font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
+            border-radius: 0 0 8px 8px; 
+            cursor: none !important;
+          }
+        `;
+        container.appendChild(style);
         
-        // Restore original brightness
-        gearIcon.style.setProperty('filter', 'brightness(1)', 'important');
-      });
-      
-      container.appendChild(button);
-      debugLog('Settings button mounted');
-    }
-  });
+        // Apply modal container class
+        container.classList.add(CONFIG.CSS_CLASSES.MODAL_CONTAINER);
 
-  // Auto-mount button - WXT handles SPA navigation automatically
-  buttonUI.autoMount();
+        // Add click-to-close on backdrop
+        container.addEventListener('click', (e) => {
+          if (e.target === container) {
+            hideModal();
+          }
+        });
+
+        // Create modal content wrapper
+        const modalContent = document.createElement('div');
+        modalContent.classList.add(CONFIG.CSS_CLASSES.MODAL_CONTENT);
+        
+        // Stop propagation on modal content to prevent closing when clicking inside
+        modalContent.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+
+        // Create modal header
+        const header = document.createElement('div');
+        header.classList.add(CONFIG.CSS_CLASSES.MODAL_HEADER);
+        
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = 'Settings';
+        header.appendChild(titleSpan);
+
+        // Create close button using page's close icon
+        const closeButton = document.createElement('button');
+        closeButton.classList.add(CONFIG.CSS_CLASSES.MODAL_CLOSE_BUTTON);
+        closeButton.title = 'Cerrar';
+        
+        // Create close icon image
+        const closeIcon = document.createElement('img');
+        closeIcon.alt = 'Close';
+        closeIcon.src = '/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ffechar.6bf40c51.png&w=64&q=75';
+        closeIcon.classList.add(CONFIG.CSS_CLASSES.MODAL_CLOSE_ICON);
+        closeIcon.setAttribute('decoding', 'async');
+        closeIcon.setAttribute('data-nimg', 'intrinsic');
+        
+        // Add close functionality
+        closeButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          hideModal();
+        });
+        
+        closeButton.appendChild(closeIcon);
+        header.appendChild(closeButton);
+
+        // Create modal body
+        const body = document.createElement('div');
+        body.classList.add(CONFIG.CSS_CLASSES.MODAL_BODY);
+        body.textContent = 'Modal content will be added here...';
+
+        // Assemble modal
+        modalContent.appendChild(header);
+        modalContent.appendChild(body);
+        container.appendChild(modalContent);
+        
+        debugLog('Modal UI created and ready');
+      },
+      onRemove: () => {
+        debugLog('Modal onRemove triggered');
+        modalContainer = null;
+        isModalVisible = false;
+      }
+    });
+    
+    // Mount modal once (but keep it hidden initially)
+    modalUI.mount();
+  }
+
+  // Only create button if it doesn't exist
+  if (!buttonUI) {
+    // Create button UI and store reference globally
+    buttonUI = createIntegratedUi(ctx, {
+      position: 'inline',
+      anchor: `[class*="${CONFIG.CSS_CLASSES.ACTION_OPTIONS_PREFIX}"]`,
+      onMount: (container) => {
+        // Simple container reset
+        container.classList.add(CONFIG.CSS_CLASSES.TRANSPARENT_CONTAINER);
+        
+        const button = document.createElement('div');
+        button.classList.add(CONFIG.CSS_CLASSES.SETTINGS_BUTTON_STYLE);
+        button.title = 'Planet Horse Extension Settings';
+        
+        // Load external gear SVG icon
+        const gearIcon = document.createElement('img');
+        gearIcon.src = settingGearIcon;
+        gearIcon.classList.add(CONFIG.CSS_CLASSES.GEAR_ICON);
+        gearIcon.alt = 'Settings';
+        
+        button.appendChild(gearIcon);
+        
+        // Add click event listener
+        button.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          debugLog('Settings button clicked');
+          showModal();
+        });
+        
+        container.appendChild(button);
+        debugLog('Settings button mounted');
+      }
+    });
+
+    // Auto-mount button - WXT handles SPA navigation automatically
+    buttonUI.autoMount();
+  }
 }
 
 /**

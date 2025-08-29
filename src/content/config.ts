@@ -38,6 +38,19 @@ export interface CSSClasses {
   GRID_CONVERTED: string;
   TEXT_CENTER: string;
   DISPLAY_CONTENTS: string;
+  
+  // Modal System Classes
+  MODAL_CONTAINER: string;
+  MODAL_CONTENT: string;
+  MODAL_HEADER: string;
+  MODAL_CLOSE_BUTTON: string;
+  MODAL_CLOSE_ICON: string;
+  MODAL_BODY: string;
+  
+  // Settings Button Classes
+  TRANSPARENT_CONTAINER: string;
+  SETTINGS_BUTTON_STYLE: string;
+  GEAR_ICON: string;
 }
 
 export interface CSSStyles {
@@ -194,7 +207,20 @@ export const CONFIG: ConfigType = {
     GRID_BALANCE: 'phorse-grid-balance',
     GRID_CONVERTED: 'phorse-grid-converted',
     TEXT_CENTER: 'phorse-text-center',
-    DISPLAY_CONTENTS: 'phorse-display-contents'
+    DISPLAY_CONTENTS: 'phorse-display-contents',
+    
+    // Modal System Classes
+    MODAL_CONTAINER: 'phorse-modal-container',
+    MODAL_CONTENT: 'phorse-modal-content',
+    MODAL_HEADER: 'phorse-modal-header',
+    MODAL_CLOSE_BUTTON: 'phorse-modal-close-button',
+    MODAL_CLOSE_ICON: 'phorse-modal-close-icon',
+    MODAL_BODY: 'phorse-modal-body',
+    
+    // Settings Button Classes
+    TRANSPARENT_CONTAINER: 'phorse-transparent-container',
+    SETTINGS_BUTTON_STYLE: 'phorse-settings-button',
+    GEAR_ICON: 'phorse-gear-icon'
   },
   
   // CSS Styles configuration (using design tokens - tokens referenced directly in strings)
@@ -216,99 +242,7 @@ export const CONFIG: ConfigType = {
     DROPDOWN_STYLES: `border-radius: 5px; background: #582c25; color: white; 
       font-size: 10px; max-height: 28px; max-width: 160px; 
       font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;`,
-    SETTINGS_BUTTON_STYLES: `cursor: none !important; background: transparent !important; 
-      border: none !important; border-radius: 6px !important; 
-      width: 40px !important; height: 40px !important; 
-      display: flex !important; align-items: center !important; 
-      justify-content: center !important; transition: background-color 0.2s !important; 
-      outline: none !important;`,
-    
-    // Modal Styles
-    MODAL_CONTAINER: `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.8);
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: none !important;
-    `,
-    MODAL_CONTENT: `
-      background: #582c25;
-      border: 3px solid #3a1a15;
-      border-radius: 8px;
-      min-width: 400px;
-      max-width: 500px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-      cursor: none !important;
-    `,
-    MODAL_HEADER: `
-      padding: 15px 20px; 
-      border-bottom: 2px solid #3a1a15; 
-      font-size: 18px; 
-      font-weight: bold; 
-      background: #582c25; 
-      color: white; 
-      font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      cursor: none !important;
-    `,
-    MODAL_CLOSE_BUTTON: `
-      cursor: none !important; 
-      background: transparent; 
-      border: none; 
-      padding: 4px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      width: 24px; 
-      height: 24px; 
-      position: relative;
-    `,
-    MODAL_CLOSE_ICON: `
-      position: absolute; 
-      inset: 0px; 
-      box-sizing: border-box; 
-      padding: 0px; 
-      border: none; 
-      margin: auto; 
-      display: block; 
-      width: 0px; 
-      height: 0px; 
-      min-width: 100%; 
-      max-width: 100%; 
-      min-height: 100%; 
-      max-height: 100%; 
-      cursor: none !important;
-    `,
-    MODAL_BODY: `
-      padding: 20px; 
-      min-height: 100px; 
-      background: #582c25; 
-      color: white; 
-      font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
-      border-radius: 0 0 8px 8px; 
-      cursor: none !important;
-    `,
-    
-    // Button and Container Styles
-    TRANSPARENT_CONTAINER: `
-      background: transparent !important; 
-      border: none !important; 
-      padding: 0 !important; 
-      margin: 0 !important;
-    `,
-    GEAR_ICON: `
-      width: 24px; 
-      height: 24px; 
-      pointer-events: none;
-    `,
+    // Note: Settings button, gear icon, and transparent container styles migrated to modal.css
     DISPLAY_CONTENTS: 'display: contents;',
     POSITION_RELATIVE: 'position: relative;',
     
@@ -337,10 +271,8 @@ export const CONFIG: ConfigType = {
     DROPDOWN_ARROW: 'font-size: 10px;',
     
     // Hover Effects
-    MODAL_CLOSE_BUTTON_HOVER: 'opacity: 0.7;',
-    BUTTON_HOVER_BG: 'rgba(255, 255, 255, 0.1)',
-    GEAR_ICON_HOVER: 'brightness(1.2)',
     DROPDOWN_OPTION_HOVER_BG: '#6b3529'
+    // Note: Button and gear icon hover effects migrated to modal.css
   },
   
   // Timeout configuration (in milliseconds)
