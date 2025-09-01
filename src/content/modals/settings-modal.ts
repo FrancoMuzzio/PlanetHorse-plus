@@ -5,13 +5,16 @@ import settingGearIcon from '~/assets/icons/setting-gear.svg';
 import { loadConverterSettings, saveConverterSettings, loadEnabledCurrencies, saveEnabledCurrencies } from '../storage';
 import { getAllValidConversions } from '../utils/validation';
 
+// Default currencies to enable when turning on converter with no selections
+const DEFAULT_ENABLED_CURRENCIES: ConversionKey[] = ['usd', 'ron'];
+
 // Modal state variables
 let modalUI: any = null;
 let buttonUI: any = null;
 let modalContainer: HTMLElement | null = null;
 let isModalVisible: boolean = false;
 let currentToggleState: boolean = true; // Current toggle state in modal
-let currentEnabledCurrencies: ConversionKey[] = ['usd', 'ron']; // Current enabled currencies in modal
+let currentEnabledCurrencies: ConversionKey[] = DEFAULT_ENABLED_CURRENCIES.slice(); // Current enabled currencies in modal
 let wxtContext: any = null; // Store WXT context for applying changes
 
 /**
@@ -122,6 +125,15 @@ function handleCurrencyToggle(currencyKey: ConversionKey, enabled: boolean): voi
     currentEnabledCurrencies = currentEnabledCurrencies.filter(key => key !== currencyKey);
   }
   
+  // CRITICAL FIX: Synchronize UI after state change
+  updateCurrencyCheckboxes();
+  
+  // Auto-disable converter if all currencies are unchecked
+  if (currentEnabledCurrencies.length === 0 && currentToggleState) {
+    debugLog('All currencies disabled - automatically turning OFF converter');
+    handleToggleChange(false);
+  }
+  
   debugLog('Currency toggle changed:', currencyKey, enabled ? 'enabled' : 'disabled');
   debugLog('Current enabled currencies:', currentEnabledCurrencies);
 }
@@ -132,6 +144,14 @@ function handleCurrencyToggle(currencyKey: ConversionKey, enabled: boolean): voi
  */
 function handleToggleChange(enabled: boolean): void {
   currentToggleState = enabled;
+  
+  // Auto-enable default currencies when turning ON with no selections
+  if (enabled && currentEnabledCurrencies.length === 0) {
+    debugLog('Converter enabled with no currencies - auto-enabling default currencies');
+    currentEnabledCurrencies = DEFAULT_ENABLED_CURRENCIES.slice();
+    updateCurrencyCheckboxes();
+  }
+  
   updateToggleUI();
   updateCurrencyListVisibility();
   debugLog('Toggle state changed:', enabled);
@@ -248,14 +268,18 @@ function createCurrencyListSection(): HTMLElement {
     const createCheckboxHandler = (currency: ConversionKey) => (e: Event) => {
       e.stopPropagation();
       const checkboxElement = e.target as HTMLInputElement;
-      handleCurrencyToggle(currency, checkboxElement.checked);
+      // Use setTimeout to ensure browser's automatic state change completes first
+      setTimeout(() => {
+        handleCurrencyToggle(currency, checkboxElement.checked);
+      }, 0);
     };
     
     const createLabelHandler = (currency: ConversionKey, checkboxElement: HTMLInputElement) => (e: Event) => {
       e.stopPropagation();
       e.preventDefault();
+      // Toggle state and handle immediately
       checkboxElement.checked = !checkboxElement.checked;
-      checkboxElement.dispatchEvent(new Event('change'));
+      handleCurrencyToggle(currency, checkboxElement.checked);
     };
     
     // Add event listeners with proper closure capture
