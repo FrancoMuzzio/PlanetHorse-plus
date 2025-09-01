@@ -28,7 +28,7 @@
   align-items: center;
   cursor: pointer;
   border: none;
-  padding: 4px 8px;
+  padding: 0px 0px !important;
   justify-content: space-between;
 }
 
@@ -40,7 +40,7 @@
 /* Dropdown arrow */
 .phorse-dropdown-arrow {
   font-size: 10px;
-  margin-left: 4px;
+  margin-left: 0px !important;
 }
 
 /* Options container (dropdown list) */
@@ -66,7 +66,7 @@
   font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
   border-bottom: 1px solid #3a1a15;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 14px;
 }
 
 /* Dropdown option hover effect */
