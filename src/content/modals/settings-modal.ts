@@ -1,8 +1,9 @@
 // ============= SETTINGS MODAL COMPONENT =============
-import { CONFIG, debugLog } from '../config';
+import { CONFIG, debugLog, getConversionDisplayText, type ConversionKey } from '../config';
 import { createIntegratedUi } from '#imports';
 import settingGearIcon from '~/assets/icons/setting-gear.svg';
-import { loadConverterSettings, saveConverterSettings } from '../storage';
+import { loadConverterSettings, saveConverterSettings, loadEnabledCurrencies, saveEnabledCurrencies } from '../storage';
+import { getAllValidConversions } from '../utils/validation';
 
 // Modal state variables
 let modalUI: any = null;
@@ -10,6 +11,7 @@ let buttonUI: any = null;
 let modalContainer: HTMLElement | null = null;
 let isModalVisible: boolean = false;
 let currentToggleState: boolean = true; // Current toggle state in modal
+let currentEnabledCurrencies: ConversionKey[] = ['usd', 'ron']; // Current enabled currencies in modal
 let wxtContext: any = null; // Store WXT context for applying changes
 
 /**
@@ -18,6 +20,7 @@ let wxtContext: any = null; // Store WXT context for applying changes
 export async function showSettingsModal(): Promise<void> {
   // Load current settings from storage
   currentToggleState = await loadConverterSettings();
+  currentEnabledCurrencies = await loadEnabledCurrencies();
   
   // Mount modal if not already mounted
   if (modalUI && !modalContainer) {
@@ -29,14 +32,16 @@ export async function showSettingsModal(): Promise<void> {
     modalContainer.classList.add('visible');
     isModalVisible = true;
     
-    // Update toggle state in UI
+    // Update toggle state and currency list in UI
     updateToggleUI();
+    updateCurrencyListVisibility();
+    updateCurrencyCheckboxes();
     
     // Log computed z-index for debugging
     const computedStyle = window.getComputedStyle(modalContainer);
     debugLog(`Modal z-index: ${computedStyle.zIndex}`);
     
-    debugLog('Modal shown with current toggle state:', currentToggleState);
+    debugLog('Modal shown with current toggle state:', currentToggleState, 'enabled currencies:', currentEnabledCurrencies);
   }
 }
 
@@ -77,12 +82,58 @@ function updateToggleUI(): void {
 }
 
 /**
+ * Updates currency list section visibility based on toggle state
+ */
+function updateCurrencyListVisibility(): void {
+  const currencyListSection = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.CURRENCY_LIST_SECTION}`);
+  if (currencyListSection) {
+    currencyListSection.style.display = currentToggleState ? 'block' : 'none';
+    debugLog('Updated currency list visibility:', currentToggleState ? 'visible' : 'hidden');
+  }
+}
+
+/**
+ * Updates currency checkboxes to reflect current enabled currencies
+ */
+function updateCurrencyCheckboxes(): void {
+  const checkboxes = modalContainer?.querySelectorAll(`.${CONFIG.CSS_CLASSES.CURRENCY_CHECKBOX}`) as NodeListOf<HTMLInputElement>;
+  checkboxes?.forEach(checkbox => {
+    const currencyKey = checkbox.dataset.currency;
+    if (currencyKey) {
+      checkbox.checked = currentEnabledCurrencies.includes(currencyKey);
+    }
+  });
+  debugLog('Updated currency checkboxes for enabled currencies:', currentEnabledCurrencies);
+}
+
+/**
+ * Handles currency checkbox change
+ * @param currencyKey - The currency that was toggled
+ * @param enabled - Whether the currency is now enabled
+ */
+function handleCurrencyToggle(currencyKey: ConversionKey, enabled: boolean): void {
+  if (enabled) {
+    // Add currency if not already enabled
+    if (!currentEnabledCurrencies.includes(currencyKey)) {
+      currentEnabledCurrencies.push(currencyKey);
+    }
+  } else {
+    // Remove currency from enabled list
+    currentEnabledCurrencies = currentEnabledCurrencies.filter(key => key !== currencyKey);
+  }
+  
+  debugLog('Currency toggle changed:', currencyKey, enabled ? 'enabled' : 'disabled');
+  debugLog('Current enabled currencies:', currentEnabledCurrencies);
+}
+
+/**
  * Handles toggle state change
  * @param enabled - New toggle state
  */
 function handleToggleChange(enabled: boolean): void {
   currentToggleState = enabled;
   updateToggleUI();
+  updateCurrencyListVisibility();
   debugLog('Toggle state changed:', enabled);
 }
 
@@ -90,15 +141,22 @@ function handleToggleChange(enabled: boolean): void {
  * Handles save button click - saves settings and applies changes
  */
 async function handleSaveSettings(): Promise<void> {
-  debugLog('Saving settings...', { converterEnabled: currentToggleState });
+  debugLog('Saving settings...', { 
+    converterEnabled: currentToggleState, 
+    enabledCurrencies: currentEnabledCurrencies 
+  });
   
   // Save to storage
   await saveConverterSettings(currentToggleState);
+  await saveEnabledCurrencies(currentEnabledCurrencies);
   
   // Apply changes immediately by dispatching custom event
   // This allows main.ts to listen and reinitialize components
   const settingsChangedEvent = new CustomEvent('phorseSettingsChanged', {
-    detail: { converterEnabled: currentToggleState }
+    detail: { 
+      converterEnabled: currentToggleState,
+      enabledCurrencies: currentEnabledCurrencies 
+    }
   });
   document.dispatchEvent(settingsChangedEvent);
   
@@ -143,6 +201,78 @@ function createModalHeader(): HTMLElement {
   header.appendChild(closeButton);
   
   return header;
+}
+
+/**
+ * Creates the currency list section with checkboxes for all available currencies
+ * @returns HTMLElement - Currency list section element
+ */
+function createCurrencyListSection(): HTMLElement {
+  const currencySection = document.createElement('div');
+  currencySection.classList.add(CONFIG.CSS_CLASSES.CURRENCY_LIST_SECTION);
+  
+  // Section title
+  const sectionTitle = document.createElement('label');
+  sectionTitle.classList.add(CONFIG.CSS_CLASSES.SETTINGS_LABEL);
+  sectionTitle.textContent = 'Available Currencies';
+  sectionTitle.style.marginBottom = '10px';
+  sectionTitle.style.display = 'block';
+  
+  // Currency list container
+  const currencyContainer = document.createElement('div');
+  currencyContainer.classList.add(CONFIG.CSS_CLASSES.CURRENCY_LIST_CONTAINER);
+  
+  // Generate currency items for all available currencies
+  const allCurrencies = getAllValidConversions();
+  allCurrencies.forEach(currencyKey => {
+    const currencyItem = document.createElement('div');
+    currencyItem.classList.add(CONFIG.CSS_CLASSES.CURRENCY_ITEM);
+    
+    // Hidden checkbox input (first element for CSS selectors)
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.classList.add(CONFIG.CSS_CLASSES.CURRENCY_CHECKBOX);
+    checkbox.dataset.currency = currencyKey;
+    checkbox.checked = currentEnabledCurrencies.includes(currencyKey);
+    
+    // Visual checkbox container (second element for CSS + selector)
+    const checkboxContainer = document.createElement('div');
+    checkboxContainer.classList.add(CONFIG.CSS_CLASSES.CURRENCY_CHECKBOX_CONTAINER);
+    
+    // Currency label with emoji and name (third element)
+    const labelText = document.createElement('span');
+    labelText.classList.add(CONFIG.CSS_CLASSES.CURRENCY_LABEL_TEXT);
+    labelText.textContent = getConversionDisplayText(currencyKey);
+    
+    // Create closure-safe event handlers for this currency
+    const createCheckboxHandler = (currency: ConversionKey) => (e: Event) => {
+      e.stopPropagation();
+      const checkboxElement = e.target as HTMLInputElement;
+      handleCurrencyToggle(currency, checkboxElement.checked);
+    };
+    
+    const createLabelHandler = (currency: ConversionKey, checkboxElement: HTMLInputElement) => (e: Event) => {
+      e.stopPropagation();
+      e.preventDefault();
+      checkboxElement.checked = !checkboxElement.checked;
+      checkboxElement.dispatchEvent(new Event('change'));
+    };
+    
+    // Add event listeners with proper closure capture
+    checkbox.addEventListener('change', createCheckboxHandler(currencyKey));
+    labelText.addEventListener('click', createLabelHandler(currencyKey, checkbox));
+    
+    // Assemble with checkbox inside container for proper positioning
+    checkboxContainer.appendChild(checkbox);
+    currencyItem.appendChild(checkboxContainer);
+    currencyItem.appendChild(labelText);
+    currencyContainer.appendChild(currencyItem);
+  });
+  
+  currencySection.appendChild(sectionTitle);
+  currencySection.appendChild(currencyContainer);
+  
+  return currencySection;
 }
 
 /**
@@ -202,6 +332,9 @@ function createModalBody(): HTMLElement {
   settingsSection.appendChild(label);
   settingsSection.appendChild(toggleGroup);
   
+  // Currency list section (only visible when converter is enabled)
+  const currencyListSection = createCurrencyListSection();
+  
   // Modal footer with save button
   const footer = document.createElement('div');
   footer.classList.add(CONFIG.CSS_CLASSES.MODAL_FOOTER);
@@ -219,6 +352,7 @@ function createModalBody(): HTMLElement {
   
   // Assemble modal body
   body.appendChild(settingsSection);
+  body.appendChild(currencyListSection);
   body.appendChild(footer);
   
   return body;

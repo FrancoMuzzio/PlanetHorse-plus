@@ -264,3 +264,95 @@
 .phorse-save-button:hover {
   background-color: #7a3e2d;
 }
+
+/* Currency List Section Styles */
+
+/* Currency list section container */
+.phorse-currency-list-section {
+  margin-top: 20px;
+  padding: 15px 0;
+  border-top: 1px solid #3a1a15;
+}
+
+/* Currency list container */
+.phorse-currency-list-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin-top: 12px;
+}
+
+/* Individual currency item */
+.phorse-currency-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+/* Currency checkbox container */
+.phorse-currency-checkbox-container {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+}
+
+/* Currency checkbox (hidden input) */
+.phorse-currency-checkbox {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Currency checkbox visual element */
+.phorse-currency-checkbox-container:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background-color: #3a1a15;
+  border: 2px solid #582c25;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+/* Currency checkbox when checked */
+.phorse-currency-checkbox-container:has(.phorse-currency-checkbox:checked):after {
+  background-color: #6b3529;
+  border-color: #7a3e2d;
+}
+
+/* Currency checkbox checkmark */
+.phorse-currency-checkbox-container:has(.phorse-currency-checkbox:checked):before {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 2;
+}
+
+/* Currency checkbox hover effect */
+.phorse-currency-checkbox-container:hover:after {
+  border-color: #6b3529;
+}
+
+/* Currency label text */
+.phorse-currency-label-text {
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  cursor: pointer;
+}

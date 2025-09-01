@@ -4,6 +4,7 @@
  */
 
 import { CONFIG, type ConversionKey } from '../config';
+import { loadEnabledCurrencies } from '../storage';
 
 /**
  * Gets all valid conversion keys (both fiat and tokens)
@@ -73,4 +74,51 @@ export function getFiatConversions(): ConversionKey[] {
  */
 export function getTokenConversions(): ConversionKey[] {
   return Object.keys(CONFIG.CONVERSION_TYPES.tokens);
+}
+
+/**
+ * Gets only enabled conversion keys from storage
+ * @returns Promise that resolves to array of enabled conversion keys
+ * @example
+ * const enabled = await getEnabledConversions(); // returns ['usd', 'ron'] if only those are enabled
+ */
+export async function getEnabledConversions(): Promise<ConversionKey[]> {
+  try {
+    const enabledCurrencies = await loadEnabledCurrencies();
+    const allValidConversions = getAllValidConversions();
+    
+    // Filter to only return valid and enabled currencies
+    const validEnabledCurrencies = enabledCurrencies.filter(currency => 
+      allValidConversions.includes(currency)
+    );
+    
+    // Ensure at least one currency is enabled (fallback to default)
+    if (validEnabledCurrencies.length === 0) {
+      return [CONFIG.DEFAULT_CURRENCY];
+    }
+    
+    return validEnabledCurrencies;
+  } catch (error) {
+    // Fallback to all valid conversions if error loading enabled currencies
+    return getAllValidConversions();
+  }
+}
+
+/**
+ * Validates if a conversion is currently enabled
+ * @param conversion - The conversion key to check
+ * @returns Promise that resolves to true if the conversion is enabled
+ */
+export async function isConversionEnabled(conversion: ConversionKey): Promise<boolean> {
+  const enabledConversions = await getEnabledConversions();
+  return enabledConversions.includes(conversion);
+}
+
+/**
+ * Gets the first enabled conversion as fallback
+ * @returns Promise that resolves to the first enabled conversion key
+ */
+export async function getFirstEnabledConversion(): Promise<ConversionKey> {
+  const enabledConversions = await getEnabledConversions();
+  return enabledConversions[0] || CONFIG.DEFAULT_CURRENCY;
 }

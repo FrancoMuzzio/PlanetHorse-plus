@@ -17,6 +17,11 @@ const priceConverterEnabled = storage.defineItem<boolean>('local:price_converter
   fallback: true, // Default to enabled (same as current CONFIG.FEATURES.PRICE_CONVERTER_ENABLED)
 });
 
+// WXT storage item for enabled currencies (persists even when converter is disabled)
+const enabledCurrencies = storage.defineItem<ConversionKey[]>('local:enabled_currencies', {
+  fallback: ['usd', 'ron'], // Default to USD and RON enabled
+});
+
 /**
  * Loads user's preferred currency from WXT storage
  * @returns Promise that resolves to user's preferred currency or default currency
@@ -109,4 +114,40 @@ export async function saveConverterSettings(enabled: boolean): Promise<void> {
  */
 export function getConverterSettingsStorageItem() {
   return priceConverterEnabled;
+}
+
+/**
+ * Loads enabled currencies from WXT storage
+ * @returns Promise that resolves to array of enabled currency keys
+ */
+export async function loadEnabledCurrencies(): Promise<ConversionKey[]> {
+  try {
+    const enabled = await enabledCurrencies.getValue();
+    debugLog('Loaded enabled currencies:', enabled);
+    return enabled;
+  } catch (error) {
+    debugLog('Error loading enabled currencies:', error);
+    return ['usd', 'ron']; // Default fallback
+  }
+}
+
+/**
+ * Saves enabled currencies to WXT storage
+ * @param currencies - Array of currency keys to enable
+ */
+export async function saveEnabledCurrencies(currencies: ConversionKey[]): Promise<void> {
+  try {
+    await enabledCurrencies.setValue(currencies);
+    debugLog('Saved enabled currencies:', currencies);
+  } catch (error) {
+    debugLog('Error saving enabled currencies:', error);
+  }
+}
+
+/**
+ * Gets WXT storage item for enabled currencies (for advanced use cases)
+ * @returns WXT storage item instance
+ */
+export function getEnabledCurrenciesStorageItem() {
+  return enabledCurrencies;
 }

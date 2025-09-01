@@ -4,7 +4,7 @@
  */
 
 import { CONFIG, getConversionDisplayText, type ConversionKey } from '../config';
-import { getAllValidConversions } from './validation';
+import { getAllValidConversions, getEnabledConversions } from './validation';
 
 /**
  * Callback functions interface for dropdown events
@@ -15,17 +15,17 @@ export interface DropdownCallbacks {
 }
 
 /**
- * Creates dropdown option elements for all available conversions
+ * Creates dropdown option elements for enabled conversions only
  * @param callbacks - Callback functions for dropdown events
- * @returns HTML element containing all dropdown options
+ * @returns Promise that resolves to HTML element containing enabled dropdown options
  */
-export function createDropdownOptions(callbacks: DropdownCallbacks): HTMLElement {
+export async function createDropdownOptions(callbacks: DropdownCallbacks): Promise<HTMLElement> {
   const optionsContainer = document.createElement('div');
   optionsContainer.classList.add(CONFIG.CSS_CLASSES.DROPDOWN_OPTIONS);
 
-  // Generate options for all available conversions
-  const availableConversions = getAllValidConversions();
-  availableConversions.forEach(conversionKey => {
+  // Generate options for enabled conversions only
+  const enabledConversions = await getEnabledConversions();
+  enabledConversions.forEach(conversionKey => {
     const option = createDropdownOption(conversionKey);
     optionsContainer.appendChild(option);
   });

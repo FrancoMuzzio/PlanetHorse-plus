@@ -61,6 +61,14 @@ export interface CSSClasses {
   TOGGLE_STATUS_TEXT: string;
   SAVE_BUTTON: string;
   MODAL_FOOTER: string;
+  
+  // Currency List Section Classes
+  CURRENCY_LIST_SECTION: string;
+  CURRENCY_LIST_CONTAINER: string;
+  CURRENCY_ITEM: string;
+  CURRENCY_CHECKBOX_CONTAINER: string;
+  CURRENCY_CHECKBOX: string;
+  CURRENCY_LABEL_TEXT: string;
 }
 
 
@@ -203,7 +211,15 @@ export const CONFIG: ConfigType = {
     TOGGLE_SLIDER: 'phorse-toggle-slider',
     TOGGLE_STATUS_TEXT: 'phorse-toggle-status-text',
     SAVE_BUTTON: 'phorse-save-button',
-    MODAL_FOOTER: 'phorse-modal-footer'
+    MODAL_FOOTER: 'phorse-modal-footer',
+    
+    // Currency List Section Classes
+    CURRENCY_LIST_SECTION: 'phorse-currency-list-section',
+    CURRENCY_LIST_CONTAINER: 'phorse-currency-list-container',
+    CURRENCY_ITEM: 'phorse-currency-item',
+    CURRENCY_CHECKBOX_CONTAINER: 'phorse-currency-checkbox-container',
+    CURRENCY_CHECKBOX: 'phorse-currency-checkbox',
+    CURRENCY_LABEL_TEXT: 'phorse-currency-label-text'
   },
   
   // Timeout configuration (in milliseconds)

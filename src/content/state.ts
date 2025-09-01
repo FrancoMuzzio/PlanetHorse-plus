@@ -1,6 +1,6 @@
 import { CONFIG, debugLog, type ConversionKey } from './config';
 import { loadUserPreferredCurrency, getUserPreferredCurrencyStorageItem } from './storage';
-import { isValidConversion, createConversionValidationError } from './utils/validation';
+import { isValidConversion, createConversionValidationError, isConversionEnabled, getFirstEnabledConversion } from './utils/validation';
 
 /**
  * State management for runtime conversion state
@@ -41,6 +41,33 @@ export function setCurrentConversion(newConversion: ConversionKey): void {
 }
 
 /**
+ * Ensures current conversion is enabled, switches to fallback if not
+ * @returns Promise that resolves when current conversion has been validated/updated
+ */
+export async function ensureCurrentConversionIsEnabled(): Promise<void> {
+  try {
+    const isCurrentEnabled = await isConversionEnabled(currentConversion);
+    
+    if (!isCurrentEnabled) {
+      debugLog('Current conversion is not enabled:', currentConversion);
+      const fallbackConversion = await getFirstEnabledConversion();
+      currentConversion = fallbackConversion;
+      
+      // Persist the fallback choice
+      const storageItem = getUserPreferredCurrencyStorageItem();
+      storageItem.setValue(fallbackConversion).catch(error => {
+        debugLog('Failed to save fallback currency:', error);
+      });
+      
+      debugLog('Switched to fallback conversion:', fallbackConversion);
+    }
+  } catch (error) {
+    debugLog('Error ensuring conversion is enabled:', error);
+    // Keep current conversion if error occurs
+  }
+}
+
+/**
  * Resets conversion state to default
  */
 export function resetConversion(): void {
@@ -56,6 +83,9 @@ export async function initializeConversionState(): Promise<void> {
     const preferredCurrency = await loadUserPreferredCurrency();
     currentConversion = preferredCurrency;
     debugLog('Initialized conversion state with user preference:', preferredCurrency);
+    
+    // Ensure the loaded currency is enabled, switch to fallback if not
+    await ensureCurrentConversionIsEnabled();
   } catch (error) {
     debugLog('Error initializing conversion state:', error);
     currentConversion = CONFIG.DEFAULT_CURRENCY;

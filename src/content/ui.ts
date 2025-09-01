@@ -16,7 +16,7 @@ export function createCurrencyConversionUI(ctx: any) {
   return createIntegratedUi(ctx, {
     position: 'inline',
     anchor: `[class*="${CONFIG.CSS_CLASSES.CURRENCY_GROUP_PREFIX}"]`,
-    onMount: (container) => {
+    onMount: async (container) => {
       const balanceElement = document.getElementById(CONFIG.BALANCE_ELEMENT_ID);
       if (!balanceElement) {
         debugLog('Balance element not found during currency UI mount');
@@ -46,7 +46,13 @@ export function createCurrencyConversionUI(ctx: any) {
       const dropdownButtonComponents = createDropdownButton(getCurrentConversion());
       const { element: dropdownButton, updateSelection } = dropdownButtonComponents;
       
-      // Create dropdown options using utility
+      // Create converted price span (defined here so it can be used in callbacks)
+      const convertedPrice = document.createElement('span');
+      convertedPrice.classList.add(CONFIG.CSS_CLASSES.CONVERTED_PRICE);
+      convertedPrice.classList.add(CONFIG.CSS_CLASSES.TEXT_CENTER);
+      convertedPrice.classList.add(CONFIG.CSS_CLASSES.GRID_CONVERTED);
+      
+      // Create dropdown options using utility (now async)
       const dropdownCallbacks: DropdownCallbacks = {
         onSelectionChange: (newCurrency: ConversionKey) => {
           // Update current selection display
@@ -63,7 +69,7 @@ export function createCurrencyConversionUI(ctx: any) {
         }
       };
       
-      const optionsContainer = createDropdownOptions(dropdownCallbacks);
+      const optionsContainer = await createDropdownOptions(dropdownCallbacks);
       
       // Assemble dropdown
       dropdownContainer.appendChild(dropdownButton);
@@ -75,12 +81,6 @@ export function createCurrencyConversionUI(ctx: any) {
         dropdownButtonComponents.arrow, 
         optionsContainer
       );
-
-      // Create converted price span
-      const convertedPrice = document.createElement('span');
-      convertedPrice.classList.add(CONFIG.CSS_CLASSES.CONVERTED_PRICE);
-      convertedPrice.classList.add(CONFIG.CSS_CLASSES.TEXT_CENTER);
-      convertedPrice.classList.add(CONFIG.CSS_CLASSES.GRID_CONVERTED);
 
       // Calculate and display initial converted price
       const convertedValue = getConvertedPrice(getCurrentConversion(), balanceElement.textContent || '0');

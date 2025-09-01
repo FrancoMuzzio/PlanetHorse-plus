@@ -1,7 +1,7 @@
 // ============= MAIN ORCHESTRATION =============
 import { CONFIG, debugLog } from './config';
 import { fetchAllTokenPrices } from './api';
-import { initializeConversionState } from './state';
+import { initializeConversionState, ensureCurrentConversionIsEnabled } from './state';
 import { 
   createCurrencyConversionUI
 } from './ui';
@@ -112,6 +112,9 @@ async function initialize(ctx: any): Promise<void> {
   document.addEventListener('phorseSettingsChanged', async (e: Event) => {
     const customEvent = e as CustomEvent;
     debugLog('Settings changed event received:', customEvent.detail);
+    
+    // Ensure current conversion is still enabled after settings change
+    await ensureCurrentConversionIsEnabled();
     
     // Reinitialize components to apply new settings
     await reinitializeComponents(ctx);
