@@ -15,7 +15,7 @@
   display: none; /* Hidden by default */
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 9998 !important; /* Just below cursor (9999) but above game elements */
 }
 
 /* Show modal when visible class is added */
@@ -134,4 +134,9 @@
 /* Gear icon hover effect */
 .phorse-settings-button:hover .phorse-gear-icon {
   filter: brightness(1.2) !important;
+}
+
+/* Ensure game cursor stays above modal */
+.cursor_cursor__5j_Wi {
+  z-index: 10000 !important;
 }

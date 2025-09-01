@@ -29,6 +29,11 @@ function showModal(): void {
   if (modalContainer && !isModalVisible) {
     modalContainer.classList.add('visible');
     isModalVisible = true;
+    
+    // Log computed z-index for debugging
+    const computedStyle = window.getComputedStyle(modalContainer);
+    debugLog(`Modal z-index: ${computedStyle.zIndex}`);
+    
     debugLog('Modal shown');
   }
 }
@@ -40,6 +45,7 @@ function hideModal(): void {
   if (modalContainer && isModalVisible) {
     modalContainer.classList.remove('visible');
     isModalVisible = false;
+    
     debugLog('Modal hidden');
     
     // Unmount modal to clean up DOM
