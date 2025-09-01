@@ -12,10 +12,15 @@
   background: rgba(0, 0, 0, 0.8);
   width: 100vw;
   height: 100vh;
-  display: flex;
+  display: none; /* Hidden by default */
   align-items: center;
   justify-content: center;
   z-index: 10000;
+}
+
+/* Show modal when visible class is added */
+.phorse-modal-container.visible {
+  display: flex;
 }
 
 /* Modal content box */

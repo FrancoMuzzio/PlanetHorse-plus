@@ -126,15 +126,3 @@ export function createCurrencyConversionUI(ctx: any) {
     }
   });
 }
-
-// Obsolete functions moved to utils/formatting.ts and utils/dropdown.ts
-// This promotes modularity and reusability while following DRY principles
-
-// Legacy functions removed and replaced:
-// - calculateConvertedPrice() -> utils/formatting.ts
-// - formatPrice() -> utils/formatting.ts
-// - Custom dropdown logic -> utils/dropdown.ts utilities
-// - Validation logic -> utils/validation.ts
-
-// WXT component patterns maintained with improved modular architecture
-

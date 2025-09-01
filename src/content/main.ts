@@ -20,6 +20,12 @@ let isModalVisible: boolean = false;
  * Shows the settings modal
  */
 function showModal(): void {
+  // Mount modal if not already mounted
+  if (modalUI && !modalContainer) {
+    modalUI.mount();
+    debugLog('Modal mounted');
+  }
+  
   if (modalContainer && !isModalVisible) {
     modalContainer.classList.add('visible');
     isModalVisible = true;
@@ -35,6 +41,12 @@ function hideModal(): void {
     modalContainer.classList.remove('visible');
     isModalVisible = false;
     debugLog('Modal hidden');
+    
+    // Unmount modal to clean up DOM
+    if (modalUI) {
+      modalUI.remove();
+      debugLog('Modal unmounted');
+    }
   }
 }
 
@@ -111,119 +123,16 @@ async function createSettingsUI(ctx: any): Promise<void> {
 
   // Only create modal if it doesn't exist
   if (!modalUI) {
-    // Create modal UI with correct 'overlay' position
-    modalUI = await createShadowRootUi(ctx, {
-      name: 'phorse-settings-modal',
-      position: 'overlay',
+    // Create modal UI using createIntegratedUi to inherit page styles
+    modalUI = createIntegratedUi(ctx, {
+      position: 'inline',
       anchor: 'body',
-      zIndex: 100,
+      append: 'last',
       onMount: (container) => {
         // Store container reference for show/hide control
         modalContainer = container;
         
-        // Inject CSS styles into Shadow DOM
-        const style = document.createElement('style');
-        style.textContent = `
-          /* Global cursor none for all elements to allow game cursor */
-          * {
-            cursor: none !important;
-          }
-          
-          /* Modal overlay container (full screen backdrop) */
-          .phorse-modal-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: rgba(0, 0, 0, 0.8);
-            width: 100vw;
-            height: 100vh;
-            display: none; /* Hidden by default */
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            cursor: none !important;
-          }
-          
-          .phorse-modal-container.visible {
-            display: flex; /* Show when visible class is added */
-          }
-          
-          /* Modal content box */
-          .phorse-modal-content {
-            background: #582c25;
-            border: 3px solid #3a1a15;
-            border-radius: 8px;
-            min-width: 400px;
-            max-width: 500px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            cursor: none !important;
-          }
-          
-          /* Modal header section */
-          .phorse-modal-header {
-            padding: 15px 20px; 
-            border-bottom: 2px solid #3a1a15; 
-            font-size: 18px; 
-            font-weight: bold; 
-            background: #582c25; 
-            color: white; 
-            font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            cursor: none !important;
-          }
-          
-          /* Modal close button */
-          .phorse-modal-close-button {
-            cursor: none !important;
-            background: transparent; 
-            border: none; 
-            padding: 4px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            width: 24px; 
-            height: 24px; 
-            position: relative;
-          }
-          
-          .phorse-modal-close-button:hover {
-            opacity: 0.7;
-          }
-          
-          /* Modal close icon styling */
-          .phorse-modal-close-icon {
-            position: absolute; 
-            inset: 0px; 
-            box-sizing: border-box; 
-            padding: 0px; 
-            border: none; 
-            margin: auto; 
-            display: block; 
-            width: 0px; 
-            height: 0px; 
-            min-width: 100%; 
-            max-width: 100%; 
-            min-height: 100%; 
-            max-height: 100%; 
-            cursor: none !important;
-          }
-          
-          /* Modal body section */
-          .phorse-modal-body {
-            padding: 20px; 
-            min-height: 100px; 
-            background: #582c25; 
-            color: white; 
-            font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
-            border-radius: 0 0 8px 8px; 
-            cursor: none !important;
-          }
-        `;
-        container.appendChild(style);
-        
-        // Apply modal container class
+        // Apply modal container class (styles are now in modal.css)
         container.classList.add(CONFIG.CSS_CLASSES.MODAL_CONTAINER);
 
         // Add click-to-close on backdrop
@@ -291,8 +200,7 @@ async function createSettingsUI(ctx: any): Promise<void> {
       }
     });
     
-    // Mount modal once (but keep it hidden initially)
-    modalUI.mount();
+    // Modal will be mounted/unmounted dynamically when needed
   }
 
   // Only create button if it doesn't exist
