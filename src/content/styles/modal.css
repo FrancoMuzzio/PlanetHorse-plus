@@ -140,3 +140,117 @@
 .cursor_cursor__5j_Wi {
   z-index: 10000 !important;
 }
+
+/* Settings Modal Content Styles */
+
+/* Settings section container */
+.phorse-settings-section {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Settings label styling */
+.phorse-settings-label {
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  margin: 0;
+}
+
+/* Toggle container */
+.phorse-toggle-container {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+/* Toggle switch (hidden checkbox) */
+.phorse-toggle-switch {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Toggle slider */
+.phorse-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #3a1a15;
+  border: 2px solid #582c25;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+/* Toggle slider before (the circle) */
+.phorse-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+/* Toggle when checked */
+.phorse-toggle-switch:checked + .phorse-toggle-slider {
+  background-color: #6b3529;
+}
+
+/* Toggle slider when checked - move circle to right */
+.phorse-toggle-switch:checked + .phorse-toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Toggle slider hover effect */
+.phorse-toggle-slider:hover {
+  background-color: #4a2118;
+}
+
+.phorse-toggle-switch:checked + .phorse-toggle-slider:hover {
+  background-color: #7a3e2d;
+}
+
+/* Modal footer */
+.phorse-modal-footer {
+  padding: 15px 20px;
+  border-top: 2px solid #3a1a15;
+  background: #582c25;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Save button */
+.phorse-save-button {
+  background: #6b3529;
+  border: 2px solid #3a1a15;
+  border-radius: 5px;
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* Save button hover effect */
+.phorse-save-button:hover {
+  background-color: #7a3e2d;
+}

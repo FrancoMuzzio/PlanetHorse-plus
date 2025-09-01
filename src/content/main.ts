@@ -9,6 +9,7 @@ import {
   createSettingsModal, 
   cleanupSettingsModal 
 } from './modals/settings-modal';
+import { loadConverterSettings } from './storage';
 
 // Window interface extension removed - no longer needed without manual timeout management
 
@@ -37,22 +38,23 @@ function cleanupUIComponents(): void {
  * @param ctx - WXT content script context
  */
 async function createUIComponents(ctx: any): Promise<void> {
-  // Check if price converter is enabled
-  if (!CONFIG.FEATURES.PRICE_CONVERTER_ENABLED) {
-    debugLog('Price converter is disabled - skipping UI creation');
-    return;
-  }
-  
-  // Create and auto-mount currency conversion UI component
-  currencyUI = createCurrencyConversionUI(ctx);
-  currencyUI.autoMount();
-  debugLog('Currency conversion UI created and mounted');
-  
-  // Create settings modal if enabled
+  // Always create settings modal first (needed to change settings)
   if (CONFIG.FEATURES.SETTINGS_MODAL_ENABLED) {
     await createSettingsModal(ctx);
     debugLog('Settings modal created and mounted');
   }
+  
+  // Check if price converter is enabled via storage settings
+  const isConverterEnabled = await loadConverterSettings();
+  if (!isConverterEnabled) {
+    debugLog('Price converter is disabled via settings - skipping converter UI creation');
+    return;
+  }
+  
+  // Create and auto-mount currency conversion UI component only if enabled
+  currencyUI = createCurrencyConversionUI(ctx);
+  currencyUI.autoMount();
+  debugLog('Currency conversion UI created and mounted');
 }
 
 /**
@@ -75,13 +77,7 @@ async function reinitializeComponents(ctx: any): Promise<void> {
  * Loads user preferences and sets up WXT UI components with automatic SPA navigation
  */
 async function initialize(ctx: any): Promise<void> {
-  // Check if price converter is enabled
-  if (!CONFIG.FEATURES.PRICE_CONVERTER_ENABLED) {
-    debugLog('Price converter is disabled - skipping initialization');
-    return;
-  }
-
-  // Load user's preferred currency first
+  // Load user's preferred currency first (always needed for state)
   await initializeConversionState();
   
   try {
@@ -93,6 +89,7 @@ async function initialize(ctx: any): Promise<void> {
   }
   
   // Create all UI components using shared function (DRY principle)
+  // createUIComponents will check if converter is enabled via storage
   await createUIComponents(ctx);
   
   // Add SPA navigation detection via click events on specific buttons
@@ -111,7 +108,26 @@ async function initialize(ctx: any): Promise<void> {
     }
   });
   
-  debugLog('SPA navigation detection set up via button click listeners');
+  // Add settings change detection for immediate application
+  document.addEventListener('phorseSettingsChanged', async (e: Event) => {
+    const customEvent = e as CustomEvent;
+    debugLog('Settings changed event received:', customEvent.detail);
+    
+    // Reinitialize components to apply new settings
+    await reinitializeComponents(ctx);
+  });
+  
+  debugLog('SPA navigation detection and settings change listeners set up');
+}
+
+/**
+ * Applies settings changes immediately without page refresh
+ * Called from settings modal after saving
+ * @param ctx - WXT content script context
+ */
+export async function applySettingsChanges(ctx: any): Promise<void> {
+  debugLog('Applying settings changes immediately...');
+  await reinitializeComponents(ctx);
 }
 
 // Export initialize function for WXT entrypoint

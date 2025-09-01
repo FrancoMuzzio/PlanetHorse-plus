@@ -12,6 +12,11 @@ const userPreferredCurrency = storage.defineItem<ConversionKey>('local:user_pref
   fallback: CONFIG.DEFAULT_CURRENCY,
 });
 
+// WXT storage item for price converter enabled/disabled setting
+const priceConverterEnabled = storage.defineItem<boolean>('local:price_converter_enabled', {
+  fallback: true, // Default to enabled (same as current CONFIG.FEATURES.PRICE_CONVERTER_ENABLED)
+});
+
 /**
  * Loads user's preferred currency from WXT storage
  * @returns Promise that resolves to user's preferred currency or default currency
@@ -68,4 +73,40 @@ export async function clearUserPreferredCurrency(): Promise<void> {
  */
 export function getUserPreferredCurrencyStorageItem() {
   return userPreferredCurrency;
+}
+
+/**
+ * Loads price converter enabled setting from WXT storage
+ * @returns Promise that resolves to boolean indicating if converter is enabled
+ */
+export async function loadConverterSettings(): Promise<boolean> {
+  try {
+    const isEnabled = await priceConverterEnabled.getValue();
+    debugLog('Loaded price converter setting:', isEnabled);
+    return isEnabled;
+  } catch (error) {
+    debugLog('Error loading price converter setting:', error);
+    return true; // Default to enabled
+  }
+}
+
+/**
+ * Saves price converter enabled setting to WXT storage
+ * @param enabled - Boolean indicating if converter should be enabled
+ */
+export async function saveConverterSettings(enabled: boolean): Promise<void> {
+  try {
+    await priceConverterEnabled.setValue(enabled);
+    debugLog('Saved price converter setting:', enabled);
+  } catch (error) {
+    debugLog('Error saving price converter setting:', error);
+  }
+}
+
+/**
+ * Gets WXT storage item for converter settings (for advanced use cases)
+ * @returns WXT storage item instance
+ */
+export function getConverterSettingsStorageItem() {
+  return priceConverterEnabled;
 }

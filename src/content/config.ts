@@ -51,6 +51,15 @@ export interface CSSClasses {
   TRANSPARENT_CONTAINER: string;
   SETTINGS_BUTTON_STYLE: string;
   GEAR_ICON: string;
+  
+  // Settings Modal Content Classes
+  SETTINGS_SECTION: string;
+  SETTINGS_LABEL: string;
+  TOGGLE_CONTAINER: string;
+  TOGGLE_SWITCH: string;
+  TOGGLE_SLIDER: string;
+  SAVE_BUTTON: string;
+  MODAL_FOOTER: string;
 }
 
 
@@ -183,7 +192,16 @@ export const CONFIG: ConfigType = {
     // Settings Button Classes
     TRANSPARENT_CONTAINER: 'phorse-transparent-container',
     SETTINGS_BUTTON_STYLE: 'phorse-settings-button',
-    GEAR_ICON: 'phorse-gear-icon'
+    GEAR_ICON: 'phorse-gear-icon',
+    
+    // Settings Modal Content Classes
+    SETTINGS_SECTION: 'phorse-settings-section',
+    SETTINGS_LABEL: 'phorse-settings-label',
+    TOGGLE_CONTAINER: 'phorse-toggle-container',
+    TOGGLE_SWITCH: 'phorse-toggle-switch',
+    TOGGLE_SLIDER: 'phorse-toggle-slider',
+    SAVE_BUTTON: 'phorse-save-button',
+    MODAL_FOOTER: 'phorse-modal-footer'
   },
   
   // Timeout configuration (in milliseconds)
