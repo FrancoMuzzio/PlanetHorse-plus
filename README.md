@@ -11,11 +11,23 @@ Planet Horse is a Play-to-Earn horse racing game on the Ronin Network where play
 ## Features
 
 - **Multi-Currency Support**: Convert PHORSE tokens to USD, EUR, ARS (fiat) or RON (token) with real-time rates
-- **Interactive Currency Selector**: Easy-to-use dropdown to switch between conversion types
-- **Settings Button & Modal**: Integrated settings interface with modal for extension configuration
+- **Custom Dropdown Selector**: Fully customized dropdown resolving cursor conflicts with game interface
+  - Click-outside detection for seamless UX
+  - Perfect visual integration with Planet Horse design
+  - Arrow rotation animations and hover effects
+- **Settings Button & Modal**: Integrated settings interface with Shadow Root isolation
+  - Gear icon (⚙️) auto-mounted in game interface
+  - Modal with proper z-index management (game cursor stays on top)
+  - Professional styling matching Planet Horse theme
+- **Automatic Balance Detection**: Real-time polling system detects balance changes automatically
+  - 500ms polling interval for instant conversion updates
+  - Efficient cleanup when navigating away
+- **User Preference Persistence**: Currency selection persists across browser sessions
+  - Type-safe WXT Storage API with automatic validation
+  - Graceful fallback to default currency if preference becomes invalid
 - **Smart Caching**: Optimized performance with single SkyMavis API call for all exchange rates
 - **Non-invasive Integration**: Seamlessly adds to the existing UI without disrupting gameplay
-- **Automatic Updates**: Refreshes whenever your balance changes
+- **Modular Architecture**: Clean separation of utilities and styles for maintainability
 - **Zero Configuration**: Works immediately after installation
 - **TypeScript Support**: Full TypeScript with strict typing and compile-time error checking
 - **Cross-browser Ready**: Built with WXT for future Firefox, Edge, and Safari support
@@ -71,12 +83,23 @@ entrypoints/            # WXT entry points
 ├── content.ts          # Content script entry point
 └── background.ts       # Background service worker
 src/content/            # Business logic (TypeScript with ES modules)
-├── main.ts            # Main orchestration and initialization  
-├── config.ts          # Configuration constants and debug logging
+├── main.ts            # Main orchestration, DOM observation, modal management
+├── config.ts          # Configuration constants, debug logging, design tokens
 ├── api.ts             # API communication with SkyMavis
-├── ui.ts              # DOM manipulation and UI updates
-└── state.ts           # State management
-public/icons/          # Extension icons
+├── ui.ts              # WXT UI components for currency conversion
+├── state.ts           # State management and conversion logic
+├── storage.ts         # WXT Storage API for user preferences persistence
+├── utils/             # Modular utility functions
+│   ├── dropdown.ts    # Custom dropdown component logic
+│   ├── formatting.ts  # Price formatting and calculation utilities
+│   └── validation.ts  # Conversion type validation utilities
+└── styles/            # Separated CSS for maintainability
+    ├── dropdown.css   # Custom dropdown component styles
+    ├── grid.css       # Grid layout system styles
+    └── modal.css      # Settings modal and button styles
+assets/icons/          # Extension assets
+├── setting-gear.svg   # Settings button icon
+public/icons/          # WXT public icons
 wxt.config.js          # WXT Framework configuration
 .output/chrome-mv3/    # Built extension files (generated)
 ```
@@ -108,13 +131,18 @@ wxt.config.js          # WXT Framework configuration
 
 ### Architecture
 
-- **WXT Framework**: Modern web extension build system with Vite
-- **TypeScript with ES Modules**: Uses modern TypeScript with import/export for type-safe, clean code
-- **No External Dependencies**: Pure browser APIs only
-- **MutationObserver**: Detects SPA navigation changes efficiently
+- **WXT Framework**: Modern web extension build system with Vite and HMR
+- **Modular TypeScript**: Clean separation with utils/ and styles/ modules for maintainability
+- **Custom UI Components**: Native dropdown implementation resolving game cursor conflicts
+- **WXT Storage Integration**: Type-safe user preferences persistence with automatic validation
+- **Design Token System**: Centralized theming via CONFIG.CSS_TOKENS for consistent styling
+- **Features Flags**: Toggle-able functionality via CONFIG.FEATURES for flexible deployment
+- **Balance Change Detection**: Automatic polling system for real-time conversion updates
+- **No External Dependencies**: Pure browser APIs and WXT framework only
+- **MutationObserver**: Detects SPA navigation changes efficiently with debounced initialization
 - **Chrome Messaging**: Background script handles CORS-restricted SkyMavis API calls
-- **Smart Caching**: Single API call fetches all token prices for session
-- **Event Delegation**: Optimized DOM event handling for performance
+- **Smart Caching**: Single API call fetches all token prices for session duration
+- **Shadow Root Isolation**: Settings modal with proper z-index management for game compatibility
 
 ## Support
 
@@ -163,10 +191,17 @@ Contributions are welcome! Please follow these guidelines:
 
 ### Development Tips
 
-- Use `npm run dev` for fastest development with HMR
+- Use `npm run dev` for fastest development with HMR and auto-navigation
+- **Modular Development**: Place utilities in `utils/` and styles in `styles/` for better organization
+- **Design Tokens**: Use `CONFIG.CSS_TOKENS` instead of hardcoded values for consistent theming
+- **Features Flags**: Toggle functionality via `CONFIG.FEATURES` for easier testing
+- **Storage Testing**: Test WXT Storage persistence by refreshing browser
+- **Custom Components**: Extend dropdown.ts for new custom UI components
 - Enable debug logging: Set `CONFIG.DEBUG = true` in `src/content/config.ts`
 - Debug logs use `debugLog()` function and are prefixed with '[Planet Horse Extension]'
 - Test on planethorse.io/game after every change
+- **CSS Development**: Edit separated CSS files in `styles/` for better maintainability
+- **Validation**: Use validation utilities from `utils/validation.ts` for type safety
 - WXT auto-generates manifest.json - configure in `wxt.config.js`
 
 ## Technical Details
