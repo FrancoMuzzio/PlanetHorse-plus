@@ -63,9 +63,16 @@ export function hideSettingsModal(): void {
  */
 function updateToggleUI(): void {
   const toggleInput = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.TOGGLE_SWITCH}`) as HTMLInputElement;
+  const statusText = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT}`) as HTMLSpanElement;
+  
   if (toggleInput) {
     toggleInput.checked = currentToggleState;
     debugLog('Updated toggle UI state:', currentToggleState);
+  }
+  
+  if (statusText) {
+    statusText.textContent = currentToggleState ? 'ON' : 'OFF';
+    debugLog('Updated toggle status text:', statusText.textContent);
   }
 }
 
@@ -75,6 +82,7 @@ function updateToggleUI(): void {
  */
 function handleToggleChange(enabled: boolean): void {
   currentToggleState = enabled;
+  updateToggleUI();
   debugLog('Toggle state changed:', enabled);
 }
 
@@ -173,13 +181,26 @@ function createModalBody(): HTMLElement {
     handleToggleChange(toggleInput.checked);
   });
   
+  // Toggle status text
+  const statusText = document.createElement('span');
+  statusText.classList.add(CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT);
+  statusText.textContent = currentToggleState ? 'ON' : 'OFF';
+  
   // Assemble toggle
   toggleContainer.appendChild(toggleInput);
   toggleContainer.appendChild(toggleSlider);
   
+  // Create toggle group container
+  const toggleGroup = document.createElement('div');
+  toggleGroup.style.display = 'flex';
+  toggleGroup.style.alignItems = 'center';
+  toggleGroup.style.gap = '10px';
+  toggleGroup.appendChild(toggleContainer);
+  toggleGroup.appendChild(statusText);
+  
   // Assemble settings section
   settingsSection.appendChild(label);
-  settingsSection.appendChild(toggleContainer);
+  settingsSection.appendChild(toggleGroup);
   
   // Modal footer with save button
   const footer = document.createElement('div');

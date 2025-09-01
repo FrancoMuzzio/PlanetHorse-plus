@@ -58,6 +58,7 @@ export interface CSSClasses {
   TOGGLE_CONTAINER: string;
   TOGGLE_SWITCH: string;
   TOGGLE_SLIDER: string;
+  TOGGLE_STATUS_TEXT: string;
   SAVE_BUTTON: string;
   MODAL_FOOTER: string;
 }
@@ -200,6 +201,7 @@ export const CONFIG: ConfigType = {
     TOGGLE_CONTAINER: 'phorse-toggle-container',
     TOGGLE_SWITCH: 'phorse-toggle-switch',
     TOGGLE_SLIDER: 'phorse-toggle-slider',
+    TOGGLE_STATUS_TEXT: 'phorse-toggle-status-text',
     SAVE_BUTTON: 'phorse-save-button',
     MODAL_FOOTER: 'phorse-modal-footer'
   },

@@ -226,6 +226,16 @@
   background-color: #7a3e2d;
 }
 
+/* Toggle status text */
+.phorse-toggle-status-text {
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  margin-left: 2px;
+}
+
 /* Modal footer */
 .phorse-modal-footer {
   padding: 15px 20px;
