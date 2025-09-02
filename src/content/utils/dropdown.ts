@@ -74,6 +74,7 @@ export function createDropdownButton(currentSelection: ConversionKey) {
   // Current selection display
   const currentSelectionSpan = document.createElement('span');
   currentSelectionSpan.textContent = getConversionDisplayText(currentSelection);
+  currentSelectionSpan.classList.add(CONFIG.CSS_CLASSES.DROPDOWN_CURRENT_SELECTION);
   
   // Dropdown arrow
   const dropdownArrow = document.createElement('span');

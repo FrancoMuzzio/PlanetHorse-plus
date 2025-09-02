@@ -26,6 +26,7 @@ export interface CSSClasses {
   // Dropdown Component Classes
   DROPDOWN_CONTAINER: string;
   DROPDOWN_BUTTON: string;
+  DROPDOWN_CURRENT_SELECTION: string;
   DROPDOWN_ARROW: string;
   DROPDOWN_OPTIONS: string;
   DROPDOWN_OPTION: string;
@@ -177,6 +178,7 @@ export const CONFIG: ConfigType = {
     // Dropdown Component Classes
     DROPDOWN_CONTAINER: 'phorse-dropdown-container',
     DROPDOWN_BUTTON: 'phorse-dropdown-button',
+    DROPDOWN_CURRENT_SELECTION: 'phorse-dropdown-current-selection',
     DROPDOWN_ARROW: 'phorse-dropdown-arrow',
     DROPDOWN_OPTIONS: 'phorse-dropdown-options',
     DROPDOWN_OPTION: 'phorse-dropdown-option',

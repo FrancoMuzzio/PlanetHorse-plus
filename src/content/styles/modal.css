@@ -366,3 +366,13 @@
   font-weight: normal;
   cursor: pointer;
 }
+
+/* Botón cuando dropdown está abierto - solo redondeado arriba */
+.phorse-dropdown-button.open {
+  border-radius: 5px 5px 0 0;
+}
+
+/* Opciones - solo redondeadas abajo */
+.phorse-dropdown-options {
+  border-radius: 0 0 5px 5px;
+}
