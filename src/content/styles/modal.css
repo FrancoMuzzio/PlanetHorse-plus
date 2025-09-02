@@ -23,14 +23,15 @@
   display: flex;
 }
 
-/* Modal content box */
+/* Modal content box - necesita position: relative */
 .phorse-modal-content {
   background: #582c25;
   border: 3px solid #3a1a15;
   border-radius: 8px;
-  min-width: 400px;
-  max-width: 500px;
+  width: 100vh;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  position: relative; /* AGREGAR ESTO */
+  min-height: 400px; /* AGREGAR altura mínima */
 }
 
 /* Modal header section */
@@ -83,14 +84,15 @@
   max-height: 100%; 
 }
 
-/* Modal body section */
+/* Modal body - agregar padding bottom para el footer */
 .phorse-modal-body {
   padding: 20px; 
   min-height: 100px; 
   background: #582c25; 
   color: white; 
   font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
-  border-radius: 0 0 8px 8px; 
+  border-radius: 0 0 8px 8px;
+  padding-bottom: 80px; /* AGREGAR espacio para el footer */
 }
 
 /* Settings Button and Related Styles */
@@ -236,7 +238,7 @@
   margin-left: 2px;
 }
 
-/* Modal footer */
+/* Modal footer - posicionar fijo en la parte inferior */
 .phorse-modal-footer {
   padding: 15px 20px;
   border-top: 2px solid #3a1a15;
@@ -244,6 +246,11 @@
   border-radius: 0 0 8px 8px;
   display: flex;
   justify-content: flex-end;
+  position: absolute; /* AGREGAR */
+  bottom: 0; /* AGREGAR */
+  left: 0; /* AGREGAR */
+  right: 0; /* AGREGAR */
+  width: calc(100% - 6px); /* AGREGAR - ajustar por el border */
 }
 
 /* Save button */
