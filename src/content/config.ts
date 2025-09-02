@@ -86,6 +86,7 @@ export interface Limits {
 export interface Features {
   PRICE_CONVERTER_ENABLED: boolean;
   SETTINGS_MODAL_ENABLED: boolean;
+  HORSE_ANALYZER_ENABLED: boolean;
 }
 
 export interface ConfigType {
@@ -315,7 +316,8 @@ export const CONFIG: ConfigType = {
   // Feature toggles
   FEATURES: {
     PRICE_CONVERTER_ENABLED: true,   // Enable/disable price converter functionality
-    SETTINGS_MODAL_ENABLED: true     // Enable/disable settings modal functionality
+    SETTINGS_MODAL_ENABLED: true,    // Enable/disable settings modal functionality
+    HORSE_ANALYZER_ENABLED: true     // Enable/disable horse analyzer functionality
   }
 };
 

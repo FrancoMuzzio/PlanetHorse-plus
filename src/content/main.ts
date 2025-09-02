@@ -10,6 +10,7 @@ import {
   cleanupSettingsModal 
 } from './modals/settings-modal';
 import { loadConverterSettings } from './storage';
+import { analyzeHorses } from './utils/horse-analyzer';
 
 // Window interface extension removed - no longer needed without manual timeout management
 
@@ -69,6 +70,14 @@ async function reinitializeComponents(ctx: any): Promise<void> {
   
   // Create all UI components using shared function
   await createUIComponents(ctx);
+  
+  // Run horse analyzer again if enabled (with retry logic)
+  if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED && CONFIG.DEBUG) {
+    // Try multiple times with short delays - stops when horses are found
+    [100, 500, 1000, 2000].forEach(delay => {
+      setTimeout(() => analyzeHorses(), delay);
+    });
+  }
 }
 
 
@@ -91,6 +100,14 @@ async function initialize(ctx: any): Promise<void> {
   // Create all UI components using shared function (DRY principle)
   // createUIComponents will check if converter is enabled via storage
   await createUIComponents(ctx);
+  
+  // Run horse analyzer if enabled (with retry logic)
+  if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED && CONFIG.DEBUG) {
+    // Try multiple times with short delays - stops when horses are found
+    [100, 500, 1000, 2000].forEach(delay => {
+      setTimeout(() => analyzeHorses(), delay);
+    });
+  }
   
   // Add SPA navigation detection via click events on specific buttons
   // More efficient than MutationObserver or wxt:locationchange
