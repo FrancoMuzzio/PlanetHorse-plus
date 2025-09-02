@@ -2,6 +2,7 @@
 // Analyzes and extracts information from Planet Horse game horses
 
 import { debugLog } from '../config';
+import { saveHorseAnalysisData, loadHorseAnalysisData, type StoredHorseAnalysis } from '../storage';
 
 // Track last analysis to avoid duplicates
 let lastAnalysisTimestamp = 0;
@@ -58,21 +59,6 @@ interface HorseInfo {
   items: HorseItem[];
   imageSrc?: string;
   element?: HTMLElement;
-}
-
-/**
- * Summary statistics for all horses
- */
-interface HorseSummary {
-  totalHorses: number;
-  byRarity: Record<string, number>;
-  byStatus: Record<string, number>;
-  averageLevel: number;
-  totalPower: number;
-  totalSpirit: number;
-  totalSpeed: number;
-  highestLevel: HorseInfo | null;
-  lowestEnergy: HorseInfo | null;
 }
 
 /**
@@ -233,57 +219,6 @@ function extractHorseData(horseElement: HTMLElement): HorseInfo | null {
   }
 }
 
-/**
- * Calculates summary statistics for all horses
- */
-function calculateSummary(horses: HorseInfo[]): HorseSummary {
-  const summary: HorseSummary = {
-    totalHorses: horses.length,
-    byRarity: {},
-    byStatus: {},
-    averageLevel: 0,
-    totalPower: 0,
-    totalSpirit: 0,
-    totalSpeed: 0,
-    highestLevel: null,
-    lowestEnergy: null
-  };
-
-  if (horses.length === 0) return summary;
-
-  let totalLevel = 0;
-  let lowestEnergyRatio = Infinity;
-
-  horses.forEach(horse => {
-    // Count by rarity
-    summary.byRarity[horse.rarity] = (summary.byRarity[horse.rarity] || 0) + 1;
-    
-    // Count by status
-    summary.byStatus[horse.status] = (summary.byStatus[horse.status] || 0) + 1;
-    
-    // Sum stats
-    totalLevel += horse.stats.level;
-    summary.totalPower += horse.stats.power;
-    summary.totalSpirit += horse.stats.spirit.base + (horse.stats.spirit.bonus || 0);
-    summary.totalSpeed += horse.stats.speed.base + (horse.stats.speed.bonus || 0);
-    
-    // Track highest level
-    if (!summary.highestLevel || horse.stats.level > summary.highestLevel.stats.level) {
-      summary.highestLevel = horse;
-    }
-    
-    // Track lowest energy ratio
-    const energyRatio = horse.stats.energy.current / horse.stats.energy.max;
-    if (energyRatio < lowestEnergyRatio) {
-      lowestEnergyRatio = energyRatio;
-      summary.lowestEnergy = horse;
-    }
-  });
-
-  summary.averageLevel = Math.round(totalLevel / horses.length * 10) / 10;
-
-  return summary;
-}
 
 /**
  * Formats horse data for console output
@@ -297,14 +232,8 @@ function formatHorseForConsole(horse: HorseInfo): object {
     Status: horse.status,
     Energy: `${horse.stats.energy.current}/${horse.stats.energy.max}`,
     Power: horse.stats.power,
-    Spirit: horse.stats.spirit.bonus 
-      ? `${horse.stats.spirit.base} +${horse.stats.spirit.bonus}` 
-      : horse.stats.spirit.base,
-    Speed: horse.stats.speed.bonus 
-      ? `${horse.stats.speed.base} +${horse.stats.speed.bonus}` 
-      : horse.stats.speed.base,
-    Breeds: `${horse.breeds.used}/${horse.breeds.total}`,
-    Items: horse.items.length
+    Spirit: horse.stats.spirit.base,
+    Speed: horse.stats.speed.base
   };
 }
 
@@ -346,86 +275,86 @@ export function analyzeHorses(): void {
     return;
   }
   
-  // Calculate summary statistics
-  const summary = calculateSummary(horses);
+  // Output to console - simple table
+  console.log(`🐴 Found ${horses.length} horses`);
+  console.table(horses.map(formatHorseForConsole));
   
-  // Output to console
-  console.group(`🐴 Planet Horse Analysis - ${horses.length} Horses Found`);
-  
-  // Display summary
-  console.group('📊 Summary Statistics');
-  console.log('Total Horses:', summary.totalHorses);
-  console.log('Average Level:', summary.averageLevel);
-  console.log('Total Power:', summary.totalPower);
-  console.log('Total Spirit:', summary.totalSpirit);
-  console.log('Total Speed:', summary.totalSpeed);
-  console.log('By Rarity:', summary.byRarity);
-  console.log('By Status:', summary.byStatus);
-  if (summary.highestLevel) {
-    console.log('Highest Level:', `${summary.highestLevel.name} (Lvl ${summary.highestLevel.stats.level})`);
-  }
-  if (summary.lowestEnergy) {
-    console.log('Lowest Energy:', `${summary.lowestEnergy.name} (${summary.lowestEnergy.stats.energy.current}/${summary.lowestEnergy.stats.energy.max})`);
-  }
-  console.groupEnd();
-  
-  // Display individual horses in table format
-  console.group('🐎 Individual Horses');
-  const tableData = horses.map(formatHorseForConsole);
-  console.table(tableData);
-  console.groupEnd();
-  
-  // Group by rarity
-  const rarities = Object.keys(summary.byRarity).sort();
-  rarities.forEach(rarity => {
-    const rarityHorses = horses.filter(h => h.rarity === rarity);
-    console.group(`${rarity} Horses (${rarityHorses.length})`);
-    console.table(rarityHorses.map(formatHorseForConsole));
-    console.groupEnd();
-  });
-  
-  console.groupEnd();
-  
-  // Store in window for potential further analysis
-  (window as any).__horseAnalysisData = {
-    horses,
-    summary,
+  // Store analysis data
+  const analysisData = {
+    horses: horses.map(h => {
+      // Remove HTMLElement reference for storage
+      const { element, ...horseWithoutElement } = h;
+      return horseWithoutElement;
+    }),
     timestamp: new Date().toISOString()
   };
   
-  debugLog('Horse analysis complete. Data stored in window.__horseAnalysisData');
+  // Store in window for immediate access
+  (window as any).__horseAnalysisData = analysisData;
+  
+  // Save to persistent storage
+  saveHorseAnalysisData(analysisData as StoredHorseAnalysis);
+  
+  debugLog('Horse analysis complete. Data stored in memory and storage');
+}
+
+/**
+ * Initializes horse analyzer and loads persisted data
+ */
+export async function initializeHorseAnalyzer(): Promise<void> {
+  debugLog('Initializing horse analyzer...');
+  
+  // Try to load from storage first
+  const storedData = await loadHorseAnalysisData();
+  if (storedData) {
+    (window as any).__horseAnalysisData = storedData;
+    debugLog('Loaded horse data from storage:', storedData.horses.length, 'horses');
+  } else {
+    debugLog('No stored horse data found');
+  }
+}
+
+/**
+ * Gets all horses from memory or storage
+ */
+export async function getHorses(): Promise<any[]> {
+  let data = (window as any).__horseAnalysisData;
+  
+  // If no data in memory, try loading from storage
+  if (!data || !data.horses) {
+    data = await loadHorseAnalysisData();
+    if (data) {
+      (window as any).__horseAnalysisData = data;
+    }
+  }
+  
+  return data?.horses || [];
 }
 
 /**
  * Gets detailed information about a specific horse by ID
  */
-export function getHorseById(id: number): HorseInfo | null {
-  const data = (window as any).__horseAnalysisData;
-  if (!data || !data.horses) {
-    debugLog('No horse analysis data available. Run analyzeHorses() first.');
-    return null;
-  }
-  
-  return data.horses.find((h: HorseInfo) => h.id === id) || null;
+export async function getHorseById(id: number): Promise<HorseInfo | null> {
+  const horses = await getHorses();
+  return horses.find((h: any) => h.id === id) || null;
 }
 
 /**
  * Filters horses by specific criteria
  */
-export function filterHorses(criteria: {
+export async function filterHorses(criteria: {
   rarity?: string;
   status?: string;
   minLevel?: number;
   maxLevel?: number;
   lowEnergy?: boolean;
-}): HorseInfo[] {
-  const data = (window as any).__horseAnalysisData;
-  if (!data || !data.horses) {
-    debugLog('No horse analysis data available. Run analyzeHorses() first.');
+}): Promise<HorseInfo[]> {
+  const horses = await getHorses();
+  if (horses.length === 0) {
     return [];
   }
   
-  let filtered = data.horses as HorseInfo[];
+  let filtered = horses;
   
   if (criteria.rarity) {
     filtered = filtered.filter(h => h.rarity === criteria.rarity);
@@ -452,59 +381,3 @@ export function filterHorses(criteria: {
   return filtered;
 }
 
-/**
- * Exports horse data to JSON
- */
-export function exportHorsesToJSON(): string {
-  const data = (window as any).__horseAnalysisData;
-  if (!data) {
-    debugLog('No horse analysis data available. Run analyzeHorses() first.');
-    return '{}';
-  }
-  
-  return JSON.stringify(data, null, 2);
-}
-
-/**
- * Exports horse data to CSV format
- */
-export function exportHorsesToCSV(): string {
-  const data = (window as any).__horseAnalysisData;
-  if (!data || !data.horses || data.horses.length === 0) {
-    debugLog('No horse analysis data available. Run analyzeHorses() first.');
-    return '';
-  }
-  
-  const headers = [
-    'ID', 'Name', 'Gender', 'Rarity', 'Generation', 'Level', 'Status',
-    'Power', 'Spirit Base', 'Spirit Bonus', 'Speed Base', 'Speed Bonus',
-    'Energy Current', 'Energy Max', 'Breeds Used', 'Breeds Total', 'Items Count'
-  ];
-  
-  const rows = data.horses.map((h: HorseInfo) => [
-    h.id,
-    h.name,
-    h.gender,
-    h.rarity,
-    h.generation,
-    h.stats.level,
-    h.status,
-    h.stats.power,
-    h.stats.spirit.base,
-    h.stats.spirit.bonus || 0,
-    h.stats.speed.base,
-    h.stats.speed.bonus || 0,
-    h.stats.energy.current,
-    h.stats.energy.max,
-    h.breeds.used,
-    h.breeds.total,
-    h.items.length
-  ]);
-  
-  const csv = [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
-  ].join('\n');
-  
-  return csv;
-}

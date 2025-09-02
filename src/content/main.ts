@@ -10,7 +10,7 @@ import {
   cleanupSettingsModal 
 } from './modals/settings-modal';
 import { loadConverterSettings } from './storage';
-import { analyzeHorses } from './utils/horse-analyzer';
+import { analyzeHorses, initializeHorseAnalyzer } from './utils/horse-analyzer';
 
 // Window interface extension removed - no longer needed without manual timeout management
 
@@ -88,6 +88,11 @@ async function reinitializeComponents(ctx: any): Promise<void> {
 async function initialize(ctx: any): Promise<void> {
   // Load user's preferred currency first (always needed for state)
   await initializeConversionState();
+  
+  // Initialize horse analyzer and load persisted data
+  if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED) {
+    await initializeHorseAnalyzer();
+  }
   
   try {
     // Fetch all token prices in single API call to populate cache

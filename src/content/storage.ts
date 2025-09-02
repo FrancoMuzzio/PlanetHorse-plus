@@ -7,6 +7,34 @@ import { isValidConversion } from './utils/validation';
  * Provides type-safe access to user currency preferences with automatic validation
  */
 
+// Horse data interfaces (simplified for storage)
+interface StoredHorseStats {
+  level: number;
+  exp: { current: string; required: string; };
+  power: number;
+  spirit: { base: number; bonus?: number; };
+  speed: { base: number; bonus?: number; };
+  energy: { current: number; max: number; };
+}
+
+interface StoredHorseInfo {
+  id: number;
+  name: string;
+  gender: string;
+  rarity: string;
+  generation: number;
+  breeds: { used: number; total: number; };
+  status: string;
+  stats: StoredHorseStats;
+  items: Array<{ name: string; imageSrc: string; quantity?: number; }>;
+  imageSrc?: string;
+}
+
+interface StoredHorseAnalysis {
+  horses: StoredHorseInfo[];
+  timestamp: string;
+}
+
 // WXT storage item definition with automatic validation and fallback
 const userPreferredCurrency = storage.defineItem<ConversionKey>('local:user_preferred_currency', {
   fallback: CONFIG.DEFAULT_CURRENCY,
@@ -20,6 +48,11 @@ const priceConverterEnabled = storage.defineItem<boolean>('local:price_converter
 // WXT storage item for enabled currencies (persists even when converter is disabled)
 const enabledCurrencies = storage.defineItem<ConversionKey[]>('local:enabled_currencies', {
   fallback: ['usd', 'ron'], // Default to USD and RON enabled
+});
+
+// WXT storage item for horse analysis data
+const horseAnalysisData = storage.defineItem<StoredHorseAnalysis | null>('local:horse_analysis_data', {
+  fallback: null, // No data by default
 });
 
 /**
@@ -151,3 +184,48 @@ export async function saveEnabledCurrencies(currencies: ConversionKey[]): Promis
 export function getEnabledCurrenciesStorageItem() {
   return enabledCurrencies;
 }
+
+/**
+ * Saves horse analysis data to WXT storage
+ * @param data - The horse analysis data to save
+ */
+export async function saveHorseAnalysisData(data: StoredHorseAnalysis): Promise<void> {
+  try {
+    await horseAnalysisData.setValue(data);
+    debugLog('Saved horse analysis data:', data.horses.length, 'horses');
+  } catch (error) {
+    debugLog('Error saving horse analysis data:', error);
+  }
+}
+
+/**
+ * Loads horse analysis data from WXT storage
+ * @returns Promise that resolves to stored horse data or null
+ */
+export async function loadHorseAnalysisData(): Promise<StoredHorseAnalysis | null> {
+  try {
+    const data = await horseAnalysisData.getValue();
+    if (data) {
+      debugLog('Loaded horse analysis data:', data.horses.length, 'horses from', data.timestamp);
+    }
+    return data;
+  } catch (error) {
+    debugLog('Error loading horse analysis data:', error);
+    return null;
+  }
+}
+
+/**
+ * Clears horse analysis data from storage
+ */
+export async function clearHorseAnalysisData(): Promise<void> {
+  try {
+    await horseAnalysisData.removeValue();
+    debugLog('Cleared horse analysis data');
+  } catch (error) {
+    debugLog('Error clearing horse analysis data:', error);
+  }
+}
+
+// Export types for use in other modules
+export type { StoredHorseInfo, StoredHorseAnalysis, StoredHorseStats };
