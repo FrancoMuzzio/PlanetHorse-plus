@@ -76,6 +76,8 @@ export interface CSSClasses {
   MARKETPLACE_BUTTON: string;
   RONIN_BUTTON: string;
   OPENSEA_BUTTON: string;
+  RONIN_IMAGE: string;
+  OPENSEA_IMAGE: string;
   HORSE_ID_CONTAINER: string;
 }
 
@@ -96,6 +98,20 @@ export interface Features {
   HORSE_ANALYZER_ENABLED: boolean;
 }
 
+export interface MarketplaceImages {
+  RONIN_ICON_URL: string;
+  OPENSEA_ICON_URL: string;
+}
+
+export interface MarketplaceUrls {
+  RONIN_BASE: string;
+  RONIN_ORIGIN_HORSES: string;
+  RONIN_OFFSPRING: string;
+  OPENSEA_BASE: string;
+  OPENSEA_ORIGIN_HORSES: string;
+  OPENSEA_OFFSPRING: string;
+}
+
 export interface ConfigType {
   PHORSE_ADDRESS: string;
   API_BASE_URL: string;
@@ -108,6 +124,8 @@ export interface ConfigType {
   TIMEOUTS: Timeouts;
   LIMITS: Limits;
   FEATURES: Features;
+  MARKETPLACE_IMAGES: MarketplaceImages;
+  MARKETPLACE_URLS: MarketplaceUrls;
 }
 
 export const CONFIG: ConfigType = {
@@ -312,6 +330,8 @@ export const CONFIG: ConfigType = {
     MARKETPLACE_BUTTON: 'phorse-marketplace-button',
     RONIN_BUTTON: 'phorse-ronin-button',
     OPENSEA_BUTTON: 'phorse-opensea-button',
+    RONIN_IMAGE: 'phorse-ronin-image',
+    OPENSEA_IMAGE: 'phorse-opensea-image',
     HORSE_ID_CONTAINER: 'phorse-horse-id-container'
   },
   
@@ -332,6 +352,22 @@ export const CONFIG: ConfigType = {
     PRICE_CONVERTER_ENABLED: true,   // Enable/disable price converter functionality
     SETTINGS_MODAL_ENABLED: true,    // Enable/disable settings modal functionality
     HORSE_ANALYZER_ENABLED: true     // Enable/disable horse analyzer functionality
+  },
+  
+  // Marketplace icon images
+  MARKETPLACE_IMAGES: {
+    RONIN_ICON_URL: '/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fwron.31e2fa29.gif&w=64&q=75',
+    OPENSEA_ICON_URL: 'https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.svg'
+  },
+  
+  // Marketplace URLs
+  MARKETPLACE_URLS: {
+    RONIN_BASE: 'https://marketplace.roninchain.com/collections/',
+    RONIN_ORIGIN_HORSES: 'origin-horses',
+    RONIN_OFFSPRING: 'planet-horse-offspring',
+    OPENSEA_BASE: 'https://opensea.io/item/ronin/',
+    OPENSEA_ORIGIN_HORSES: '0x66eeb20a1957c4b3743ecad19d0c2dbcf56b683f',
+    OPENSEA_OFFSPRING: '0x1296ffefc43ff7eb4b7617c02ef80253db905215'
   }
 };
 

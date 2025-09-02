@@ -453,18 +453,18 @@ export async function addMarketplaceButtons(): Promise<void> {
     
     // Create marketplace buttons container
     const buttonsContainer = document.createElement('span');
-    buttonsContainer.className = 'phorse-marketplace-buttons';
+    buttonsContainer.className = CONFIG.CSS_CLASSES.MARKETPLACE_BUTTONS_CONTAINER;
     
     // Determine URLs based on generation
     let roninUrl: string;
     let openseaUrl: string;
     
     if (horse.generation === 0) {
-      roninUrl = `https://marketplace.roninchain.com/collections/origin-horses/${horse.id}`;
-      openseaUrl = `https://opensea.io/item/ronin/0x66eeb20a1957c4b3743ecad19d0c2dbcf56b683f/${horse.id}`;
+      roninUrl = `${CONFIG.MARKETPLACE_URLS.RONIN_BASE}${CONFIG.MARKETPLACE_URLS.RONIN_ORIGIN_HORSES}/${horse.id}`;
+      openseaUrl = `${CONFIG.MARKETPLACE_URLS.OPENSEA_BASE}${CONFIG.MARKETPLACE_URLS.OPENSEA_ORIGIN_HORSES}/${horse.id}`;
     } else {
-      roninUrl = `https://marketplace.roninchain.com/collections/planet-horse-offspring/${horse.id}`;
-      openseaUrl = `https://opensea.io/item/ronin/0x1296ffefc43ff7eb4b7617c02ef80253db905215/${horse.id}`;
+      roninUrl = `${CONFIG.MARKETPLACE_URLS.RONIN_BASE}${CONFIG.MARKETPLACE_URLS.RONIN_OFFSPRING}/${horse.id}`;
+      openseaUrl = `${CONFIG.MARKETPLACE_URLS.OPENSEA_BASE}${CONFIG.MARKETPLACE_URLS.OPENSEA_OFFSPRING}/${horse.id}`;
     }
     
     // Create Ronin Market button only if enabled
@@ -473,8 +473,14 @@ export async function addMarketplaceButtons(): Promise<void> {
       roninButton.href = roninUrl;
       roninButton.target = '_blank';
       roninButton.rel = 'noopener noreferrer';
-      roninButton.className = 'phorse-marketplace-button phorse-ronin-button';
-      roninButton.textContent = 'R';
+      roninButton.className = `${CONFIG.CSS_CLASSES.MARKETPLACE_BUTTON} ${CONFIG.CSS_CLASSES.RONIN_BUTTON}`;
+      
+      // Create image element for wRON icon
+      const roninImage = document.createElement('img');
+      roninImage.src = CONFIG.MARKETPLACE_IMAGES.RONIN_ICON_URL;
+      roninImage.alt = 'wRON';
+      roninImage.className = CONFIG.CSS_CLASSES.RONIN_IMAGE;
+      roninButton.appendChild(roninImage);
       roninButton.title = 'View on Ronin Market';
       buttonsContainer.appendChild(roninButton);
     }
@@ -485,8 +491,14 @@ export async function addMarketplaceButtons(): Promise<void> {
       openseaButton.href = openseaUrl;
       openseaButton.target = '_blank';
       openseaButton.rel = 'noopener noreferrer';
-      openseaButton.className = 'phorse-marketplace-button phorse-opensea-button';
-      openseaButton.textContent = 'O';
+      openseaButton.className = `${CONFIG.CSS_CLASSES.MARKETPLACE_BUTTON} ${CONFIG.CSS_CLASSES.OPENSEA_BUTTON}`;
+      
+      // Create image element for OpenSea icon
+      const openseaImage = document.createElement('img');
+      openseaImage.src = CONFIG.MARKETPLACE_IMAGES.OPENSEA_ICON_URL;
+      openseaImage.alt = 'OpenSea';
+      openseaImage.className = CONFIG.CSS_CLASSES.OPENSEA_IMAGE;
+      openseaButton.appendChild(openseaImage);
       openseaButton.title = 'View on OpenSea';
       buttonsContainer.appendChild(openseaButton);
     }
@@ -517,7 +529,7 @@ export function cleanupMarketplaceButtons(): void {
     debugLog('Cleaning up existing marketplace buttons...');
     
     // Find all elements that have marketplace buttons
-    const elementsWithButtons = document.querySelectorAll('.phorse-marketplace-buttons');
+    const elementsWithButtons = document.querySelectorAll(`.${CONFIG.CSS_CLASSES.MARKETPLACE_BUTTONS_CONTAINER}`);
     
     elementsWithButtons.forEach(buttonContainer => {
       // Find the parent horse ID element

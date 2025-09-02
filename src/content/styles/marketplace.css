@@ -47,18 +47,39 @@
 }
 
 .phorse-ronin-button {
-  background: linear-gradient(135deg, #582c25 0%, #6b3529 100%);
+  background: transparent !important;
+  border: none !important;
 }
 
 .phorse-ronin-button:hover {
-  background: linear-gradient(135deg, #6b3529 0%, #7d4032 100%);
+  background: transparent !important;
+  transform: translateY(-1px);
+  box-shadow: none !important;
+}
+
+.phorse-ronin-image {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
 }
 
 .phorse-opensea-button {
-  background: linear-gradient(135deg, #2081e2 0%, #1976d2 100%);
-  border-color: #1565c0;
+  background: transparent !important;
+  border: none !important;
 }
 
 .phorse-opensea-button:hover {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  background: transparent !important;
+  transform: translateY(-1px);
+  box-shadow: none !important;
+}
+
+.phorse-opensea-image {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
 }
