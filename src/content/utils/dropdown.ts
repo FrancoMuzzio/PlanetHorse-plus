@@ -25,7 +25,19 @@ export async function createDropdownOptions(callbacks: DropdownCallbacks): Promi
 
   // Generate options for enabled conversions only
   const enabledConversions = await getEnabledConversions();
-  enabledConversions.forEach(conversionKey => {
+  
+  // Separate fiat and tokens
+  const enabledFiat = enabledConversions.filter(key => CONFIG.CONVERSION_TYPES.fiat[key]);
+  const enabledTokens = enabledConversions.filter(key => CONFIG.CONVERSION_TYPES.tokens[key]);
+  
+  // Add fiat currencies first
+  enabledFiat.forEach(conversionKey => {
+    const option = createDropdownOption(conversionKey);
+    optionsContainer.appendChild(option);
+  });
+  
+  // Add tokens after fiat
+  enabledTokens.forEach(conversionKey => {
     const option = createDropdownOption(conversionKey);
     optionsContainer.appendChild(option);
   });
