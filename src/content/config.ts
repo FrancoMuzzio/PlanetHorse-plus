@@ -116,7 +116,13 @@ export const CONFIG: ConfigType = {
         address: '0xe514d9deb7966c8be0ca922de8a064264ea6bcd4',
         symbol: '🌐',
         name: 'RON',
-        displayName: 'Ronin Token'
+        displayName: 'Ronin'
+      },
+      wbtc: {
+        address: '0xca3eb64f3dfd7861c76070e3d1492ee5ee20cdc3',
+        symbol: '🌐',
+        name: 'WBTC',
+        displayName: 'Wrapped Bitcoin'
       }
       // Future Ronin tokens can be added here...
     },
@@ -135,6 +141,76 @@ export const CONFIG: ConfigType = {
         symbol: '💲',
         name: 'ARS',
         displayName: 'Argentine Peso'
+      },
+      brl: {
+        symbol: '💲',
+        name: 'BRL',
+        displayName: 'Brazilian Real'
+      },
+      cny: {
+        symbol: '💲',
+        name: 'CNY',
+        displayName: 'Chinese Yuan'
+      },
+      gbp: {
+        symbol: '💲',
+        name: 'GBP',
+        displayName: 'British Pound'
+      },
+      idr: {
+        symbol: '💲',
+        name: 'IDR',
+        displayName: 'Indonesian Rupiah'
+      },
+      inr: {
+        symbol: '💲',
+        name: 'INR',
+        displayName: 'Indian Rupee'
+      },
+      irr: {
+        symbol: '💲',
+        name: 'IRR',
+        displayName: 'Iranian Rial'
+      },
+      jpy: {
+        symbol: '💲',
+        name: 'JPY',
+        displayName: 'Japanese Yen'
+      },
+      krw: {
+        symbol: '💲',
+        name: 'KRW',
+        displayName: 'South Korean Won'
+      },
+      myr: {
+        symbol: '💲',
+        name: 'MYR',
+        displayName: 'Malaysian Ringgit'
+      },
+      php: {
+        symbol: '💲',
+        name: 'PHP',
+        displayName: 'Philippine Peso'
+      },
+      rub: {
+        symbol: '💲',
+        name: 'RUB',
+        displayName: 'Russian Ruble'
+      },
+      sgd: {
+        symbol: '💲',
+        name: 'SGD',
+        displayName: 'Singapore Dollar'
+      },
+      thb: {
+        symbol: '💲',
+        name: 'THB',
+        displayName: 'Thai Baht'
+      },
+      vnd: {
+        symbol: '💲',
+        name: 'VND',
+        displayName: 'Vietnamese Dong'
       }
     }
   },
@@ -305,13 +381,14 @@ export function getNextConversion(currentConversion: ConversionKey): ConversionK
 }
 
 /**
- * Gets display text for dropdown options
+ * Gets display text with symbol and specified info key
  * @param conversionKey - The conversion key
- * @returns Display text with symbol and name (e.g., "💲 USD")
+ * @param infoKey - Which info property to use ('name' | 'displayName')
+ * @returns Display text with symbol and specified info (e.g., "💲 USD" or "💲 US Dollar")
  */
-export function getConversionDisplayText(conversionKey: ConversionKey): string {
+export function getConversionDisplayText(conversionKey: ConversionKey, infoKey: 'name' | 'displayName' = 'displayName'): string {
   const info = getConversionInfo(conversionKey);
-  return `${info.symbol} ${info.name}`;
+  return `${info.symbol} ${info[infoKey]}`;
 }
 
 /**

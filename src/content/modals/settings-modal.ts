@@ -262,7 +262,7 @@ function createCurrencyListSection(): HTMLElement {
     // Currency label with emoji and name (third element)
     const labelText = document.createElement('span');
     labelText.classList.add(CONFIG.CSS_CLASSES.CURRENCY_LABEL_TEXT);
-    labelText.textContent = getConversionDisplayText(currencyKey);
+    labelText.textContent = getConversionDisplayText(currencyKey, 'displayName');
     
     // Create closure-safe event handlers for this currency
     const createCheckboxHandler = (currency: ConversionKey) => (e: Event) => {

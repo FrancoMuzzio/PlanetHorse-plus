@@ -284,7 +284,7 @@
 /* Currency list container */
 .phorse-currency-list-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 8px 16px;
   margin-top: 12px;
 }

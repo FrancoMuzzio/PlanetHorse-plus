@@ -49,7 +49,7 @@ export async function createDropdownOptions(callbacks: DropdownCallbacks): Promi
 function createDropdownOption(conversionKey: ConversionKey): HTMLElement {
   const option = document.createElement('div');
   option.classList.add(CONFIG.CSS_CLASSES.DROPDOWN_OPTION);
-  option.textContent = getConversionDisplayText(conversionKey);
+  option.textContent = getConversionDisplayText(conversionKey, 'name');
   option.dataset.value = conversionKey;
   
   // Hover effects are now handled by CSS :hover pseudo-class
@@ -73,7 +73,7 @@ export function createDropdownButton(currentSelection: ConversionKey) {
   
   // Current selection display
   const currentSelectionSpan = document.createElement('span');
-  currentSelectionSpan.textContent = getConversionDisplayText(currentSelection);
+  currentSelectionSpan.textContent = getConversionDisplayText(currentSelection, 'name');
   currentSelectionSpan.classList.add(CONFIG.CSS_CLASSES.DROPDOWN_CURRENT_SELECTION);
   
   // Dropdown arrow
@@ -89,7 +89,7 @@ export function createDropdownButton(currentSelection: ConversionKey) {
     selectionSpan: currentSelectionSpan,
     arrow: dropdownArrow,
     updateSelection: (newSelection: ConversionKey) => {
-      currentSelectionSpan.textContent = getConversionDisplayText(newSelection);
+      currentSelectionSpan.textContent = getConversionDisplayText(newSelection, 'name');
     }
   };
 }
