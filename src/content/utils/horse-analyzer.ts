@@ -2,7 +2,7 @@
 // Analyzes and extracts information from Planet Horse game horses
 
 import { debugLog, CONFIG } from '../config';
-import { saveHorseAnalysisData, loadHorseAnalysisData, type StoredHorseAnalysis } from '../storage';
+import { saveHorseAnalysisData, loadHorseAnalysisData, loadMarketplaceSettings, loadEnabledMarketplaces, type StoredHorseAnalysis } from '../storage';
 
 // Track last analysis to avoid duplicates
 let lastAnalysisTimestamp = 0;
@@ -385,6 +385,25 @@ export async function filterHorses(criteria: {
  * Creates marketplace buttons (Ronin Market and OpenSea) for each horse
  */
 export async function addMarketplaceButtons(): Promise<void> {
+  // Clean up any existing marketplace buttons first
+  cleanupMarketplaceButtons();
+  
+  // Load marketplace settings first
+  const marketplaceLinksEnabled = await loadMarketplaceSettings();
+  const enabledMarketplaces = await loadEnabledMarketplaces();
+  
+  // If marketplace links are disabled, don't add any buttons
+  if (!marketplaceLinksEnabled) {
+    debugLog('Marketplace links disabled - skipping button creation');
+    return;
+  }
+  
+  // If no marketplaces are enabled, don't add any buttons
+  if (enabledMarketplaces.length === 0) {
+    debugLog('No marketplaces enabled - skipping button creation');
+    return;
+  }
+  
   const horses = await getHorses();
   
   if (horses.length === 0) {
@@ -392,7 +411,7 @@ export async function addMarketplaceButtons(): Promise<void> {
     return;
   }
   
-  debugLog(`Adding marketplace buttons for ${horses.length} horses...`);
+  debugLog(`Adding marketplace buttons for ${horses.length} horses with enabled marketplaces:`, enabledMarketplaces);
   
   horses.forEach((horse: any) => {
     // Find the horse ID element using the same selector as in extractHorseData
@@ -416,11 +435,6 @@ export async function addMarketplaceButtons(): Promise<void> {
     const idElement = targetHorseElement.querySelector('[class*="styles_horseId__"]') as HTMLElement;
     if (!idElement) {
       debugLog(`Could not find ID element for horse ${horse.id}`);
-      return;
-    }
-    
-    // Check if buttons already exist to prevent duplicates
-    if (idElement.querySelector('.phorse-marketplace-buttons')) {
       return;
     }
     
@@ -453,35 +467,80 @@ export async function addMarketplaceButtons(): Promise<void> {
       openseaUrl = `https://opensea.io/item/ronin/0x1296ffefc43ff7eb4b7617c02ef80253db905215/${horse.id}`;
     }
     
-    // Create Ronin Market button
-    const roninButton = document.createElement('a');
-    roninButton.href = roninUrl;
-    roninButton.target = '_blank';
-    roninButton.rel = 'noopener noreferrer';
-    roninButton.className = 'phorse-marketplace-button phorse-ronin-button';
-    roninButton.textContent = 'R';
-    roninButton.title = 'View on Ronin Market';
+    // Create Ronin Market button only if enabled
+    if (enabledMarketplaces.includes('ronin')) {
+      const roninButton = document.createElement('a');
+      roninButton.href = roninUrl;
+      roninButton.target = '_blank';
+      roninButton.rel = 'noopener noreferrer';
+      roninButton.className = 'phorse-marketplace-button phorse-ronin-button';
+      roninButton.textContent = 'R';
+      roninButton.title = 'View on Ronin Market';
+      buttonsContainer.appendChild(roninButton);
+    }
     
-    // Create OpenSea button
-    const openseaButton = document.createElement('a');
-    openseaButton.href = openseaUrl;
-    openseaButton.target = '_blank';
-    openseaButton.rel = 'noopener noreferrer';
-    openseaButton.className = 'phorse-marketplace-button phorse-opensea-button';
-    openseaButton.textContent = 'O';
-    openseaButton.title = 'View on OpenSea';
+    // Create OpenSea button only if enabled
+    if (enabledMarketplaces.includes('opensea')) {
+      const openseaButton = document.createElement('a');
+      openseaButton.href = openseaUrl;
+      openseaButton.target = '_blank';
+      openseaButton.rel = 'noopener noreferrer';
+      openseaButton.className = 'phorse-marketplace-button phorse-opensea-button';
+      openseaButton.textContent = 'O';
+      openseaButton.title = 'View on OpenSea';
+      buttonsContainer.appendChild(openseaButton);
+    }
     
-    // Add buttons to container
-    buttonsContainer.appendChild(roninButton);
-    buttonsContainer.appendChild(openseaButton);
-    
-    // Add both text and buttons to the ID element
-    idElement.appendChild(idTextSpan);
-    idElement.appendChild(buttonsContainer);
-    
-    debugLog(`Added marketplace buttons for horse ${horse.id} (Gen ${horse.generation})`);
+    // Only add the buttons container if it has buttons
+    if (buttonsContainer.children.length > 0) {
+      // Add both text and buttons to the ID element
+      idElement.appendChild(idTextSpan);
+      idElement.appendChild(buttonsContainer);
+      
+      debugLog(`Added marketplace buttons for horse ${horse.id} (Gen ${horse.generation}) - enabled:`, enabledMarketplaces);
+    } else {
+      // Just add the text back if no buttons are enabled
+      idElement.appendChild(idTextSpan);
+      debugLog(`No marketplace buttons added for horse ${horse.id} - no marketplaces enabled`);
+    }
   });
   
   debugLog('Marketplace buttons setup complete');
+}
+
+/**
+ * Removes all existing marketplace buttons and restores original horse ID elements
+ * Used when settings change or components are reinitializing
+ */
+export function cleanupMarketplaceButtons(): void {
+  try {
+    debugLog('Cleaning up existing marketplace buttons...');
+    
+    // Find all elements that have marketplace buttons
+    const elementsWithButtons = document.querySelectorAll('.phorse-marketplace-buttons');
+    
+    elementsWithButtons.forEach(buttonContainer => {
+      // Find the parent horse ID element
+      const idElement = buttonContainer.closest(`[class*="styles_horseId__"]`) as HTMLElement;
+      
+      if (idElement) {
+        // Get the original text from the text span
+        const textSpan = idElement.querySelector('span:first-child');
+        const originalText = textSpan?.textContent || '';
+        
+        // Remove the CSS class we added
+        idElement.classList.remove(CONFIG.CSS_CLASSES.HORSE_ID_CONTAINER);
+        
+        // Restore the original simple text content
+        idElement.innerHTML = originalText;
+        
+        debugLog(`Cleaned up marketplace buttons for horse ID: ${originalText}`);
+      }
+    });
+    
+    debugLog('Marketplace buttons cleanup complete');
+  } catch (error) {
+    debugLog('Error cleaning up marketplace buttons:', error);
+  }
 }
 

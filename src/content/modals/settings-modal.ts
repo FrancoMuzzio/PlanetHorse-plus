@@ -2,11 +2,14 @@
 import { CONFIG, debugLog, getConversionDisplayText, type ConversionKey } from '../config';
 import { createIntegratedUi } from '#imports';
 import settingGearIcon from '~/assets/icons/setting-gear.svg';
-import { loadConverterSettings, saveConverterSettings, loadEnabledCurrencies, saveEnabledCurrencies } from '../storage';
+import { loadConverterSettings, saveConverterSettings, loadEnabledCurrencies, saveEnabledCurrencies, loadMarketplaceSettings, saveMarketplaceSettings, loadEnabledMarketplaces, saveEnabledMarketplaces } from '../storage';
 import { getAllValidConversions } from '../utils/validation';
 
 // Default currencies to enable when turning on converter with no selections
 const DEFAULT_ENABLED_CURRENCIES: ConversionKey[] = ['usd', 'ron'];
+
+// Default marketplaces to enable when turning on marketplace links with no selections
+const DEFAULT_ENABLED_MARKETPLACES: string[] = ['ronin', 'opensea'];
 
 // Modal state variables
 let modalUI: any = null;
@@ -15,6 +18,8 @@ let modalContainer: HTMLElement | null = null;
 let isModalVisible: boolean = false;
 let currentToggleState: boolean = true; // Current toggle state in modal
 let currentEnabledCurrencies: ConversionKey[] = DEFAULT_ENABLED_CURRENCIES.slice(); // Current enabled currencies in modal
+let currentMarketplaceToggleState: boolean = true; // Current marketplace toggle state in modal
+let currentEnabledMarketplaces: string[] = DEFAULT_ENABLED_MARKETPLACES.slice(); // Current enabled marketplaces in modal
 let wxtContext: any = null; // Store WXT context for applying changes
 
 /**
@@ -24,6 +29,8 @@ export async function showSettingsModal(): Promise<void> {
   // Load current settings from storage
   currentToggleState = await loadConverterSettings();
   currentEnabledCurrencies = await loadEnabledCurrencies();
+  currentMarketplaceToggleState = await loadMarketplaceSettings();
+  currentEnabledMarketplaces = await loadEnabledMarketplaces();
   
   // Mount modal if not already mounted
   if (modalUI && !modalContainer) {
@@ -40,11 +47,17 @@ export async function showSettingsModal(): Promise<void> {
     updateCurrencyListVisibility();
     updateCurrencyCheckboxes();
     
+    // Update marketplace toggle state and marketplace list in UI
+    updateMarketplaceToggleUI();
+    updateMarketplaceListVisibility();
+    updateMarketplaceCheckboxes();
+    
     // Log computed z-index for debugging
     const computedStyle = window.getComputedStyle(modalContainer);
     debugLog(`Modal z-index: ${computedStyle.zIndex}`);
     
     debugLog('Modal shown with current toggle state:', currentToggleState, 'enabled currencies:', currentEnabledCurrencies);
+    debugLog('Modal shown with current marketplace toggle state:', currentMarketplaceToggleState, 'enabled marketplaces:', currentEnabledMarketplaces);
   }
 }
 
@@ -158,24 +171,121 @@ function handleToggleChange(enabled: boolean): void {
 }
 
 /**
+ * Updates the marketplace toggle UI to reflect current state
+ */
+function updateMarketplaceToggleUI(): void {
+  const toggleInput = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.TOGGLE_SWITCH}[data-marketplace]`) as HTMLInputElement;
+  const statusText = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT}[data-marketplace]`) as HTMLSpanElement;
+  
+  if (toggleInput) {
+    toggleInput.checked = currentMarketplaceToggleState;
+    debugLog('Updated marketplace toggle UI state:', currentMarketplaceToggleState);
+  }
+  
+  if (statusText) {
+    statusText.textContent = currentMarketplaceToggleState ? 'ON' : 'OFF';
+    debugLog('Updated marketplace toggle status text:', statusText.textContent);
+  }
+}
+
+/**
+ * Updates marketplace list section visibility based on toggle state
+ */
+function updateMarketplaceListVisibility(): void {
+  const marketplaceListSection = modalContainer?.querySelector(`[data-marketplace-section]`);
+  if (marketplaceListSection) {
+    marketplaceListSection.style.display = currentMarketplaceToggleState ? 'block' : 'none';
+    debugLog('Updated marketplace list visibility:', currentMarketplaceToggleState ? 'visible' : 'hidden');
+  }
+}
+
+/**
+ * Updates marketplace checkboxes to reflect current enabled marketplaces
+ */
+function updateMarketplaceCheckboxes(): void {
+  const checkboxes = modalContainer?.querySelectorAll(`.${CONFIG.CSS_CLASSES.CURRENCY_CHECKBOX}[data-marketplace]`) as NodeListOf<HTMLInputElement>;
+  checkboxes?.forEach(checkbox => {
+    const marketplaceKey = checkbox.dataset.marketplace;
+    if (marketplaceKey) {
+      checkbox.checked = currentEnabledMarketplaces.includes(marketplaceKey);
+    }
+  });
+  debugLog('Updated marketplace checkboxes for enabled marketplaces:', currentEnabledMarketplaces);
+}
+
+/**
+ * Handles marketplace checkbox change
+ * @param marketplaceKey - The marketplace that was toggled
+ * @param enabled - Whether the marketplace is now enabled
+ */
+function handleMarketplaceToggle(marketplaceKey: string, enabled: boolean): void {
+  if (enabled) {
+    // Add marketplace if not already enabled
+    if (!currentEnabledMarketplaces.includes(marketplaceKey)) {
+      currentEnabledMarketplaces.push(marketplaceKey);
+    }
+  } else {
+    // Remove marketplace from enabled list
+    currentEnabledMarketplaces = currentEnabledMarketplaces.filter(key => key !== marketplaceKey);
+  }
+  
+  // CRITICAL FIX: Synchronize UI after state change
+  updateMarketplaceCheckboxes();
+  
+  // Auto-disable marketplace links if all marketplaces are unchecked
+  if (currentEnabledMarketplaces.length === 0 && currentMarketplaceToggleState) {
+    debugLog('All marketplaces disabled - automatically turning OFF marketplace links');
+    handleMarketplaceToggleChange(false);
+  }
+  
+  debugLog('Marketplace toggle changed:', marketplaceKey, enabled ? 'enabled' : 'disabled');
+  debugLog('Current enabled marketplaces:', currentEnabledMarketplaces);
+}
+
+/**
+ * Handles marketplace toggle state change
+ * @param enabled - New marketplace toggle state
+ */
+function handleMarketplaceToggleChange(enabled: boolean): void {
+  currentMarketplaceToggleState = enabled;
+  
+  // Auto-enable default marketplaces when turning ON with no selections
+  if (enabled && currentEnabledMarketplaces.length === 0) {
+    debugLog('Marketplace links enabled with no marketplaces - auto-enabling default marketplaces');
+    currentEnabledMarketplaces = DEFAULT_ENABLED_MARKETPLACES.slice();
+    updateMarketplaceCheckboxes();
+  }
+  
+  updateMarketplaceToggleUI();
+  updateMarketplaceListVisibility();
+  debugLog('Marketplace toggle state changed:', enabled);
+}
+
+/**
  * Handles save button click - saves settings and applies changes
  */
 async function handleSaveSettings(): Promise<void> {
   debugLog('Saving settings...', { 
     converterEnabled: currentToggleState, 
-    enabledCurrencies: currentEnabledCurrencies 
+    enabledCurrencies: currentEnabledCurrencies,
+    marketplaceLinksEnabled: currentMarketplaceToggleState,
+    enabledMarketplaces: currentEnabledMarketplaces
   });
   
   // Save to storage
   await saveConverterSettings(currentToggleState);
   await saveEnabledCurrencies(currentEnabledCurrencies);
+  await saveMarketplaceSettings(currentMarketplaceToggleState);
+  await saveEnabledMarketplaces(currentEnabledMarketplaces);
   
   // Apply changes immediately by dispatching custom event
   // This allows main.ts to listen and reinitialize components
   const settingsChangedEvent = new CustomEvent('phorseSettingsChanged', {
     detail: { 
       converterEnabled: currentToggleState,
-      enabledCurrencies: currentEnabledCurrencies 
+      enabledCurrencies: currentEnabledCurrencies,
+      marketplaceLinksEnabled: currentMarketplaceToggleState,
+      enabledMarketplaces: currentEnabledMarketplaces
     }
   });
   document.dispatchEvent(settingsChangedEvent);
@@ -300,6 +410,88 @@ function createCurrencyListSection(): HTMLElement {
 }
 
 /**
+ * Creates the marketplace list section with checkboxes for all available marketplaces
+ * Reuses currency list CSS classes for consistency
+ * @returns HTMLElement - Marketplace list section element
+ */
+function createMarketplaceListSection(): HTMLElement {
+  const marketplaceSection = document.createElement('div');
+  marketplaceSection.classList.add(CONFIG.CSS_CLASSES.CURRENCY_LIST_SECTION);
+  marketplaceSection.setAttribute('data-marketplace-section', ''); // Identifier for marketplace section
+  
+  // Section title
+  const sectionTitle = document.createElement('label');
+  sectionTitle.classList.add(CONFIG.CSS_CLASSES.SETTINGS_LABEL);
+  sectionTitle.textContent = 'Available Marketplaces';
+  sectionTitle.style.marginBottom = '10px';
+  sectionTitle.style.display = 'block';
+  
+  // Marketplace list container (reusing currency container class)
+  const marketplaceContainer = document.createElement('div');
+  marketplaceContainer.classList.add(CONFIG.CSS_CLASSES.CURRENCY_LIST_CONTAINER);
+  
+  // Generate marketplace items for all available marketplaces
+  const allMarketplaces = [
+    { key: 'ronin', name: 'Ronin Market' },
+    { key: 'opensea', name: 'OpenSea' }
+  ];
+  
+  allMarketplaces.forEach(marketplace => {
+    const marketplaceItem = document.createElement('div');
+    marketplaceItem.classList.add(CONFIG.CSS_CLASSES.CURRENCY_ITEM);
+    
+    // Hidden checkbox input (first element for CSS selectors)
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.classList.add(CONFIG.CSS_CLASSES.CURRENCY_CHECKBOX);
+    checkbox.dataset.marketplace = marketplace.key; // Use marketplace data attribute
+    checkbox.checked = currentEnabledMarketplaces.includes(marketplace.key);
+    
+    // Visual checkbox container (second element for CSS + selector)
+    const checkboxContainer = document.createElement('div');
+    checkboxContainer.classList.add(CONFIG.CSS_CLASSES.CURRENCY_CHECKBOX_CONTAINER);
+    
+    // Marketplace label (third element) - reusing currency label class for consistency
+    const labelText = document.createElement('span');
+    labelText.classList.add(CONFIG.CSS_CLASSES.CURRENCY_LABEL_TEXT);
+    labelText.textContent = marketplace.name; // No emojis, just clean names
+    
+    // Create closure-safe event handlers for this marketplace
+    const createCheckboxHandler = (marketplaceKey: string) => (e: Event) => {
+      e.stopPropagation();
+      const checkboxElement = e.target as HTMLInputElement;
+      // Use setTimeout to ensure browser's automatic state change completes first
+      setTimeout(() => {
+        handleMarketplaceToggle(marketplaceKey, checkboxElement.checked);
+      }, 0);
+    };
+    
+    const createLabelHandler = (marketplaceKey: string, checkboxElement: HTMLInputElement) => (e: Event) => {
+      e.stopPropagation();
+      e.preventDefault();
+      // Toggle state and handle immediately
+      checkboxElement.checked = !checkboxElement.checked;
+      handleMarketplaceToggle(marketplaceKey, checkboxElement.checked);
+    };
+    
+    // Add event listeners with proper closure capture
+    checkbox.addEventListener('change', createCheckboxHandler(marketplace.key));
+    labelText.addEventListener('click', createLabelHandler(marketplace.key, checkbox));
+    
+    // Assemble with checkbox inside container for proper positioning
+    checkboxContainer.appendChild(checkbox);
+    marketplaceItem.appendChild(checkboxContainer);
+    marketplaceItem.appendChild(labelText);
+    marketplaceContainer.appendChild(marketplaceItem);
+  });
+  
+  marketplaceSection.appendChild(sectionTitle);
+  marketplaceSection.appendChild(marketplaceContainer);
+  
+  return marketplaceSection;
+}
+
+/**
  * Creates the modal body with settings content
  * @returns HTMLElement - Modal body element
  */
@@ -359,6 +551,61 @@ function createModalBody(): HTMLElement {
   // Currency list section (only visible when converter is enabled)
   const currencyListSection = createCurrencyListSection();
   
+  // Settings section for marketplace links
+  const marketplaceSettingsSection = document.createElement('div');
+  marketplaceSettingsSection.classList.add(CONFIG.CSS_CLASSES.SETTINGS_SECTION);
+  marketplaceSettingsSection.style.marginTop = '20px';
+  
+  // Label for marketplace toggle
+  const marketplaceLabel = document.createElement('label');
+  marketplaceLabel.classList.add(CONFIG.CSS_CLASSES.SETTINGS_LABEL);
+  marketplaceLabel.textContent = 'Enable Marketplace Links';
+  
+  // Marketplace toggle container
+  const marketplaceToggleContainer = document.createElement('div');
+  marketplaceToggleContainer.classList.add(CONFIG.CSS_CLASSES.TOGGLE_CONTAINER);
+  
+  // Marketplace toggle switch (checkbox input)
+  const marketplaceToggleInput = document.createElement('input');
+  marketplaceToggleInput.type = 'checkbox';
+  marketplaceToggleInput.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SWITCH);
+  marketplaceToggleInput.checked = currentMarketplaceToggleState;
+  marketplaceToggleInput.setAttribute('data-marketplace', ''); // Identifier for marketplace toggle
+  
+  // Marketplace toggle slider visual element
+  const marketplaceToggleSlider = document.createElement('span');
+  marketplaceToggleSlider.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SLIDER);
+  
+  // Add marketplace toggle event listener
+  marketplaceToggleInput.addEventListener('change', () => {
+    handleMarketplaceToggleChange(marketplaceToggleInput.checked);
+  });
+  
+  // Marketplace toggle status text
+  const marketplaceStatusText = document.createElement('span');
+  marketplaceStatusText.classList.add(CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT);
+  marketplaceStatusText.textContent = currentMarketplaceToggleState ? 'ON' : 'OFF';
+  marketplaceStatusText.setAttribute('data-marketplace', ''); // Identifier for marketplace status
+  
+  // Assemble marketplace toggle
+  marketplaceToggleContainer.appendChild(marketplaceToggleInput);
+  marketplaceToggleContainer.appendChild(marketplaceToggleSlider);
+  
+  // Create marketplace toggle group container
+  const marketplaceToggleGroup = document.createElement('div');
+  marketplaceToggleGroup.style.display = 'flex';
+  marketplaceToggleGroup.style.alignItems = 'center';
+  marketplaceToggleGroup.style.gap = '10px';
+  marketplaceToggleGroup.appendChild(marketplaceToggleContainer);
+  marketplaceToggleGroup.appendChild(marketplaceStatusText);
+  
+  // Assemble marketplace settings section
+  marketplaceSettingsSection.appendChild(marketplaceLabel);
+  marketplaceSettingsSection.appendChild(marketplaceToggleGroup);
+  
+  // Marketplace list section (only visible when marketplace links are enabled)
+  const marketplaceListSection = createMarketplaceListSection();
+  
   // Modal footer with save button
   const footer = document.createElement('div');
   footer.classList.add(CONFIG.CSS_CLASSES.MODAL_FOOTER);
@@ -377,6 +624,8 @@ function createModalBody(): HTMLElement {
   // Assemble modal body
   body.appendChild(settingsSection);
   body.appendChild(currencyListSection);
+  body.appendChild(marketplaceSettingsSection);
+  body.appendChild(marketplaceListSection);
   body.appendChild(footer);
   
   return body;

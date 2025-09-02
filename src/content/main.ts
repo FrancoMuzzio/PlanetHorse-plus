@@ -10,7 +10,7 @@ import {
   cleanupSettingsModal 
 } from './modals/settings-modal';
 import { loadConverterSettings } from './storage';
-import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons } from './utils/horse-analyzer';
+import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupMarketplaceButtons } from './utils/horse-analyzer';
 
 // Window interface extension removed - no longer needed without manual timeout management
 
@@ -30,6 +30,9 @@ function cleanupUIComponents(): void {
   
   // Clean up settings modal components
   cleanupSettingsModal();
+  
+  // Clean up marketplace buttons
+  cleanupMarketplaceButtons();
   
   debugLog('UI components cleaned up');
 }

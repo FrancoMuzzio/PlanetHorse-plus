@@ -63,7 +63,7 @@ export interface CSSClasses {
   SAVE_BUTTON: string;
   MODAL_FOOTER: string;
   
-  // Currency List Section Classes
+  // Currency List Section Classes (shared with marketplace list)
   CURRENCY_LIST_SECTION: string;
   CURRENCY_LIST_CONTAINER: string;
   CURRENCY_ITEM: string;
@@ -299,7 +299,7 @@ export const CONFIG: ConfigType = {
     SAVE_BUTTON: 'phorse-save-button',
     MODAL_FOOTER: 'phorse-modal-footer',
     
-    // Currency List Section Classes
+    // Currency List Section Classes (shared with marketplace list)
     CURRENCY_LIST_SECTION: 'phorse-currency-list-section',
     CURRENCY_LIST_CONTAINER: 'phorse-currency-list-container',
     CURRENCY_ITEM: 'phorse-currency-item',

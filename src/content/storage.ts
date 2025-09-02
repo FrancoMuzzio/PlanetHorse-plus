@@ -55,6 +55,16 @@ const horseAnalysisData = storage.defineItem<StoredHorseAnalysis | null>('local:
   fallback: null, // No data by default
 });
 
+// WXT storage item for marketplace links enabled/disabled setting
+const marketplaceLinksEnabled = storage.defineItem<boolean>('local:marketplace_links_enabled', {
+  fallback: true, // Default to enabled (both marketplaces enabled by default)
+});
+
+// WXT storage item for enabled marketplaces (persists even when marketplace links are disabled)
+const enabledMarketplaces = storage.defineItem<string[]>('local:enabled_marketplaces', {
+  fallback: ['ronin', 'opensea'], // Default to both marketplaces enabled
+});
+
 /**
  * Loads user's preferred currency from WXT storage
  * @returns Promise that resolves to user's preferred currency or default currency
@@ -225,6 +235,78 @@ export async function clearHorseAnalysisData(): Promise<void> {
   } catch (error) {
     debugLog('Error clearing horse analysis data:', error);
   }
+}
+
+/**
+ * Loads marketplace links enabled setting from WXT storage
+ * @returns Promise that resolves to boolean indicating if marketplace links are enabled
+ */
+export async function loadMarketplaceSettings(): Promise<boolean> {
+  try {
+    const isEnabled = await marketplaceLinksEnabled.getValue();
+    debugLog('Loaded marketplace links setting:', isEnabled);
+    return isEnabled;
+  } catch (error) {
+    debugLog('Error loading marketplace links setting:', error);
+    return true; // Default to enabled
+  }
+}
+
+/**
+ * Saves marketplace links enabled setting to WXT storage
+ * @param enabled - Boolean indicating if marketplace links should be enabled
+ */
+export async function saveMarketplaceSettings(enabled: boolean): Promise<void> {
+  try {
+    await marketplaceLinksEnabled.setValue(enabled);
+    debugLog('Saved marketplace links setting:', enabled);
+  } catch (error) {
+    debugLog('Error saving marketplace links setting:', error);
+  }
+}
+
+/**
+ * Gets WXT storage item for marketplace settings (for advanced use cases)
+ * @returns WXT storage item instance
+ */
+export function getMarketplaceSettingsStorageItem() {
+  return marketplaceLinksEnabled;
+}
+
+/**
+ * Loads enabled marketplaces from WXT storage
+ * @returns Promise that resolves to array of enabled marketplace keys
+ */
+export async function loadEnabledMarketplaces(): Promise<string[]> {
+  try {
+    const enabled = await enabledMarketplaces.getValue();
+    debugLog('Loaded enabled marketplaces:', enabled);
+    return enabled;
+  } catch (error) {
+    debugLog('Error loading enabled marketplaces:', error);
+    return ['ronin', 'opensea']; // Default fallback
+  }
+}
+
+/**
+ * Saves enabled marketplaces to WXT storage
+ * @param marketplaces - Array of marketplace keys to enable
+ */
+export async function saveEnabledMarketplaces(marketplaces: string[]): Promise<void> {
+  try {
+    await enabledMarketplaces.setValue(marketplaces);
+    debugLog('Saved enabled marketplaces:', marketplaces);
+  } catch (error) {
+    debugLog('Error saving enabled marketplaces:', error);
+  }
+}
+
+/**
+ * Gets WXT storage item for enabled marketplaces (for advanced use cases)
+ * @returns WXT storage item instance
+ */
+export function getEnabledMarketplacesStorageItem() {
+  return enabledMarketplaces;
 }
 
 // Export types for use in other modules
