@@ -70,6 +70,13 @@ export interface CSSClasses {
   CURRENCY_CHECKBOX_CONTAINER: string;
   CURRENCY_CHECKBOX: string;
   CURRENCY_LABEL_TEXT: string;
+  
+  // Marketplace Button Classes
+  MARKETPLACE_BUTTONS_CONTAINER: string;
+  MARKETPLACE_BUTTON: string;
+  RONIN_BUTTON: string;
+  OPENSEA_BUTTON: string;
+  HORSE_ID_CONTAINER: string;
 }
 
 
@@ -298,7 +305,14 @@ export const CONFIG: ConfigType = {
     CURRENCY_ITEM: 'phorse-currency-item',
     CURRENCY_CHECKBOX_CONTAINER: 'phorse-currency-checkbox-container',
     CURRENCY_CHECKBOX: 'phorse-currency-checkbox',
-    CURRENCY_LABEL_TEXT: 'phorse-currency-label-text'
+    CURRENCY_LABEL_TEXT: 'phorse-currency-label-text',
+    
+    // Marketplace Button Classes
+    MARKETPLACE_BUTTONS_CONTAINER: 'phorse-marketplace-buttons',
+    MARKETPLACE_BUTTON: 'phorse-marketplace-button',
+    RONIN_BUTTON: 'phorse-ronin-button',
+    OPENSEA_BUTTON: 'phorse-opensea-button',
+    HORSE_ID_CONTAINER: 'phorse-horse-id-container'
   },
   
   // Timeout configuration (in milliseconds)

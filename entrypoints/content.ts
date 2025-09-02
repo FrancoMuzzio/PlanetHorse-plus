@@ -7,6 +7,7 @@ import { defineContentScript } from '#imports';
 import '../src/content/styles/dropdown.css';
 import '../src/content/styles/grid.css';
 import '../src/content/styles/modal.css';
+import '../src/content/styles/marketplace.css';
 
 export default defineContentScript({
   matches: ['*://planethorse.io/*'],

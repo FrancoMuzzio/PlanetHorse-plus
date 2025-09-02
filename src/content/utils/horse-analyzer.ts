@@ -1,7 +1,7 @@
 // ============= HORSE ANALYZER MODULE =============
 // Analyzes and extracts information from Planet Horse game horses
 
-import { debugLog } from '../config';
+import { debugLog, CONFIG } from '../config';
 import { saveHorseAnalysisData, loadHorseAnalysisData, type StoredHorseAnalysis } from '../storage';
 
 // Track last analysis to avoid duplicates
@@ -379,5 +379,109 @@ export async function filterHorses(criteria: {
   }
   
   return filtered;
+}
+
+/**
+ * Creates marketplace buttons (Ronin Market and OpenSea) for each horse
+ */
+export async function addMarketplaceButtons(): Promise<void> {
+  const horses = await getHorses();
+  
+  if (horses.length === 0) {
+    debugLog('No horses found for marketplace buttons');
+    return;
+  }
+  
+  debugLog(`Adding marketplace buttons for ${horses.length} horses...`);
+  
+  horses.forEach((horse: any) => {
+    // Find the horse ID element using the same selector as in extractHorseData
+    const horseElements = document.querySelectorAll('[class*="styles_singleHorse__"]');
+    
+    // Find the specific horse element by looking for its ID
+    let targetHorseElement: HTMLElement | null = null;
+    horseElements.forEach(element => {
+      const idElement = element.querySelector('[class*="styles_horseId__"]');
+      const elementId = parseInt(idElement?.textContent?.trim() || '0');
+      if (elementId === horse.id) {
+        targetHorseElement = element as HTMLElement;
+      }
+    });
+    
+    if (!targetHorseElement) {
+      debugLog(`Could not find horse element for ID ${horse.id}`);
+      return;
+    }
+    
+    const idElement = targetHorseElement.querySelector('[class*="styles_horseId__"]') as HTMLElement;
+    if (!idElement) {
+      debugLog(`Could not find ID element for horse ${horse.id}`);
+      return;
+    }
+    
+    // Check if buttons already exist to prevent duplicates
+    if (idElement.querySelector('.phorse-marketplace-buttons')) {
+      return;
+    }
+    
+    // Store the original ID text content
+    const originalText = idElement.textContent || '';
+    
+    // Clear the element and create text span and buttons container
+    idElement.innerHTML = '';
+    
+    // Apply flexbox styling to ID container for button alignment
+    idElement.classList.add(CONFIG.CSS_CLASSES.HORSE_ID_CONTAINER);
+    
+    // Create span for ID text
+    const idTextSpan = document.createElement('span');
+    idTextSpan.textContent = originalText;
+    
+    // Create marketplace buttons container
+    const buttonsContainer = document.createElement('span');
+    buttonsContainer.className = 'phorse-marketplace-buttons';
+    
+    // Determine URLs based on generation
+    let roninUrl: string;
+    let openseaUrl: string;
+    
+    if (horse.generation === 0) {
+      roninUrl = `https://marketplace.roninchain.com/collections/origin-horses/${horse.id}`;
+      openseaUrl = `https://opensea.io/item/ronin/0x66eeb20a1957c4b3743ecad19d0c2dbcf56b683f/${horse.id}`;
+    } else {
+      roninUrl = `https://marketplace.roninchain.com/collections/planet-horse-offspring/${horse.id}`;
+      openseaUrl = `https://opensea.io/item/ronin/0x1296ffefc43ff7eb4b7617c02ef80253db905215/${horse.id}`;
+    }
+    
+    // Create Ronin Market button
+    const roninButton = document.createElement('a');
+    roninButton.href = roninUrl;
+    roninButton.target = '_blank';
+    roninButton.rel = 'noopener noreferrer';
+    roninButton.className = 'phorse-marketplace-button phorse-ronin-button';
+    roninButton.textContent = 'R';
+    roninButton.title = 'View on Ronin Market';
+    
+    // Create OpenSea button
+    const openseaButton = document.createElement('a');
+    openseaButton.href = openseaUrl;
+    openseaButton.target = '_blank';
+    openseaButton.rel = 'noopener noreferrer';
+    openseaButton.className = 'phorse-marketplace-button phorse-opensea-button';
+    openseaButton.textContent = 'O';
+    openseaButton.title = 'View on OpenSea';
+    
+    // Add buttons to container
+    buttonsContainer.appendChild(roninButton);
+    buttonsContainer.appendChild(openseaButton);
+    
+    // Add both text and buttons to the ID element
+    idElement.appendChild(idTextSpan);
+    idElement.appendChild(buttonsContainer);
+    
+    debugLog(`Added marketplace buttons for horse ${horse.id} (Gen ${horse.generation})`);
+  });
+  
+  debugLog('Marketplace buttons setup complete');
 }
 

@@ -10,7 +10,7 @@ import {
   cleanupSettingsModal 
 } from './modals/settings-modal';
 import { loadConverterSettings } from './storage';
-import { analyzeHorses, initializeHorseAnalyzer } from './utils/horse-analyzer';
+import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons } from './utils/horse-analyzer';
 
 // Window interface extension removed - no longer needed without manual timeout management
 
@@ -75,7 +75,11 @@ async function reinitializeComponents(ctx: any): Promise<void> {
   if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED && CONFIG.DEBUG) {
     // Try multiple times with short delays - stops when horses are found
     [100, 500, 1000, 2000].forEach(delay => {
-      setTimeout(() => analyzeHorses(), delay);
+      setTimeout(() => {
+        analyzeHorses();
+        // Add marketplace buttons after analysis
+        setTimeout(() => addMarketplaceButtons(), 100);
+      }, delay);
     });
   }
 }
@@ -110,7 +114,11 @@ async function initialize(ctx: any): Promise<void> {
   if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED && CONFIG.DEBUG) {
     // Try multiple times with short delays - stops when horses are found
     [100, 500, 1000, 2000].forEach(delay => {
-      setTimeout(() => analyzeHorses(), delay);
+      setTimeout(() => {
+        analyzeHorses();
+        // Add marketplace buttons after analysis
+        setTimeout(() => addMarketplaceButtons(), 100);
+      }, delay);
     });
   }
   
