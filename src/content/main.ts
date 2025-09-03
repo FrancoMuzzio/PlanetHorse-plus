@@ -16,6 +16,40 @@ import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupM
 
 let currencyUI: any = null;
 
+/**
+ * Runs horse analyzer with smart retry logic that stops once horses are found
+ */
+async function runHorseAnalyzerWithRetry(): Promise<void> {
+  // Use smart retry logic that stops once horses are found
+  let foundHorses = false;
+  const retryDelays = [100, 500, 1000, 2000];
+  const timeoutIds: NodeJS.Timeout[] = [];
+  
+  retryDelays.forEach((delay, index) => {
+    const timeoutId = setTimeout(async () => {
+      // Skip if horses were already found in a previous attempt
+      if (foundHorses) {
+        return;
+      }
+      
+      analyzeHorses();
+      
+      // Check if horses were found after analysis
+      const horseElements = document.querySelectorAll('[class*="styles_singleHorse__"]');
+      if (horseElements.length > 0) {
+        foundHorses = true;
+        
+        // Cancel remaining timeouts since we found horses
+        timeoutIds.slice(index + 1).forEach(id => clearTimeout(id));
+        
+        // Add marketplace buttons after successful analysis
+        setTimeout(() => addMarketplaceButtons(), 100);
+      }
+    }, delay);
+    
+    timeoutIds.push(timeoutId);
+  });
+}
 
 /**
  * Cleans up existing WXT UI components
@@ -76,14 +110,7 @@ async function reinitializeComponents(ctx: any): Promise<void> {
   
   // Run horse analyzer again if enabled (with retry logic)
   if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED && CONFIG.DEBUG) {
-    // Try multiple times with short delays - stops when horses are found
-    [100, 500, 1000, 2000].forEach(delay => {
-      setTimeout(() => {
-        analyzeHorses();
-        // Add marketplace buttons after analysis
-        setTimeout(() => addMarketplaceButtons(), 100);
-      }, delay);
-    });
+    runHorseAnalyzerWithRetry();
   }
 }
 
@@ -115,14 +142,7 @@ async function initialize(ctx: any): Promise<void> {
   
   // Run horse analyzer if enabled (with retry logic)
   if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED && CONFIG.DEBUG) {
-    // Try multiple times with short delays - stops when horses are found
-    [100, 500, 1000, 2000].forEach(delay => {
-      setTimeout(() => {
-        analyzeHorses();
-        // Add marketplace buttons after analysis
-        setTimeout(() => addMarketplaceButtons(), 100);
-      }, delay);
-    });
+    runHorseAnalyzerWithRetry();
   }
   
   // Add SPA navigation detection via click events on specific buttons
