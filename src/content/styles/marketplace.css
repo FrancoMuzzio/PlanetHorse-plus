@@ -109,3 +109,12 @@
   opacity: 0.9;
   margin-left: 0;
 }
+
+.phorse-energy-recovery-text-negative {
+  color: rgb(239, 68, 68) !important;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  font-size: inherit;
+  font-weight: bold;
+  opacity: 0.9;
+  margin-left: 0;
+}

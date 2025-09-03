@@ -523,8 +523,40 @@ export async function addMarketplaceButtons(): Promise<void> {
 }
 
 /**
+ * Determines if a horse will lose energy in the next 6-hour period
+ * @param horse - Horse data object
+ * @returns true if horse will lose energy, false if it will recover
+ */
+function willLoseEnergyNextRecovery(horse: any): boolean {
+  const currentEnergy = horse.stats?.energy?.current || 0;
+  const maxEnergy = horse.stats?.energy?.max || 0;
+  const recoveryAmount = horse.stats?.energyRecovery6h || 0;
+  const status = horse.status || 'UNKNOWN';
+  
+  // If horse is racing or in active state, it will likely lose energy
+  const activeStates = ['RACING', 'BUSY', 'WORKING'];
+  if (activeStates.includes(status.toUpperCase())) {
+    return true;
+  }
+  
+  // If horse already has full energy, recovery won't help (energy waste)
+  if (currentEnergy >= maxEnergy) {
+    return true;
+  }
+  
+  // If horse has very high energy relative to recovery (close to max), might be wasted
+  const energyAfterRecovery = currentEnergy + recoveryAmount;
+  const wastedEnergy = energyAfterRecovery - maxEnergy;
+  if (wastedEnergy > recoveryAmount * 0.5) { // More than 50% wasted
+    return true;
+  }
+  
+  return false;
+}
+
+/**
  * Adds energy recovery information to horse cards
- * Modifies energy display to show recovery per 6 hours: "ENERGY: X/Y (+Z)"
+ * Modifies energy display to show recovery per 6 hours: "ENERGY: X/Y (+Z)" or "ENERGY: X/Y (-Z)"
  */
 export async function addEnergyRecoveryInfo(): Promise<void> {
   // Clean up any existing energy recovery info first
@@ -578,15 +610,15 @@ export async function addEnergyRecoveryInfo(): Promise<void> {
     const originalText = energyDescriptionElement.textContent || '';
     
     // Only proceed if we haven't already modified this element
-    if (originalText.includes('(+')) {
+    if (originalText.includes(' +') || originalText.includes(' -') || originalText.includes(' ±')) {
       return;
     }
     
     // Calculate energy recovery (use stored value or calculate from level)
     const recoveryPer6h = horse.stats?.energyRecovery6h || calculateEnergyRecoveryPer6Hours(horse.stats?.level || 1);
     
-    // Create new text with recovery info
-    const newText = `${originalText} (+${recoveryPer6h})`;
+    // Determine if horse will lose energy instead of recovering
+    const willLoseEnergy = willLoseEnergyNextRecovery(horse);
     
     // Clear the element and create structured content
     energyDescriptionElement.innerHTML = '';
@@ -597,11 +629,38 @@ export async function addEnergyRecoveryInfo(): Promise<void> {
     currentEnergySpan.textContent = originalText;
     currentEnergySpan.className = CONFIG.CSS_CLASSES.ENERGY_CURRENT_TEXT;
     
-    // Create span for recovery info
+    // Create span for recovery/loss info
     const recoverySpan = document.createElement('span');
-    recoverySpan.textContent = ` +${recoveryPer6h}`;
-    recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT;
-    recoverySpan.title = `Recovers ${recoveryPer6h} energy every 6 hours`;
+    
+    if (willLoseEnergy) {
+      // Show energy loss or waste in red
+      const currentEnergy = horse.stats?.energy?.current || 0;
+      const maxEnergy = horse.stats?.energy?.max || 0;
+      const status = horse.status || 'UNKNOWN';
+      
+      if (['RACING', 'BUSY', 'WORKING'].includes(status.toUpperCase())) {
+        // Horse is active and will lose energy
+        recoverySpan.textContent = ` -${Math.floor(recoveryPer6h * 0.5)}`;
+        recoverySpan.title = `Will lose ~${Math.floor(recoveryPer6h * 0.5)} energy every 6 hours while ${status.toLowerCase()}`;
+      } else if (currentEnergy >= maxEnergy) {
+        // Horse has full energy, recovery wasted
+        recoverySpan.textContent = ` ±0`;
+        recoverySpan.title = `Energy is full - recovery of ${recoveryPer6h} will be wasted every 6 hours`;
+      } else {
+        // Partial recovery waste
+        const energyAfterRecovery = currentEnergy + recoveryPer6h;
+        const wastedEnergy = Math.max(0, energyAfterRecovery - maxEnergy);
+        const effectiveRecovery = recoveryPer6h - wastedEnergy;
+        recoverySpan.textContent = ` +${effectiveRecovery}`;
+        recoverySpan.title = `Will recover ${effectiveRecovery} energy (${wastedEnergy} wasted) every 6 hours`;
+      }
+      recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE;
+    } else {
+      // Show normal energy recovery in green
+      recoverySpan.textContent = ` +${recoveryPer6h}`;
+      recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT;
+      recoverySpan.title = `Recovers ${recoveryPer6h} energy every 6 hours`;
+    }
     
     // Add both spans to the energy element
     energyDescriptionElement.appendChild(currentEnergySpan);
@@ -630,8 +689,14 @@ export function cleanupEnergyRecoveryInfo(): void {
       const originalText = currentEnergySpan?.textContent || '';
       
       if (originalText) {
-        // Remove the CSS class we added
+        // Remove the CSS classes we added
         energyContainer.classList.remove(CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER);
+        
+        // Also remove any recovery text classes that might be lingering
+        const recoverySpan = energyContainer.querySelector(`.${CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT}, .${CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE}`);
+        if (recoverySpan) {
+          recoverySpan.remove();
+        }
         
         // Restore the original simple text content
         energyContainer.innerHTML = originalText;

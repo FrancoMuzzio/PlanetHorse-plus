@@ -83,6 +83,7 @@ export interface CSSClasses {
   // Energy Recovery Display Classes
   ENERGY_DISPLAY_CONTAINER: string;
   ENERGY_RECOVERY_TEXT: string;
+  ENERGY_RECOVERY_TEXT_NEGATIVE: string;
   ENERGY_CURRENT_TEXT: string;
 }
 
@@ -354,6 +355,7 @@ export const CONFIG: ConfigType = {
     // Energy Recovery Display Classes
     ENERGY_DISPLAY_CONTAINER: 'phorse-energy-display-container',
     ENERGY_RECOVERY_TEXT: 'phorse-energy-recovery-text',
+    ENERGY_RECOVERY_TEXT_NEGATIVE: 'phorse-energy-recovery-text-negative',
     ENERGY_CURRENT_TEXT: 'phorse-energy-current-text'
   },
   
