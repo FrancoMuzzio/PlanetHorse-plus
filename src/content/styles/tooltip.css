@@ -29,7 +29,7 @@
 
 /* Uses left indicator - secondary information */
 .styles_usesLeft__RSx8D {
-  color: #aaaaaa;
+  color: #d64545;
   display: block;
   font-size: 12px;
   font-style: italic;
@@ -46,7 +46,7 @@
 
 /* Strong text within tooltip content */
 .styles_foodUsed__2VLpt strong {
-  color: #ffffff;
+  color: #d64545; /* Match usesLeft bordo/red color for consistency */
   font-weight: 700;
 }
 

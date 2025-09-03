@@ -551,7 +551,7 @@ function willLoseEnergyNextRecovery(horse: any): boolean {
   // If horse has very high energy relative to recovery (close to max), might be wasted
   const energyAfterRecovery = currentEnergy + recoveryAmount;
   const wastedEnergy = energyAfterRecovery - maxEnergy;
-  if (wastedEnergy > recoveryAmount * 0.5) { // More than 50% wasted
+  if (wastedEnergy > 0) { // Any energy waste should show warning color
     return true;
   }
   
