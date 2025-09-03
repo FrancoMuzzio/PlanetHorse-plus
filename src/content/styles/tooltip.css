@@ -1,0 +1,88 @@
+/**
+ * Tooltip Styles - Matching Planet Horse's Native Tooltip Styling
+ * Based on the HTML structure: styles_tooltipPortal___KI9N, styles_tooltipTitle__CnBpv, etc.
+ */
+
+/* Main tooltip portal container - matches Planet Horse's tooltip styling */
+.styles_tooltipPortal___KI9N {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  max-width: 300px;
+  padding: 8px 12px;
+  word-wrap: break-word;
+  z-index: 9999;
+}
+
+/* Tooltip title - emphasized text */
+.styles_tooltipTitle__CnBpv {
+  color: #ffcc00;
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Uses left indicator - secondary information */
+.styles_usesLeft__RSx8D {
+  color: #aaaaaa;
+  display: block;
+  font-size: 12px;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Additional content/food used section - rich content area */
+.styles_foodUsed__2VLpt {
+  border-top: 1px solid #333;
+  color: #cccccc;
+  margin-top: 6px;
+  padding-top: 6px;
+}
+
+/* Strong text within tooltip content */
+.styles_foodUsed__2VLpt strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Line breaks and spacing within tooltip */
+.styles_tooltipPortal___KI9N br {
+  line-height: 1.6;
+}
+
+/* Ensure tooltip stays above other elements */
+.styles_tooltipPortal___KI9N {
+  position: relative;
+  z-index: 9999;
+}
+
+/* Responsive behavior for small screens */
+@media (max-width: 480px) {
+  .styles_tooltipPortal___KI9N {
+    font-size: 12px;
+    max-width: 250px;
+    padding: 6px 10px;
+  }
+}
+
+/* Animation for tooltip appearance (optional enhancement) */
+.styles_tooltipPortal___KI9N {
+  animation: tooltipFadeIn 0.15s ease-out;
+  opacity: 1;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

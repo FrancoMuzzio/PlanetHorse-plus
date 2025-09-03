@@ -3,10 +3,14 @@
 
 import { debugLog, CONFIG, calculateEnergyRecoveryPer6Hours } from '../config';
 import { saveHorseAnalysisData, loadHorseAnalysisData, loadMarketplaceSettings, loadEnabledMarketplaces, loadEnergyRecoverySettings, type StoredHorseAnalysis } from '../storage';
+import { createTooltip, type Tooltip } from './tooltip';
 
 // Track last analysis to avoid duplicates
 let lastAnalysisTimestamp = 0;
 const ANALYSIS_COOLDOWN = 3000; // 3 seconds cooldown between analyses
+
+// Track tooltip instances for cleanup
+const activeTooltips: Tooltip[] = [];
 
 /**
  * Interface for horse item equipment
@@ -659,25 +663,55 @@ export async function addEnergyRecoveryInfo(): Promise<void> {
       if (['RACING', 'BUSY', 'WORKING'].includes(status.toUpperCase())) {
         // Horse is active and will lose energy
         recoverySpan.textContent = ` -${Math.floor(recoveryPer6h * 0.5)}`;
-        recoverySpan.title = `Will lose ~${Math.floor(recoveryPer6h * 0.5)} energy every 6 hours while ${status.toLowerCase()}`;
+        
+        // Create tooltip for energy loss due to negative status
+        const lossTooltip = createTooltip(recoverySpan, {
+          title: 'Energy Loss',
+          description: `Will lose approximately ${Math.floor(recoveryPer6h * 0.5)} energy every 6 hours<br>Horse status: <strong>${status}</strong>`,
+          additionalInfo: `Energy loss occurs while horse is <strong>${status.toLowerCase()}</strong>`
+        });
+        activeTooltips.push(lossTooltip);
       } else if (currentEnergy >= maxEnergy) {
         // Horse has full energy, recovery wasted
         recoverySpan.textContent = ` ±0`;
-        recoverySpan.title = `Energy is full - recovery of ${recoveryPer6h} will be wasted every 6 hours`;
+        
+        // Create tooltip for full energy waste
+        const fullTooltip = createTooltip(recoverySpan, {
+          title: 'Energy Full',
+          description: `Energy is at maximum capacity<br>Recovery of ${recoveryPer6h} will be completely wasted every 6 hours`,
+          usesLeft: `(${recoveryPer6h} wasted)`,
+          additionalInfo: `Consider using this horse to prevent energy waste!`
+        });
+        activeTooltips.push(fullTooltip);
       } else {
         // Partial recovery waste
         const energyAfterRecovery = currentEnergy + recoveryPer6h;
         const wastedEnergy = Math.max(0, energyAfterRecovery - maxEnergy);
         const effectiveRecovery = recoveryPer6h - wastedEnergy;
         recoverySpan.textContent = ` +${effectiveRecovery}`;
-        recoverySpan.title = `Will recover ${effectiveRecovery} energy (${wastedEnergy} wasted) every 6 hours`;
+        
+        // Create rich tooltip for energy recovery with waste info
+        const tooltip = createTooltip(recoverySpan, {
+          title: 'Energy Recovery',
+          description: `Will recover ${effectiveRecovery} energy every 6 hours<br>${wastedEnergy} energy will be wasted due to max capacity`,
+          usesLeft: `(${wastedEnergy} wasted)`,
+          additionalInfo: `This horse can only hold <strong>${maxEnergy}</strong> energy maximum!`
+        });
+        activeTooltips.push(tooltip);
       }
       recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE;
     } else {
       // Show normal energy recovery in green
       recoverySpan.textContent = ` +${recoveryPer6h}`;
       recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT;
-      recoverySpan.title = `Recovers ${recoveryPer6h} energy every 6 hours`;
+      
+      // Create tooltip for normal energy recovery
+      const normalTooltip = createTooltip(recoverySpan, {
+        title: 'Energy Recovery',
+        description: `Recovers ${recoveryPer6h} energy every 6 hours`,
+        additionalInfo: `This horse is efficiently recovering energy with no waste!`
+      });
+      activeTooltips.push(normalTooltip);
     }
     
     // Add all elements to the energy element
@@ -698,6 +732,9 @@ export async function addEnergyRecoveryInfo(): Promise<void> {
 export function cleanupEnergyRecoveryInfo(): void {
   try {
     debugLog('Cleaning up existing energy recovery info...');
+    
+    // First cleanup all tooltips
+    cleanupTooltips();
     
     // Find all elements that have energy recovery info
     const elementsWithRecoveryInfo = document.querySelectorAll(`.${CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER}`);
@@ -748,6 +785,28 @@ export function cleanupEnergyRecoveryInfo(): void {
     debugLog('Energy recovery info cleanup complete');
   } catch (error) {
     debugLog('Error cleaning up energy recovery info:', error);
+  }
+}
+
+/**
+ * Cleans up all active tooltip instances
+ * Used when settings change or components are reinitializing
+ */
+export function cleanupTooltips(): void {
+  try {
+    debugLog('Cleaning up active tooltips...');
+    
+    // Destroy all active tooltips
+    activeTooltips.forEach(tooltip => {
+      tooltip.destroy();
+    });
+    
+    // Clear the array
+    activeTooltips.length = 0;
+    
+    debugLog('Tooltips cleanup complete');
+  } catch (error) {
+    debugLog('Error cleaning up tooltips:', error);
   }
 }
 

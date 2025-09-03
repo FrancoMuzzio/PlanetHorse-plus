@@ -10,7 +10,7 @@ import {
   cleanupSettingsModal 
 } from './modals/settings-modal';
 import { loadAllSettings, type AllSettings } from './storage';
-import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupMarketplaceButtons, addEnergyRecoveryInfo, cleanupEnergyRecoveryInfo } from './utils/horse-analyzer';
+import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupMarketplaceButtons, addEnergyRecoveryInfo, cleanupEnergyRecoveryInfo, cleanupTooltips } from './utils/horse-analyzer';
 
 // Window interface extension removed - no longer needed without manual timeout management
 

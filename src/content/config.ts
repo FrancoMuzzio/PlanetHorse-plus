@@ -84,6 +84,12 @@ export interface CSSClasses {
   ENERGY_DISPLAY_CONTAINER: string;
   ENERGY_RECOVERY_TEXT: string;
   ENERGY_RECOVERY_TEXT_NEGATIVE: string;
+  
+  // Tooltip Component Classes
+  TOOLTIP_PORTAL: string;
+  TOOLTIP_TITLE: string;
+  TOOLTIP_USES_LEFT: string;
+  TOOLTIP_CONTENT: string;
 }
 
 
@@ -348,7 +354,13 @@ export const CONFIG: ConfigType = {
     // Energy Recovery Display Classes
     ENERGY_DISPLAY_CONTAINER: 'phorse-energy-display-container',
     ENERGY_RECOVERY_TEXT: 'phorse-energy-recovery-text',
-    ENERGY_RECOVERY_TEXT_NEGATIVE: 'phorse-energy-recovery-text-negative'
+    ENERGY_RECOVERY_TEXT_NEGATIVE: 'phorse-energy-recovery-text-negative',
+    
+    // Tooltip Component Classes  
+    TOOLTIP_PORTAL: 'styles_tooltipPortal___KI9N',
+    TOOLTIP_TITLE: 'styles_tooltipTitle__CnBpv',
+    TOOLTIP_USES_LEFT: 'styles_usesLeft__RSx8D',
+    TOOLTIP_CONTENT: 'styles_foodUsed__2VLpt'
   },
   
   // Timeout configuration (in milliseconds)

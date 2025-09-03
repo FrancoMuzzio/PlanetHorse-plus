@@ -8,6 +8,7 @@ import '../src/content/styles/dropdown.css';
 import '../src/content/styles/grid.css';
 import '../src/content/styles/modal.css';
 import '../src/content/styles/marketplace.css';
+import '../src/content/styles/tooltip.css';
 
 export default defineContentScript({
   matches: ['*://planethorse.io/*'],
