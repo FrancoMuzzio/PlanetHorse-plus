@@ -79,6 +79,11 @@ export interface CSSClasses {
   RONIN_IMAGE: string;
   OPENSEA_IMAGE: string;
   HORSE_ID_CONTAINER: string;
+  
+  // Energy Recovery Display Classes
+  ENERGY_DISPLAY_CONTAINER: string;
+  ENERGY_RECOVERY_TEXT: string;
+  ENERGY_CURRENT_TEXT: string;
 }
 
 
@@ -96,6 +101,17 @@ export interface Features {
   PRICE_CONVERTER_ENABLED: boolean;
   SETTINGS_MODAL_ENABLED: boolean;
   HORSE_ANALYZER_ENABLED: boolean;
+}
+
+export interface EnergyRecoveryEntry {
+  level: number;
+  maxEnergy: number;
+  dailyRecovery: number;
+  racesPerDay: number;
+}
+
+export interface EnergyRecoveryTable {
+  entries: EnergyRecoveryEntry[];
 }
 
 export interface MarketplaceImages {
@@ -124,6 +140,7 @@ export interface ConfigType {
   TIMEOUTS: Timeouts;
   LIMITS: Limits;
   FEATURES: Features;
+  ENERGY_RECOVERY_TABLE: EnergyRecoveryTable;
   MARKETPLACE_IMAGES: MarketplaceImages;
   MARKETPLACE_URLS: MarketplaceUrls;
 }
@@ -332,7 +349,12 @@ export const CONFIG: ConfigType = {
     OPENSEA_BUTTON: 'phorse-opensea-button',
     RONIN_IMAGE: 'phorse-ronin-image',
     OPENSEA_IMAGE: 'phorse-opensea-image',
-    HORSE_ID_CONTAINER: 'phorse-horse-id-container'
+    HORSE_ID_CONTAINER: 'phorse-horse-id-container',
+    
+    // Energy Recovery Display Classes
+    ENERGY_DISPLAY_CONTAINER: 'phorse-energy-display-container',
+    ENERGY_RECOVERY_TEXT: 'phorse-energy-recovery-text',
+    ENERGY_CURRENT_TEXT: 'phorse-energy-current-text'
   },
   
   // Timeout configuration (in milliseconds)
@@ -352,6 +374,19 @@ export const CONFIG: ConfigType = {
     PRICE_CONVERTER_ENABLED: true,   // Enable/disable price converter functionality
     SETTINGS_MODAL_ENABLED: true,    // Enable/disable settings modal functionality
     HORSE_ANALYZER_ENABLED: true     // Enable/disable horse analyzer functionality
+  },
+  
+  // Energy recovery table for horses by level
+  ENERGY_RECOVERY_TABLE: {
+    entries: [
+      { level: 1, maxEnergy: 12, dailyRecovery: 48, racesPerDay: 4 },
+      { level: 5, maxEnergy: 28, dailyRecovery: 56, racesPerDay: 4 },
+      { level: 10, maxEnergy: 48, dailyRecovery: 60, racesPerDay: 5 },
+      { level: 15, maxEnergy: 68, dailyRecovery: 68, racesPerDay: 5 },
+      { level: 20, maxEnergy: 88, dailyRecovery: 76, racesPerDay: 6 },
+      { level: 25, maxEnergy: 108, dailyRecovery: 80, racesPerDay: 6 },
+      { level: 30, maxEnergy: 128, dailyRecovery: 88, racesPerDay: 7 }
+    ]
   },
   
   // Marketplace icon images
@@ -457,4 +492,48 @@ export function findElementByClassPrefix(prefix: string): HTMLElement | null {
     debugLog(`Error in findElementByClassPrefix("${prefix}"):`, error);
     return null;
   }
+}
+
+/**
+ * Calculates energy recovery per 6 hours based on horse level
+ * Uses interpolation between known recovery values from the energy recovery table
+ * @param level - The horse level (1-30+)
+ * @returns Energy recovery amount per 6 hours
+ */
+export function calculateEnergyRecoveryPer6Hours(level: number): number {
+  const entries = CONFIG.ENERGY_RECOVERY_TABLE.entries;
+  
+  // Find exact match first
+  const exactMatch = entries.find(entry => entry.level === level);
+  if (exactMatch) {
+    return Math.floor(exactMatch.dailyRecovery / 4); // Convert daily to 6-hour recovery
+  }
+  
+  // Handle edge cases
+  if (level <= 1) {
+    return Math.floor(entries[0].dailyRecovery / 4);
+  }
+  if (level >= 30) {
+    return Math.floor(entries[entries.length - 1].dailyRecovery / 4);
+  }
+  
+  // Find the two entries to interpolate between
+  let lowerEntry = entries[0];
+  let upperEntry = entries[entries.length - 1];
+  
+  for (let i = 0; i < entries.length - 1; i++) {
+    if (entries[i].level <= level && entries[i + 1].level >= level) {
+      lowerEntry = entries[i];
+      upperEntry = entries[i + 1];
+      break;
+    }
+  }
+  
+  // Linear interpolation
+  const levelDiff = upperEntry.level - lowerEntry.level;
+  const recoveryDiff = upperEntry.dailyRecovery - lowerEntry.dailyRecovery;
+  const levelRatio = (level - lowerEntry.level) / levelDiff;
+  const interpolatedDaily = lowerEntry.dailyRecovery + (recoveryDiff * levelRatio);
+  
+  return Math.floor(interpolatedDaily / 4); // Convert to 6-hour recovery
 }

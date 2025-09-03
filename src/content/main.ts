@@ -10,7 +10,7 @@ import {
   cleanupSettingsModal 
 } from './modals/settings-modal';
 import { loadConverterSettings } from './storage';
-import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupMarketplaceButtons } from './utils/horse-analyzer';
+import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupMarketplaceButtons, addEnergyRecoveryInfo, cleanupEnergyRecoveryInfo } from './utils/horse-analyzer';
 
 // Window interface extension removed - no longer needed without manual timeout management
 
@@ -42,8 +42,11 @@ async function runHorseAnalyzerWithRetry(): Promise<void> {
         // Cancel remaining timeouts since we found horses
         timeoutIds.slice(index + 1).forEach(id => clearTimeout(id));
         
-        // Add marketplace buttons after successful analysis
-        setTimeout(() => addMarketplaceButtons(), 100);
+        // Add marketplace buttons and energy recovery info after successful analysis
+        setTimeout(() => {
+          addMarketplaceButtons();
+          addEnergyRecoveryInfo();
+        }, 100);
       }
     }, delay);
     
@@ -65,8 +68,9 @@ function cleanupUIComponents(): void {
   // Clean up settings modal components
   cleanupSettingsModal();
   
-  // Clean up marketplace buttons
+  // Clean up marketplace buttons and energy recovery info
   cleanupMarketplaceButtons();
+  cleanupEnergyRecoveryInfo();
   
   debugLog('UI components cleaned up');
 }

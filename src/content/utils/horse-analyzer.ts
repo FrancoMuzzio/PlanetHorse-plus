@@ -1,7 +1,7 @@
 // ============= HORSE ANALYZER MODULE =============
 // Analyzes and extracts information from Planet Horse game horses
 
-import { debugLog, CONFIG } from '../config';
+import { debugLog, CONFIG, calculateEnergyRecoveryPer6Hours } from '../config';
 import { saveHorseAnalysisData, loadHorseAnalysisData, loadMarketplaceSettings, loadEnabledMarketplaces, type StoredHorseAnalysis } from '../storage';
 
 // Track last analysis to avoid duplicates
@@ -39,6 +39,7 @@ interface HorseStats {
     current: number;
     max: number;
   };
+  energyRecovery6h: number;
 }
 
 /**
@@ -207,7 +208,8 @@ function extractHorseData(horseElement: HTMLElement): HorseInfo | null {
         energy: {
           current: energyCurrent,
           max: energyMax
-        }
+        },
+        energyRecovery6h: calculateEnergyRecoveryPer6Hours(level)
       },
       items,
       imageSrc,
@@ -518,6 +520,130 @@ export async function addMarketplaceButtons(): Promise<void> {
   });
   
   debugLog('Marketplace buttons setup complete');
+}
+
+/**
+ * Adds energy recovery information to horse cards
+ * Modifies energy display to show recovery per 6 hours: "ENERGY: X/Y (+Z)"
+ */
+export async function addEnergyRecoveryInfo(): Promise<void> {
+  // Clean up any existing energy recovery info first
+  cleanupEnergyRecoveryInfo();
+  
+  const horses = await getHorses();
+  
+  if (horses.length === 0) {
+    debugLog('No horses found for energy recovery info');
+    return;
+  }
+  
+  debugLog(`Adding energy recovery info for ${horses.length} horses`);
+  
+  horses.forEach((horse: any) => {
+    // Find the horse ID element using the same selector as in extractHorseData
+    const horseElements = document.querySelectorAll('[class*="styles_singleHorse__"]');
+    
+    // Find the specific horse element by looking for its ID
+    let targetHorseElement: HTMLElement | null = null;
+    horseElements.forEach(element => {
+      const idElement = element.querySelector('[class*="styles_horseId__"]');
+      const elementId = parseInt(idElement?.textContent?.trim() || '0');
+      if (elementId === horse.id) {
+        targetHorseElement = element as HTMLElement;
+      }
+    });
+    
+    if (!targetHorseElement) {
+      debugLog(`Could not find horse element for ID ${horse.id}`);
+      return;
+    }
+    
+    // Find the energy description element within this horse card
+    const descriptions = targetHorseElement.querySelectorAll('[class*="styles_horseItemDescription__"]');
+    let energyDescriptionElement: HTMLElement | null = null;
+    
+    descriptions.forEach(desc => {
+      const text = desc.textContent?.trim() || '';
+      if (text.startsWith('ENERGY:')) {
+        energyDescriptionElement = desc as HTMLElement;
+      }
+    });
+    
+    if (!energyDescriptionElement) {
+      debugLog(`Could not find energy element for horse ${horse.id}`);
+      return;
+    }
+    
+    // Store the original text content
+    const originalText = energyDescriptionElement.textContent || '';
+    
+    // Only proceed if we haven't already modified this element
+    if (originalText.includes('(+')) {
+      return;
+    }
+    
+    // Calculate energy recovery (use stored value or calculate from level)
+    const recoveryPer6h = horse.stats?.energyRecovery6h || calculateEnergyRecoveryPer6Hours(horse.stats?.level || 1);
+    
+    // Create new text with recovery info
+    const newText = `${originalText} (+${recoveryPer6h})`;
+    
+    // Clear the element and create structured content
+    energyDescriptionElement.innerHTML = '';
+    energyDescriptionElement.classList.add(CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER);
+    
+    // Create span for current energy text
+    const currentEnergySpan = document.createElement('span');
+    currentEnergySpan.textContent = originalText;
+    currentEnergySpan.className = CONFIG.CSS_CLASSES.ENERGY_CURRENT_TEXT;
+    
+    // Create span for recovery info
+    const recoverySpan = document.createElement('span');
+    recoverySpan.textContent = ` +${recoveryPer6h}`;
+    recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT;
+    recoverySpan.title = `Recovers ${recoveryPer6h} energy every 6 hours`;
+    
+    // Add both spans to the energy element
+    energyDescriptionElement.appendChild(currentEnergySpan);
+    energyDescriptionElement.appendChild(recoverySpan);
+    
+    debugLog(`Added energy recovery info for horse ${horse.id}: +${recoveryPer6h}/6h`);
+  });
+  
+  debugLog('Energy recovery info setup complete');
+}
+
+/**
+ * Removes all existing energy recovery info and restores original energy display
+ * Used when settings change or components are reinitializing
+ */
+export function cleanupEnergyRecoveryInfo(): void {
+  try {
+    debugLog('Cleaning up existing energy recovery info...');
+    
+    // Find all elements that have energy recovery info
+    const elementsWithRecoveryInfo = document.querySelectorAll(`.${CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER}`);
+    
+    elementsWithRecoveryInfo.forEach(energyContainer => {
+      // Get the original text from the current energy span
+      const currentEnergySpan = energyContainer.querySelector(`.${CONFIG.CSS_CLASSES.ENERGY_CURRENT_TEXT}`);
+      const originalText = currentEnergySpan?.textContent || '';
+      
+      if (originalText) {
+        // Remove the CSS class we added
+        energyContainer.classList.remove(CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER);
+        
+        // Restore the original simple text content
+        energyContainer.innerHTML = originalText;
+        
+        debugLog(`Cleaned up energy recovery info: ${originalText}`);
+      }
+    });
+    
+    debugLog('Energy recovery info cleanup complete');
+  } catch (error) {
+    debugLog('Error cleaning up energy recovery info:', error);
+  }
 }
 
 /**
