@@ -2,7 +2,7 @@
 import { CONFIG, debugLog, getConversionDisplayText, type ConversionKey } from '../config';
 import { createIntegratedUi } from '#imports';
 import settingGearIcon from '~/assets/icons/setting-gear.svg';
-import { loadConverterSettings, saveConverterSettings, loadEnabledCurrencies, saveEnabledCurrencies, loadMarketplaceSettings, saveMarketplaceSettings, loadEnabledMarketplaces, saveEnabledMarketplaces, loadEnergyRecoverySettings, saveEnergyRecoverySettings } from '../storage';
+import { loadAllSettings, saveConverterSettings, saveEnabledCurrencies, saveMarketplaceSettings, saveEnabledMarketplaces, saveEnergyRecoverySettings, saveSettingsModalSettings, saveHorseAnalyzerSettings, type AllSettings } from '../storage';
 import { getAllValidConversions } from '../utils/validation';
 
 // Default currencies to enable when turning on converter with no selections
@@ -16,23 +16,21 @@ let modalUI: any = null;
 let buttonUI: any = null;
 let modalContainer: HTMLElement | null = null;
 let isModalVisible: boolean = false;
-let currentToggleState: boolean = true; // Current toggle state in modal
-let currentEnabledCurrencies: ConversionKey[] = DEFAULT_ENABLED_CURRENCIES.slice(); // Current enabled currencies in modal
-let currentMarketplaceToggleState: boolean = true; // Current marketplace toggle state in modal
-let currentEnabledMarketplaces: string[] = DEFAULT_ENABLED_MARKETPLACES.slice(); // Current enabled marketplaces in modal
-let currentEnergyRecoveryToggleState: boolean = true; // Current energy recovery toggle state in modal
+let currentSettings: AllSettings = {
+  converterEnabled: true,
+  enabledCurrencies: DEFAULT_ENABLED_CURRENCIES.slice(),
+  marketplaceLinksEnabled: true,
+  enabledMarketplaces: DEFAULT_ENABLED_MARKETPLACES.slice(),
+  energyRecoveryEnabled: true
+};
 let wxtContext: any = null; // Store WXT context for applying changes
 
 /**
  * Shows the settings modal
  */
 export async function showSettingsModal(): Promise<void> {
-  // Load current settings from storage
-  currentToggleState = await loadConverterSettings();
-  currentEnabledCurrencies = await loadEnabledCurrencies();
-  currentMarketplaceToggleState = await loadMarketplaceSettings();
-  currentEnabledMarketplaces = await loadEnabledMarketplaces();
-  currentEnergyRecoveryToggleState = await loadEnergyRecoverySettings();
+  // Load current settings from storage using centralized function
+  currentSettings = await loadAllSettings();
   
   // Mount modal if not already mounted
   if (modalUI && !modalContainer) {
@@ -61,9 +59,7 @@ export async function showSettingsModal(): Promise<void> {
     const computedStyle = window.getComputedStyle(modalContainer);
     debugLog(`Modal z-index: ${computedStyle.zIndex}`);
     
-    debugLog('Modal shown with current toggle state:', currentToggleState, 'enabled currencies:', currentEnabledCurrencies);
-    debugLog('Modal shown with current marketplace toggle state:', currentMarketplaceToggleState, 'enabled marketplaces:', currentEnabledMarketplaces);
-    debugLog('Modal shown with current energy recovery toggle state:', currentEnergyRecoveryToggleState);
+    debugLog('Modal shown with current settings:', currentSettings);
   }
 }
 
@@ -93,12 +89,12 @@ function updateToggleUI(): void {
   const statusText = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT}`) as HTMLSpanElement;
   
   if (toggleInput) {
-    toggleInput.checked = currentToggleState;
-    debugLog('Updated toggle UI state:', currentToggleState);
+    toggleInput.checked = currentSettings.converterEnabled;
+    debugLog('Updated toggle UI state:', currentSettings.converterEnabled);
   }
   
   if (statusText) {
-    statusText.textContent = currentToggleState ? 'ON' : 'OFF';
+    statusText.textContent = currentSettings.converterEnabled ? 'ON' : 'OFF';
     debugLog('Updated toggle status text:', statusText.textContent);
   }
 }
@@ -109,8 +105,8 @@ function updateToggleUI(): void {
 function updateCurrencyListVisibility(): void {
   const currencyListSection = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.CURRENCY_LIST_SECTION}`);
   if (currencyListSection) {
-    currencyListSection.style.display = currentToggleState ? 'block' : 'none';
-    debugLog('Updated currency list visibility:', currentToggleState ? 'visible' : 'hidden');
+    currencyListSection.style.display = currentSettings.converterEnabled ? 'block' : 'none';
+    debugLog('Updated currency list visibility:', currentSettings.converterEnabled ? 'visible' : 'hidden');
   }
 }
 
@@ -122,10 +118,10 @@ function updateCurrencyCheckboxes(): void {
   checkboxes?.forEach(checkbox => {
     const currencyKey = checkbox.dataset.currency;
     if (currencyKey) {
-      checkbox.checked = currentEnabledCurrencies.includes(currencyKey);
+      checkbox.checked = currentSettings.enabledCurrencies.includes(currencyKey);
     }
   });
-  debugLog('Updated currency checkboxes for enabled currencies:', currentEnabledCurrencies);
+  debugLog('Updated currency checkboxes for enabled currencies:', currentSettings.enabledCurrencies);
 }
 
 /**
@@ -136,25 +132,25 @@ function updateCurrencyCheckboxes(): void {
 function handleCurrencyToggle(currencyKey: ConversionKey, enabled: boolean): void {
   if (enabled) {
     // Add currency if not already enabled
-    if (!currentEnabledCurrencies.includes(currencyKey)) {
-      currentEnabledCurrencies.push(currencyKey);
+    if (!currentSettings.enabledCurrencies.includes(currencyKey)) {
+      currentSettings.enabledCurrencies.push(currencyKey);
     }
   } else {
     // Remove currency from enabled list
-    currentEnabledCurrencies = currentEnabledCurrencies.filter(key => key !== currencyKey);
+    currentSettings.enabledCurrencies = currentSettings.enabledCurrencies.filter(key => key !== currencyKey);
   }
   
   // CRITICAL FIX: Synchronize UI after state change
   updateCurrencyCheckboxes();
   
   // Auto-disable converter if all currencies are unchecked
-  if (currentEnabledCurrencies.length === 0 && currentToggleState) {
+  if (currentSettings.enabledCurrencies.length === 0 && currentSettings.converterEnabled) {
     debugLog('All currencies disabled - automatically turning OFF converter');
     handleToggleChange(false);
   }
   
   debugLog('Currency toggle changed:', currencyKey, enabled ? 'enabled' : 'disabled');
-  debugLog('Current enabled currencies:', currentEnabledCurrencies);
+  debugLog('Current enabled currencies:', currentSettings.enabledCurrencies);
 }
 
 /**
@@ -162,12 +158,12 @@ function handleCurrencyToggle(currencyKey: ConversionKey, enabled: boolean): voi
  * @param enabled - New toggle state
  */
 function handleToggleChange(enabled: boolean): void {
-  currentToggleState = enabled;
+  currentSettings.converterEnabled = enabled;
   
   // Auto-enable default currencies when turning ON with no selections
-  if (enabled && currentEnabledCurrencies.length === 0) {
+  if (enabled && currentSettings.enabledCurrencies.length === 0) {
     debugLog('Converter enabled with no currencies - auto-enabling default currencies');
-    currentEnabledCurrencies = DEFAULT_ENABLED_CURRENCIES.slice();
+    currentSettings.enabledCurrencies = DEFAULT_ENABLED_CURRENCIES.slice();
     updateCurrencyCheckboxes();
   }
   
@@ -184,12 +180,12 @@ function updateMarketplaceToggleUI(): void {
   const statusText = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT}[data-marketplace]`) as HTMLSpanElement;
   
   if (toggleInput) {
-    toggleInput.checked = currentMarketplaceToggleState;
-    debugLog('Updated marketplace toggle UI state:', currentMarketplaceToggleState);
+    toggleInput.checked = currentSettings.marketplaceLinksEnabled;
+    debugLog('Updated marketplace toggle UI state:', currentSettings.marketplaceLinksEnabled);
   }
   
   if (statusText) {
-    statusText.textContent = currentMarketplaceToggleState ? 'ON' : 'OFF';
+    statusText.textContent = currentSettings.marketplaceLinksEnabled ? 'ON' : 'OFF';
     debugLog('Updated marketplace toggle status text:', statusText.textContent);
   }
 }
@@ -200,8 +196,8 @@ function updateMarketplaceToggleUI(): void {
 function updateMarketplaceListVisibility(): void {
   const marketplaceListSection = modalContainer?.querySelector(`[data-marketplace-section]`);
   if (marketplaceListSection) {
-    marketplaceListSection.style.display = currentMarketplaceToggleState ? 'block' : 'none';
-    debugLog('Updated marketplace list visibility:', currentMarketplaceToggleState ? 'visible' : 'hidden');
+    marketplaceListSection.style.display = currentSettings.marketplaceLinksEnabled ? 'block' : 'none';
+    debugLog('Updated marketplace list visibility:', currentSettings.marketplaceLinksEnabled ? 'visible' : 'hidden');
   }
 }
 
@@ -213,10 +209,10 @@ function updateMarketplaceCheckboxes(): void {
   checkboxes?.forEach(checkbox => {
     const marketplaceKey = checkbox.dataset.marketplace;
     if (marketplaceKey) {
-      checkbox.checked = currentEnabledMarketplaces.includes(marketplaceKey);
+      checkbox.checked = currentSettings.enabledMarketplaces.includes(marketplaceKey);
     }
   });
-  debugLog('Updated marketplace checkboxes for enabled marketplaces:', currentEnabledMarketplaces);
+  debugLog('Updated marketplace checkboxes for enabled marketplaces:', currentSettings.enabledMarketplaces);
 }
 
 /**
@@ -227,25 +223,25 @@ function updateMarketplaceCheckboxes(): void {
 function handleMarketplaceToggle(marketplaceKey: string, enabled: boolean): void {
   if (enabled) {
     // Add marketplace if not already enabled
-    if (!currentEnabledMarketplaces.includes(marketplaceKey)) {
-      currentEnabledMarketplaces.push(marketplaceKey);
+    if (!currentSettings.enabledMarketplaces.includes(marketplaceKey)) {
+      currentSettings.enabledMarketplaces.push(marketplaceKey);
     }
   } else {
     // Remove marketplace from enabled list
-    currentEnabledMarketplaces = currentEnabledMarketplaces.filter(key => key !== marketplaceKey);
+    currentSettings.enabledMarketplaces = currentSettings.enabledMarketplaces.filter(key => key !== marketplaceKey);
   }
   
   // CRITICAL FIX: Synchronize UI after state change
   updateMarketplaceCheckboxes();
   
   // Auto-disable marketplace links if all marketplaces are unchecked
-  if (currentEnabledMarketplaces.length === 0 && currentMarketplaceToggleState) {
+  if (currentSettings.enabledMarketplaces.length === 0 && currentSettings.marketplaceLinksEnabled) {
     debugLog('All marketplaces disabled - automatically turning OFF marketplace links');
     handleMarketplaceToggleChange(false);
   }
   
   debugLog('Marketplace toggle changed:', marketplaceKey, enabled ? 'enabled' : 'disabled');
-  debugLog('Current enabled marketplaces:', currentEnabledMarketplaces);
+  debugLog('Current enabled marketplaces:', currentSettings.enabledMarketplaces);
 }
 
 /**
@@ -253,12 +249,12 @@ function handleMarketplaceToggle(marketplaceKey: string, enabled: boolean): void
  * @param enabled - New marketplace toggle state
  */
 function handleMarketplaceToggleChange(enabled: boolean): void {
-  currentMarketplaceToggleState = enabled;
+  currentSettings.marketplaceLinksEnabled = enabled;
   
   // Auto-enable default marketplaces when turning ON with no selections
-  if (enabled && currentEnabledMarketplaces.length === 0) {
+  if (enabled && currentSettings.enabledMarketplaces.length === 0) {
     debugLog('Marketplace links enabled with no marketplaces - auto-enabling default marketplaces');
-    currentEnabledMarketplaces = DEFAULT_ENABLED_MARKETPLACES.slice();
+    currentSettings.enabledMarketplaces = DEFAULT_ENABLED_MARKETPLACES.slice();
     updateMarketplaceCheckboxes();
   }
   
@@ -275,12 +271,12 @@ function updateEnergyRecoveryToggleUI(): void {
   const statusText = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT}[data-energy-recovery]`) as HTMLSpanElement;
   
   if (toggleInput) {
-    toggleInput.checked = currentEnergyRecoveryToggleState;
-    debugLog('Updated energy recovery toggle UI state:', currentEnergyRecoveryToggleState);
+    toggleInput.checked = currentSettings.energyRecoveryEnabled;
+    debugLog('Updated energy recovery toggle UI state:', currentSettings.energyRecoveryEnabled);
   }
   
   if (statusText) {
-    statusText.textContent = currentEnergyRecoveryToggleState ? 'ON' : 'OFF';
+    statusText.textContent = currentSettings.energyRecoveryEnabled ? 'ON' : 'OFF';
     debugLog('Updated energy recovery toggle status text:', statusText.textContent);
   }
 }
@@ -290,7 +286,7 @@ function updateEnergyRecoveryToggleUI(): void {
  * @param enabled - New energy recovery toggle state
  */
 function handleEnergyRecoveryToggleChange(enabled: boolean): void {
-  currentEnergyRecoveryToggleState = enabled;
+  currentSettings.energyRecoveryEnabled = enabled;
   
   updateEnergyRecoveryToggleUI();
   debugLog('Energy recovery toggle state changed:', enabled);
@@ -300,31 +296,21 @@ function handleEnergyRecoveryToggleChange(enabled: boolean): void {
  * Handles save button click - saves settings and applies changes
  */
 async function handleSaveSettings(): Promise<void> {
-  debugLog('Saving settings...', { 
-    converterEnabled: currentToggleState, 
-    enabledCurrencies: currentEnabledCurrencies,
-    marketplaceLinksEnabled: currentMarketplaceToggleState,
-    enabledMarketplaces: currentEnabledMarketplaces,
-    energyRecoveryEnabled: currentEnergyRecoveryToggleState
-  });
+  debugLog('Saving settings...', currentSettings);
   
-  // Save to storage
-  await saveConverterSettings(currentToggleState);
-  await saveEnabledCurrencies(currentEnabledCurrencies);
-  await saveMarketplaceSettings(currentMarketplaceToggleState);
-  await saveEnabledMarketplaces(currentEnabledMarketplaces);
-  await saveEnergyRecoverySettings(currentEnergyRecoveryToggleState);
+  // Save all settings to storage in parallel for efficiency
+  await Promise.all([
+    saveConverterSettings(currentSettings.converterEnabled),
+    saveEnabledCurrencies(currentSettings.enabledCurrencies),
+    saveMarketplaceSettings(currentSettings.marketplaceLinksEnabled),
+    saveEnabledMarketplaces(currentSettings.enabledMarketplaces),
+    saveEnergyRecoverySettings(currentSettings.energyRecoveryEnabled)
+  ]);
   
   // Apply changes immediately by dispatching custom event
   // This allows main.ts to listen and reinitialize components
   const settingsChangedEvent = new CustomEvent('phorseSettingsChanged', {
-    detail: { 
-      converterEnabled: currentToggleState,
-      enabledCurrencies: currentEnabledCurrencies,
-      marketplaceLinksEnabled: currentMarketplaceToggleState,
-      enabledMarketplaces: currentEnabledMarketplaces,
-      energyRecoveryEnabled: currentEnergyRecoveryToggleState
-    }
+    detail: currentSettings
   });
   document.dispatchEvent(settingsChangedEvent);
   
@@ -332,6 +318,78 @@ async function handleSaveSettings(): Promise<void> {
   hideSettingsModal();
   
   debugLog('Settings saved and applied');
+}
+
+/**
+ * Creates a settings toggle section (DRY principle - consolidates toggle creation pattern)
+ * @param label - Label text for the toggle
+ * @param isEnabled - Current toggle state
+ * @param onChange - Callback when toggle changes
+ * @param dataAttribute - Optional data attribute for identification (e.g., 'data-marketplace')
+ * @returns HTMLElement - Complete settings section with toggle
+ */
+function createSettingsToggleSection(
+  label: string, 
+  isEnabled: boolean, 
+  onChange: (enabled: boolean) => void,
+  dataAttribute?: string
+): HTMLElement {
+  // Settings section
+  const settingsSection = document.createElement('div');
+  settingsSection.classList.add(CONFIG.CSS_CLASSES.SETTINGS_SECTION);
+  
+  // Label for toggle
+  const labelElement = document.createElement('label');
+  labelElement.classList.add(CONFIG.CSS_CLASSES.SETTINGS_LABEL);
+  labelElement.textContent = label;
+  
+  // Toggle container
+  const toggleContainer = document.createElement('div');
+  toggleContainer.classList.add(CONFIG.CSS_CLASSES.TOGGLE_CONTAINER);
+  
+  // Toggle switch (checkbox input)
+  const toggleInput = document.createElement('input');
+  toggleInput.type = 'checkbox';
+  toggleInput.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SWITCH);
+  toggleInput.checked = isEnabled;
+  if (dataAttribute) {
+    toggleInput.setAttribute(dataAttribute, '');
+  }
+  
+  // Toggle slider visual element
+  const toggleSlider = document.createElement('span');
+  toggleSlider.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SLIDER);
+  
+  // Add toggle event listener
+  toggleInput.addEventListener('change', () => {
+    onChange(toggleInput.checked);
+  });
+  
+  // Toggle status text
+  const statusText = document.createElement('span');
+  statusText.classList.add(CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT);
+  statusText.textContent = isEnabled ? 'ON' : 'OFF';
+  if (dataAttribute) {
+    statusText.setAttribute(dataAttribute, '');
+  }
+  
+  // Assemble toggle
+  toggleContainer.appendChild(toggleInput);
+  toggleContainer.appendChild(toggleSlider);
+  
+  // Create toggle group container
+  const toggleGroup = document.createElement('div');
+  toggleGroup.style.display = 'flex';
+  toggleGroup.style.alignItems = 'center';
+  toggleGroup.style.gap = '10px';
+  toggleGroup.appendChild(toggleContainer);
+  toggleGroup.appendChild(statusText);
+  
+  // Assemble settings section
+  settingsSection.appendChild(labelElement);
+  settingsSection.appendChild(toggleGroup);
+  
+  return settingsSection;
 }
 
 /**
@@ -401,7 +459,7 @@ function createCurrencyListSection(): HTMLElement {
     checkbox.type = 'checkbox';
     checkbox.classList.add(CONFIG.CSS_CLASSES.CURRENCY_CHECKBOX);
     checkbox.dataset.currency = currencyKey;
-    checkbox.checked = currentEnabledCurrencies.includes(currencyKey);
+    checkbox.checked = currentSettings.enabledCurrencies.includes(currencyKey);
     
     // Visual checkbox container (second element for CSS + selector)
     const checkboxContainer = document.createElement('div');
@@ -483,7 +541,7 @@ function createMarketplaceListSection(): HTMLElement {
     checkbox.type = 'checkbox';
     checkbox.classList.add(CONFIG.CSS_CLASSES.CURRENCY_CHECKBOX);
     checkbox.dataset.marketplace = marketplace.key; // Use marketplace data attribute
-    checkbox.checked = currentEnabledMarketplaces.includes(marketplace.key);
+    checkbox.checked = currentSettings.enabledMarketplaces.includes(marketplace.key);
     
     // Visual checkbox container (second element for CSS + selector)
     const checkboxContainer = document.createElement('div');
@@ -537,164 +595,38 @@ function createModalBody(): HTMLElement {
   const body = document.createElement('div');
   body.classList.add(CONFIG.CSS_CLASSES.MODAL_BODY);
   
-  // Settings section for price converter
-  const settingsSection = document.createElement('div');
-  settingsSection.classList.add(CONFIG.CSS_CLASSES.SETTINGS_SECTION);
-  
-  // Label for toggle
-  const label = document.createElement('label');
-  label.classList.add(CONFIG.CSS_CLASSES.SETTINGS_LABEL);
-  label.textContent = 'Enable Price Converter';
-  
-  // Toggle container
-  const toggleContainer = document.createElement('div');
-  toggleContainer.classList.add(CONFIG.CSS_CLASSES.TOGGLE_CONTAINER);
-  
-  // Toggle switch (checkbox input)
-  const toggleInput = document.createElement('input');
-  toggleInput.type = 'checkbox';
-  toggleInput.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SWITCH);
-  toggleInput.checked = currentToggleState;
-  
-  // Toggle slider visual element
-  const toggleSlider = document.createElement('span');
-  toggleSlider.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SLIDER);
-  
-  // Add toggle event listener
-  toggleInput.addEventListener('change', () => {
-    handleToggleChange(toggleInput.checked);
-  });
-  
-  // Toggle status text
-  const statusText = document.createElement('span');
-  statusText.classList.add(CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT);
-  statusText.textContent = currentToggleState ? 'ON' : 'OFF';
-  
-  // Assemble toggle
-  toggleContainer.appendChild(toggleInput);
-  toggleContainer.appendChild(toggleSlider);
-  
-  // Create toggle group container
-  const toggleGroup = document.createElement('div');
-  toggleGroup.style.display = 'flex';
-  toggleGroup.style.alignItems = 'center';
-  toggleGroup.style.gap = '10px';
-  toggleGroup.appendChild(toggleContainer);
-  toggleGroup.appendChild(statusText);
-  
-  // Assemble settings section
-  settingsSection.appendChild(label);
-  settingsSection.appendChild(toggleGroup);
+  // Price Converter Section using helper function
+  const converterSection = createSettingsToggleSection(
+    'Enable Price Converter',
+    currentSettings.converterEnabled,
+    handleToggleChange
+  );
   
   // Currency list section (only visible when converter is enabled)
   const currencyListSection = createCurrencyListSection();
   
-  // Settings section for marketplace links
-  const marketplaceSettingsSection = document.createElement('div');
-  marketplaceSettingsSection.classList.add(CONFIG.CSS_CLASSES.SETTINGS_SECTION);
-  marketplaceSettingsSection.style.marginTop = '20px';
-  
-  // Label for marketplace toggle
-  const marketplaceLabel = document.createElement('label');
-  marketplaceLabel.classList.add(CONFIG.CSS_CLASSES.SETTINGS_LABEL);
-  marketplaceLabel.textContent = 'Enable Marketplace Links';
-  
-  // Marketplace toggle container
-  const marketplaceToggleContainer = document.createElement('div');
-  marketplaceToggleContainer.classList.add(CONFIG.CSS_CLASSES.TOGGLE_CONTAINER);
-  
-  // Marketplace toggle switch (checkbox input)
-  const marketplaceToggleInput = document.createElement('input');
-  marketplaceToggleInput.type = 'checkbox';
-  marketplaceToggleInput.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SWITCH);
-  marketplaceToggleInput.checked = currentMarketplaceToggleState;
-  marketplaceToggleInput.setAttribute('data-marketplace', ''); // Identifier for marketplace toggle
-  
-  // Marketplace toggle slider visual element
-  const marketplaceToggleSlider = document.createElement('span');
-  marketplaceToggleSlider.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SLIDER);
-  
-  // Add marketplace toggle event listener
-  marketplaceToggleInput.addEventListener('change', () => {
-    handleMarketplaceToggleChange(marketplaceToggleInput.checked);
-  });
-  
-  // Marketplace toggle status text
-  const marketplaceStatusText = document.createElement('span');
-  marketplaceStatusText.classList.add(CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT);
-  marketplaceStatusText.textContent = currentMarketplaceToggleState ? 'ON' : 'OFF';
-  marketplaceStatusText.setAttribute('data-marketplace', ''); // Identifier for marketplace status
-  
-  // Assemble marketplace toggle
-  marketplaceToggleContainer.appendChild(marketplaceToggleInput);
-  marketplaceToggleContainer.appendChild(marketplaceToggleSlider);
-  
-  // Create marketplace toggle group container
-  const marketplaceToggleGroup = document.createElement('div');
-  marketplaceToggleGroup.style.display = 'flex';
-  marketplaceToggleGroup.style.alignItems = 'center';
-  marketplaceToggleGroup.style.gap = '10px';
-  marketplaceToggleGroup.appendChild(marketplaceToggleContainer);
-  marketplaceToggleGroup.appendChild(marketplaceStatusText);
-  
-  // Assemble marketplace settings section
-  marketplaceSettingsSection.appendChild(marketplaceLabel);
-  marketplaceSettingsSection.appendChild(marketplaceToggleGroup);
+  // Marketplace Links Section using helper function
+  const marketplaceSection = createSettingsToggleSection(
+    'Enable Marketplace Links',
+    currentSettings.marketplaceLinksEnabled,
+    handleMarketplaceToggleChange,
+    'data-marketplace'
+  );
+  marketplaceSection.style.marginTop = '20px';
   
   // Marketplace list section (only visible when marketplace links are enabled)
   const marketplaceListSection = createMarketplaceListSection();
   
-  // Settings section for energy recovery info
-  const energyRecoverySettingsSection = document.createElement('div');
-  energyRecoverySettingsSection.classList.add(CONFIG.CSS_CLASSES.SETTINGS_SECTION);
-  energyRecoverySettingsSection.style.marginTop = '20px';
+  // Energy Recovery Section using helper function
+  const energyRecoverySection = createSettingsToggleSection(
+    'Enable Energy Recovery Info',
+    currentSettings.energyRecoveryEnabled,
+    handleEnergyRecoveryToggleChange,
+    'data-energy-recovery'
+  );
+  energyRecoverySection.style.marginTop = '20px';
   
-  // Label for energy recovery toggle
-  const energyRecoveryLabel = document.createElement('label');
-  energyRecoveryLabel.classList.add(CONFIG.CSS_CLASSES.SETTINGS_LABEL);
-  energyRecoveryLabel.textContent = 'Enable Energy Recovery Info';
   
-  // Energy recovery toggle container
-  const energyRecoveryToggleContainer = document.createElement('div');
-  energyRecoveryToggleContainer.classList.add(CONFIG.CSS_CLASSES.TOGGLE_CONTAINER);
-  
-  // Energy recovery toggle switch (checkbox input)
-  const energyRecoveryToggleInput = document.createElement('input');
-  energyRecoveryToggleInput.type = 'checkbox';
-  energyRecoveryToggleInput.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SWITCH);
-  energyRecoveryToggleInput.checked = currentEnergyRecoveryToggleState;
-  energyRecoveryToggleInput.setAttribute('data-energy-recovery', ''); // Identifier for energy recovery toggle
-  
-  // Energy recovery toggle slider visual element
-  const energyRecoveryToggleSlider = document.createElement('span');
-  energyRecoveryToggleSlider.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SLIDER);
-  
-  // Add energy recovery toggle event listener
-  energyRecoveryToggleInput.addEventListener('change', () => {
-    handleEnergyRecoveryToggleChange(energyRecoveryToggleInput.checked);
-  });
-  
-  // Energy recovery toggle status text
-  const energyRecoveryStatusText = document.createElement('span');
-  energyRecoveryStatusText.classList.add(CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT);
-  energyRecoveryStatusText.textContent = currentEnergyRecoveryToggleState ? 'ON' : 'OFF';
-  energyRecoveryStatusText.setAttribute('data-energy-recovery', ''); // Identifier for energy recovery status
-  
-  // Assemble energy recovery toggle
-  energyRecoveryToggleContainer.appendChild(energyRecoveryToggleInput);
-  energyRecoveryToggleContainer.appendChild(energyRecoveryToggleSlider);
-  
-  // Create energy recovery toggle group container
-  const energyRecoveryToggleGroup = document.createElement('div');
-  energyRecoveryToggleGroup.style.display = 'flex';
-  energyRecoveryToggleGroup.style.alignItems = 'center';
-  energyRecoveryToggleGroup.style.gap = '10px';
-  energyRecoveryToggleGroup.appendChild(energyRecoveryToggleContainer);
-  energyRecoveryToggleGroup.appendChild(energyRecoveryStatusText);
-  
-  // Assemble energy recovery settings section
-  energyRecoverySettingsSection.appendChild(energyRecoveryLabel);
-  energyRecoverySettingsSection.appendChild(energyRecoveryToggleGroup);
   
   // Modal footer with save button
   const footer = document.createElement('div');
@@ -711,12 +643,12 @@ function createModalBody(): HTMLElement {
   
   footer.appendChild(saveButton);
   
-  // Assemble modal body
-  body.appendChild(settingsSection);
+  // Assemble modal body with all sections
+  body.appendChild(converterSection);
   body.appendChild(currencyListSection);
-  body.appendChild(marketplaceSettingsSection);
+  body.appendChild(marketplaceSection);
   body.appendChild(marketplaceListSection);
-  body.appendChild(energyRecoverySettingsSection);
+  body.appendChild(energyRecoverySection);
   body.appendChild(footer);
   
   return body;
@@ -835,11 +767,6 @@ function createModal(ctx: any): void {
  * @param ctx - WXT content script context
  */
 export async function createSettingsModal(ctx: any): Promise<void> {
-  if (!CONFIG.FEATURES.SETTINGS_MODAL_ENABLED) {
-    debugLog('Settings modal is disabled');
-    return;
-  }
-
   // Store context for settings application
   wxtContext = ctx;
   

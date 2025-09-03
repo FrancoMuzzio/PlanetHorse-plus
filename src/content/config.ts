@@ -97,11 +97,6 @@ export interface Limits {
   MAX_OBSERVER_ERRORS: number;
 }
 
-export interface Features {
-  PRICE_CONVERTER_ENABLED: boolean;
-  SETTINGS_MODAL_ENABLED: boolean;
-  HORSE_ANALYZER_ENABLED: boolean;
-}
 
 export interface EnergyRecoveryEntry {
   level: number;
@@ -139,7 +134,6 @@ export interface ConfigType {
   CSS_CLASSES: CSSClasses;
   TIMEOUTS: Timeouts;
   LIMITS: Limits;
-  FEATURES: Features;
   ENERGY_RECOVERY_TABLE: EnergyRecoveryTable;
   MARKETPLACE_IMAGES: MarketplaceImages;
   MARKETPLACE_URLS: MarketplaceUrls;
@@ -369,12 +363,6 @@ export const CONFIG: ConfigType = {
     MAX_OBSERVER_ERRORS: 5          // Max errors before disconnecting observer
   },
   
-  // Feature toggles
-  FEATURES: {
-    PRICE_CONVERTER_ENABLED: true,   // Enable/disable price converter functionality
-    SETTINGS_MODAL_ENABLED: true,    // Enable/disable settings modal functionality
-    HORSE_ANALYZER_ENABLED: true     // Enable/disable horse analyzer functionality
-  },
   
   // Energy recovery table for horses by level
   ENERGY_RECOVERY_TABLE: {

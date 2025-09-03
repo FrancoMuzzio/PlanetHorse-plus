@@ -613,13 +613,17 @@ export async function addEnergyRecoveryInfo(): Promise<void> {
       return;
     }
     
-    // Store the original text content
+    // Store the original HTML content to preserve formatting when cleaning up
+    const originalHTML = energyDescriptionElement.innerHTML || '';
     const originalText = energyDescriptionElement.textContent || '';
     
     // Only proceed if we haven't already modified this element
     if (originalText.includes(' +') || originalText.includes(' -') || originalText.includes(' ±')) {
       return;
     }
+    
+    // Store original HTML for cleanup using a data attribute
+    energyDescriptionElement.setAttribute('data-phorse-original-html', originalHTML);
     
     // Calculate energy recovery (use stored value or calculate from level)
     const recoveryPer6h = horse.stats?.energyRecovery6h || calculateEnergyRecoveryPer6Hours(horse.stats?.level || 1);
@@ -699,35 +703,45 @@ export function cleanupEnergyRecoveryInfo(): void {
     const elementsWithRecoveryInfo = document.querySelectorAll(`.${CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER}`);
     
     elementsWithRecoveryInfo.forEach(energyContainer => {
-      // Reconstruct original text from text nodes and spans
-      let originalText = '';
-      energyContainer.childNodes.forEach(node => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          originalText += node.textContent || '';
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-          const element = node as Element;
-          if (!element.classList.contains(CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT) && 
-              !element.classList.contains(CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE)) {
-            originalText += element.textContent || '';
-          }
-        }
-      });
-      originalText = originalText.trim();
+      // Get the stored original HTML content that preserves formatting
+      const originalHTML = energyContainer.getAttribute('data-phorse-original-html');
       
-      if (originalText) {
+      if (originalHTML) {
         // Remove the CSS classes we added
         energyContainer.classList.remove(CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER);
         
-        // Also remove any recovery text classes that might be lingering
-        const recoverySpan = energyContainer.querySelector(`.${CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT}, .${CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE}`);
-        if (recoverySpan) {
-          recoverySpan.remove();
+        // Remove the data attribute
+        energyContainer.removeAttribute('data-phorse-original-html');
+        
+        // Restore the original HTML content to preserve formatting (bold, etc.)
+        energyContainer.innerHTML = originalHTML;
+        
+        debugLog(`Cleaned up energy recovery info, restored original HTML with formatting preserved`);
+      } else {
+        // Fallback to text-based cleanup for elements that don't have stored HTML
+        let originalText = '';
+        energyContainer.childNodes.forEach(node => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            originalText += node.textContent || '';
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            if (!element.classList.contains(CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT) && 
+                !element.classList.contains(CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE)) {
+              originalText += element.textContent || '';
+            }
+          }
+        });
+        originalText = originalText.trim();
+        
+        if (originalText) {
+          // Remove the CSS classes we added
+          energyContainer.classList.remove(CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER);
+          
+          // Restore the original simple text content (fallback)
+          energyContainer.innerHTML = originalText;
+          
+          debugLog(`Cleaned up energy recovery info (fallback): ${originalText}`);
         }
-        
-        // Restore the original simple text content
-        energyContainer.innerHTML = originalText;
-        
-        debugLog(`Cleaned up energy recovery info: ${originalText}`);
       }
     });
     

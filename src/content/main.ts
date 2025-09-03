@@ -9,7 +9,7 @@ import {
   createSettingsModal, 
   cleanupSettingsModal 
 } from './modals/settings-modal';
-import { loadConverterSettings, loadEnergyRecoverySettings } from './storage';
+import { loadAllSettings, type AllSettings } from './storage';
 import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupMarketplaceButtons, addEnergyRecoveryInfo, cleanupEnergyRecoveryInfo } from './utils/horse-analyzer';
 
 // Window interface extension removed - no longer needed without manual timeout management
@@ -18,8 +18,14 @@ let currencyUI: any = null;
 
 /**
  * Runs horse analyzer with smart retry logic that stops once horses are found
+ * @param settings - Application settings (optional, will load if not provided)
  */
-async function runHorseAnalyzerWithRetry(): Promise<void> {
+async function runHorseAnalyzerWithRetry(settings?: AllSettings): Promise<void> {
+  // Load settings if not provided
+  if (!settings) {
+    settings = await loadAllSettings();
+  }
+  
   // Use smart retry logic that stops once horses are found
   let foundHorses = false;
   const retryDelays = [100, 500, 1000, 2000];
@@ -47,8 +53,7 @@ async function runHorseAnalyzerWithRetry(): Promise<void> {
           addMarketplaceButtons();
           
           // Only add energy recovery info if enabled in settings
-          const energyRecoveryEnabled = await loadEnergyRecoverySettings();
-          if (energyRecoveryEnabled) {
+          if (settings!.energyRecoveryEnabled) {
             addEnergyRecoveryInfo();
           }
         }, 100);
@@ -83,25 +88,26 @@ function cleanupUIComponents(): void {
 /**
  * Creates all UI components (DRY principle - shared between initialize and reinitialize)
  * @param ctx - WXT content script context
+ * @param settings - All application settings (optional, will load if not provided)
  */
-async function createUIComponents(ctx: any): Promise<void> {
-  // Always create settings modal first (needed to change settings)
-  if (CONFIG.FEATURES.SETTINGS_MODAL_ENABLED) {
-    await createSettingsModal(ctx);
-    debugLog('Settings modal created and mounted');
+async function createUIComponents(ctx: any, settings?: AllSettings): Promise<void> {
+  // Load settings if not provided
+  if (!settings) {
+    settings = await loadAllSettings();
   }
   
-  // Check if price converter is enabled via storage settings
-  const isConverterEnabled = await loadConverterSettings();
-  if (!isConverterEnabled) {
+  // Create settings modal first (always needed to change settings)
+  await createSettingsModal(ctx);
+  debugLog('Settings modal created and mounted');
+  
+  // Create currency conversion UI only if enabled
+  if (settings.converterEnabled) {
+    currencyUI = createCurrencyConversionUI(ctx);
+    currencyUI.autoMount();
+    debugLog('Currency conversion UI created and mounted');
+  } else {
     debugLog('Price converter is disabled via settings - skipping converter UI creation');
-    return;
   }
-  
-  // Create and auto-mount currency conversion UI component only if enabled
-  currencyUI = createCurrencyConversionUI(ctx);
-  currencyUI.autoMount();
-  debugLog('Currency conversion UI created and mounted');
 }
 
 /**
@@ -114,13 +120,14 @@ async function reinitializeComponents(ctx: any): Promise<void> {
   // Clean up existing components first
   cleanupUIComponents();
   
-  // Create all UI components using shared function
-  await createUIComponents(ctx);
+  // Load all settings once for efficiency
+  const settings = await loadAllSettings();
   
-  // Run horse analyzer again if enabled (with retry logic)
-  if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED && CONFIG.DEBUG) {
-    runHorseAnalyzerWithRetry();
-  }
+  // Create all UI components using shared function
+  await createUIComponents(ctx, settings);
+  
+  // Run horse analyzer (always enabled)
+  runHorseAnalyzerWithRetry(settings);
 }
 
 
@@ -132,10 +139,11 @@ async function initialize(ctx: any): Promise<void> {
   // Load user's preferred currency first (always needed for state)
   await initializeConversionState();
   
-  // Initialize horse analyzer and load persisted data
-  if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED) {
-    await initializeHorseAnalyzer();
-  }
+  // Load all settings once for efficiency
+  const settings = await loadAllSettings();
+  
+  // Initialize horse analyzer and load persisted data (always enabled)
+  await initializeHorseAnalyzer();
   
   try {
     // Fetch all token prices in single API call to populate cache
@@ -146,13 +154,10 @@ async function initialize(ctx: any): Promise<void> {
   }
   
   // Create all UI components using shared function (DRY principle)
-  // createUIComponents will check if converter is enabled via storage
-  await createUIComponents(ctx);
+  await createUIComponents(ctx, settings);
   
-  // Run horse analyzer if enabled (with retry logic)
-  if (CONFIG.FEATURES.HORSE_ANALYZER_ENABLED && CONFIG.DEBUG) {
-    runHorseAnalyzerWithRetry();
-  }
+  // Run horse analyzer (always enabled)
+  runHorseAnalyzerWithRetry(settings);
   
   // Add SPA navigation detection via click events on specific buttons
   // More efficient than MutationObserver or wxt:locationchange

@@ -70,6 +70,16 @@ const energyRecoveryEnabled = storage.defineItem<boolean>('local:energy_recovery
   fallback: true, // Default to enabled (same as current behavior)
 });
 
+// WXT storage item for settings modal enabled/disabled setting
+const settingsModalEnabled = storage.defineItem<boolean>('local:settings_modal_enabled', {
+  fallback: true, // Default to enabled (same as previous CONFIG.FEATURES.SETTINGS_MODAL_ENABLED)
+});
+
+// WXT storage item for horse analyzer enabled/disabled setting
+const horseAnalyzerEnabled = storage.defineItem<boolean>('local:horse_analyzer_enabled', {
+  fallback: true, // Default to enabled (same as previous CONFIG.FEATURES.HORSE_ANALYZER_ENABLED)
+});
+
 /**
  * Loads user's preferred currency from WXT storage
  * @returns Promise that resolves to user's preferred currency or default currency
@@ -348,6 +358,132 @@ export async function saveEnergyRecoverySettings(enabled: boolean): Promise<void
  */
 export function getEnergyRecoverySettingsStorageItem() {
   return energyRecoveryEnabled;
+}
+
+/**
+ * Loads settings modal enabled setting from WXT storage
+ * @returns Promise that resolves to boolean indicating if settings modal is enabled
+ */
+export async function loadSettingsModalSettings(): Promise<boolean> {
+  try {
+    const isEnabled = await settingsModalEnabled.getValue();
+    debugLog('Loaded settings modal setting:', isEnabled);
+    return isEnabled;
+  } catch (error) {
+    debugLog('Error loading settings modal setting:', error);
+    return true; // Default to enabled
+  }
+}
+
+/**
+ * Saves settings modal enabled setting to WXT storage
+ * @param enabled - Boolean indicating if settings modal should be enabled
+ */
+export async function saveSettingsModalSettings(enabled: boolean): Promise<void> {
+  try {
+    await settingsModalEnabled.setValue(enabled);
+    debugLog('Saved settings modal setting:', enabled);
+  } catch (error) {
+    debugLog('Error saving settings modal setting:', error);
+  }
+}
+
+/**
+ * Gets WXT storage item for settings modal settings (for advanced use cases)
+ * @returns WXT storage item instance
+ */
+export function getSettingsModalSettingsStorageItem() {
+  return settingsModalEnabled;
+}
+
+/**
+ * Loads horse analyzer enabled setting from WXT storage
+ * @returns Promise that resolves to boolean indicating if horse analyzer is enabled
+ */
+export async function loadHorseAnalyzerSettings(): Promise<boolean> {
+  try {
+    const isEnabled = await horseAnalyzerEnabled.getValue();
+    debugLog('Loaded horse analyzer setting:', isEnabled);
+    return isEnabled;
+  } catch (error) {
+    debugLog('Error loading horse analyzer setting:', error);
+    return true; // Default to enabled
+  }
+}
+
+/**
+ * Saves horse analyzer enabled setting to WXT storage
+ * @param enabled - Boolean indicating if horse analyzer should be enabled
+ */
+export async function saveHorseAnalyzerSettings(enabled: boolean): Promise<void> {
+  try {
+    await horseAnalyzerEnabled.setValue(enabled);
+    debugLog('Saved horse analyzer setting:', enabled);
+  } catch (error) {
+    debugLog('Error saving horse analyzer setting:', error);
+  }
+}
+
+/**
+ * Gets WXT storage item for horse analyzer settings (for advanced use cases)
+ * @returns WXT storage item instance
+ */
+export function getHorseAnalyzerSettingsStorageItem() {
+  return horseAnalyzerEnabled;
+}
+
+/**
+ * Interface for all application settings
+ */
+export interface AllSettings {
+  converterEnabled: boolean;
+  enabledCurrencies: ConversionKey[];
+  marketplaceLinksEnabled: boolean;
+  enabledMarketplaces: string[];
+  energyRecoveryEnabled: boolean;
+}
+
+/**
+ * Loads all application settings in a single function call
+ * @returns Promise that resolves to object with all current settings
+ */
+export async function loadAllSettings(): Promise<AllSettings> {
+  try {
+    const [
+      converterEnabled,
+      enabledCurrencies,
+      marketplaceLinksEnabled,
+      enabledMarketplaces,
+      energyRecoveryEnabled
+    ] = await Promise.all([
+      loadConverterSettings(),
+      loadEnabledCurrencies(),
+      loadMarketplaceSettings(),
+      loadEnabledMarketplaces(),
+      loadEnergyRecoverySettings()
+    ]);
+
+    const settings = {
+      converterEnabled,
+      enabledCurrencies,
+      marketplaceLinksEnabled,
+      enabledMarketplaces,
+      energyRecoveryEnabled
+    };
+
+    debugLog('Loaded all settings:', settings);
+    return settings;
+  } catch (error) {
+    debugLog('Error loading all settings:', error);
+    // Return default fallback settings
+    return {
+      converterEnabled: true,
+      enabledCurrencies: ['usd', 'ron'],
+      marketplaceLinksEnabled: true,
+      enabledMarketplaces: ['ronin', 'opensea'],
+      energyRecoveryEnabled: true
+    };
+  }
 }
 
 // Export types for use in other modules
