@@ -9,7 +9,7 @@ import {
   createSettingsModal, 
   cleanupSettingsModal 
 } from './modals/settings-modal';
-import { loadConverterSettings } from './storage';
+import { loadConverterSettings, loadEnergyRecoverySettings } from './storage';
 import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupMarketplaceButtons, addEnergyRecoveryInfo, cleanupEnergyRecoveryInfo } from './utils/horse-analyzer';
 
 // Window interface extension removed - no longer needed without manual timeout management
@@ -43,9 +43,14 @@ async function runHorseAnalyzerWithRetry(): Promise<void> {
         timeoutIds.slice(index + 1).forEach(id => clearTimeout(id));
         
         // Add marketplace buttons and energy recovery info after successful analysis
-        setTimeout(() => {
+        setTimeout(async () => {
           addMarketplaceButtons();
-          addEnergyRecoveryInfo();
+          
+          // Only add energy recovery info if enabled in settings
+          const energyRecoveryEnabled = await loadEnergyRecoverySettings();
+          if (energyRecoveryEnabled) {
+            addEnergyRecoveryInfo();
+          }
         }, 100);
       }
     }, delay);

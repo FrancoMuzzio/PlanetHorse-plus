@@ -94,13 +94,6 @@
   gap: 0;
 }
 
-.phorse-energy-current-text {
-  color: inherit;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-}
-
 .phorse-energy-recovery-text {
   color: rgb(31, 160, 80) !important;
   font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;

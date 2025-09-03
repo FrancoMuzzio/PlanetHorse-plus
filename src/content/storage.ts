@@ -65,6 +65,11 @@ const enabledMarketplaces = storage.defineItem<string[]>('local:enabled_marketpl
   fallback: ['ronin', 'opensea'], // Default to both marketplaces enabled
 });
 
+// WXT storage item for energy recovery info enabled/disabled setting
+const energyRecoveryEnabled = storage.defineItem<boolean>('local:energy_recovery_enabled', {
+  fallback: true, // Default to enabled (same as current behavior)
+});
+
 /**
  * Loads user's preferred currency from WXT storage
  * @returns Promise that resolves to user's preferred currency or default currency
@@ -307,6 +312,42 @@ export async function saveEnabledMarketplaces(marketplaces: string[]): Promise<v
  */
 export function getEnabledMarketplacesStorageItem() {
   return enabledMarketplaces;
+}
+
+/**
+ * Loads energy recovery info enabled setting from WXT storage
+ * @returns Promise that resolves to boolean indicating if energy recovery info is enabled
+ */
+export async function loadEnergyRecoverySettings(): Promise<boolean> {
+  try {
+    const isEnabled = await energyRecoveryEnabled.getValue();
+    debugLog('Loaded energy recovery setting:', isEnabled);
+    return isEnabled;
+  } catch (error) {
+    debugLog('Error loading energy recovery setting:', error);
+    return true; // Default to enabled
+  }
+}
+
+/**
+ * Saves energy recovery info enabled setting to WXT storage
+ * @param enabled - Boolean indicating if energy recovery info should be enabled
+ */
+export async function saveEnergyRecoverySettings(enabled: boolean): Promise<void> {
+  try {
+    await energyRecoveryEnabled.setValue(enabled);
+    debugLog('Saved energy recovery setting:', enabled);
+  } catch (error) {
+    debugLog('Error saving energy recovery setting:', error);
+  }
+}
+
+/**
+ * Gets WXT storage item for energy recovery settings (for advanced use cases)
+ * @returns WXT storage item instance
+ */
+export function getEnergyRecoverySettingsStorageItem() {
+  return energyRecoveryEnabled;
 }
 
 // Export types for use in other modules

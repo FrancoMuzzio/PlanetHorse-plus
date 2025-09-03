@@ -2,7 +2,7 @@
 // Analyzes and extracts information from Planet Horse game horses
 
 import { debugLog, CONFIG, calculateEnergyRecoveryPer6Hours } from '../config';
-import { saveHorseAnalysisData, loadHorseAnalysisData, loadMarketplaceSettings, loadEnabledMarketplaces, type StoredHorseAnalysis } from '../storage';
+import { saveHorseAnalysisData, loadHorseAnalysisData, loadMarketplaceSettings, loadEnabledMarketplaces, loadEnergyRecoverySettings, type StoredHorseAnalysis } from '../storage';
 
 // Track last analysis to avoid duplicates
 let lastAnalysisTimestamp = 0;
@@ -559,6 +559,13 @@ function willLoseEnergyNextRecovery(horse: any): boolean {
  * Modifies energy display to show recovery per 6 hours: "ENERGY: X/Y (+Z)" or "ENERGY: X/Y (-Z)"
  */
 export async function addEnergyRecoveryInfo(): Promise<void> {
+  // Check if energy recovery info is enabled via storage settings
+  const energyRecoveryEnabled = await loadEnergyRecoverySettings();
+  if (!energyRecoveryEnabled) {
+    debugLog('Energy recovery info disabled - skipping info display');
+    return;
+  }
+  
   // Clean up any existing energy recovery info first
   cleanupEnergyRecoveryInfo();
   
@@ -620,14 +627,21 @@ export async function addEnergyRecoveryInfo(): Promise<void> {
     // Determine if horse will lose energy instead of recovering
     const willLoseEnergy = willLoseEnergyNextRecovery(horse);
     
+    // Parse original text to separate "ENERGY:" from numbers
+    const energyParts = originalText.split('ENERGY:');
+    const energyLabel = 'ENERGY:';
+    const energyNumbers = energyParts[1]?.trim() || '';
+    
     // Clear the element and create structured content
     energyDescriptionElement.innerHTML = '';
     energyDescriptionElement.classList.add(CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER);
     
-    // Create span for current energy text
-    const currentEnergySpan = document.createElement('span');
-    currentEnergySpan.textContent = originalText;
-    currentEnergySpan.className = CONFIG.CSS_CLASSES.ENERGY_CURRENT_TEXT;
+    // Create text node for "ENERGY:" (no span, no styling)
+    const energyLabelText = document.createTextNode(energyLabel + ' ');
+    
+    // Create span for energy numbers only (inherits original styles including font-weight)
+    const energyNumbersSpan = document.createElement('span');
+    energyNumbersSpan.textContent = energyNumbers;
     
     // Create span for recovery/loss info
     const recoverySpan = document.createElement('span');
@@ -662,9 +676,10 @@ export async function addEnergyRecoveryInfo(): Promise<void> {
       recoverySpan.title = `Recovers ${recoveryPer6h} energy every 6 hours`;
     }
     
-    // Add both spans to the energy element
-    energyDescriptionElement.appendChild(currentEnergySpan);
-    energyDescriptionElement.appendChild(recoverySpan);
+    // Add all elements to the energy element
+    energyDescriptionElement.appendChild(energyLabelText);        // "ENERGY: " (plain text)
+    energyDescriptionElement.appendChild(energyNumbersSpan);     // "1/72" (bold)
+    energyDescriptionElement.appendChild(recoverySpan);          // " +15" (colored)
     
     debugLog(`Added energy recovery info for horse ${horse.id}: +${recoveryPer6h}/6h`);
   });
@@ -684,9 +699,20 @@ export function cleanupEnergyRecoveryInfo(): void {
     const elementsWithRecoveryInfo = document.querySelectorAll(`.${CONFIG.CSS_CLASSES.ENERGY_DISPLAY_CONTAINER}`);
     
     elementsWithRecoveryInfo.forEach(energyContainer => {
-      // Get the original text from the current energy span
-      const currentEnergySpan = energyContainer.querySelector(`.${CONFIG.CSS_CLASSES.ENERGY_CURRENT_TEXT}`);
-      const originalText = currentEnergySpan?.textContent || '';
+      // Reconstruct original text from text nodes and spans
+      let originalText = '';
+      energyContainer.childNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          originalText += node.textContent || '';
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as Element;
+          if (!element.classList.contains(CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT) && 
+              !element.classList.contains(CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE)) {
+            originalText += element.textContent || '';
+          }
+        }
+      });
+      originalText = originalText.trim();
       
       if (originalText) {
         // Remove the CSS classes we added

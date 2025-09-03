@@ -2,7 +2,7 @@
 import { CONFIG, debugLog, getConversionDisplayText, type ConversionKey } from '../config';
 import { createIntegratedUi } from '#imports';
 import settingGearIcon from '~/assets/icons/setting-gear.svg';
-import { loadConverterSettings, saveConverterSettings, loadEnabledCurrencies, saveEnabledCurrencies, loadMarketplaceSettings, saveMarketplaceSettings, loadEnabledMarketplaces, saveEnabledMarketplaces } from '../storage';
+import { loadConverterSettings, saveConverterSettings, loadEnabledCurrencies, saveEnabledCurrencies, loadMarketplaceSettings, saveMarketplaceSettings, loadEnabledMarketplaces, saveEnabledMarketplaces, loadEnergyRecoverySettings, saveEnergyRecoverySettings } from '../storage';
 import { getAllValidConversions } from '../utils/validation';
 
 // Default currencies to enable when turning on converter with no selections
@@ -20,6 +20,7 @@ let currentToggleState: boolean = true; // Current toggle state in modal
 let currentEnabledCurrencies: ConversionKey[] = DEFAULT_ENABLED_CURRENCIES.slice(); // Current enabled currencies in modal
 let currentMarketplaceToggleState: boolean = true; // Current marketplace toggle state in modal
 let currentEnabledMarketplaces: string[] = DEFAULT_ENABLED_MARKETPLACES.slice(); // Current enabled marketplaces in modal
+let currentEnergyRecoveryToggleState: boolean = true; // Current energy recovery toggle state in modal
 let wxtContext: any = null; // Store WXT context for applying changes
 
 /**
@@ -31,6 +32,7 @@ export async function showSettingsModal(): Promise<void> {
   currentEnabledCurrencies = await loadEnabledCurrencies();
   currentMarketplaceToggleState = await loadMarketplaceSettings();
   currentEnabledMarketplaces = await loadEnabledMarketplaces();
+  currentEnergyRecoveryToggleState = await loadEnergyRecoverySettings();
   
   // Mount modal if not already mounted
   if (modalUI && !modalContainer) {
@@ -52,12 +54,16 @@ export async function showSettingsModal(): Promise<void> {
     updateMarketplaceListVisibility();
     updateMarketplaceCheckboxes();
     
+    // Update energy recovery toggle state in UI
+    updateEnergyRecoveryToggleUI();
+    
     // Log computed z-index for debugging
     const computedStyle = window.getComputedStyle(modalContainer);
     debugLog(`Modal z-index: ${computedStyle.zIndex}`);
     
     debugLog('Modal shown with current toggle state:', currentToggleState, 'enabled currencies:', currentEnabledCurrencies);
     debugLog('Modal shown with current marketplace toggle state:', currentMarketplaceToggleState, 'enabled marketplaces:', currentEnabledMarketplaces);
+    debugLog('Modal shown with current energy recovery toggle state:', currentEnergyRecoveryToggleState);
   }
 }
 
@@ -262,6 +268,35 @@ function handleMarketplaceToggleChange(enabled: boolean): void {
 }
 
 /**
+ * Updates the energy recovery toggle UI to reflect current state
+ */
+function updateEnergyRecoveryToggleUI(): void {
+  const toggleInput = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.TOGGLE_SWITCH}[data-energy-recovery]`) as HTMLInputElement;
+  const statusText = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT}[data-energy-recovery]`) as HTMLSpanElement;
+  
+  if (toggleInput) {
+    toggleInput.checked = currentEnergyRecoveryToggleState;
+    debugLog('Updated energy recovery toggle UI state:', currentEnergyRecoveryToggleState);
+  }
+  
+  if (statusText) {
+    statusText.textContent = currentEnergyRecoveryToggleState ? 'ON' : 'OFF';
+    debugLog('Updated energy recovery toggle status text:', statusText.textContent);
+  }
+}
+
+/**
+ * Handles energy recovery toggle state change
+ * @param enabled - New energy recovery toggle state
+ */
+function handleEnergyRecoveryToggleChange(enabled: boolean): void {
+  currentEnergyRecoveryToggleState = enabled;
+  
+  updateEnergyRecoveryToggleUI();
+  debugLog('Energy recovery toggle state changed:', enabled);
+}
+
+/**
  * Handles save button click - saves settings and applies changes
  */
 async function handleSaveSettings(): Promise<void> {
@@ -269,7 +304,8 @@ async function handleSaveSettings(): Promise<void> {
     converterEnabled: currentToggleState, 
     enabledCurrencies: currentEnabledCurrencies,
     marketplaceLinksEnabled: currentMarketplaceToggleState,
-    enabledMarketplaces: currentEnabledMarketplaces
+    enabledMarketplaces: currentEnabledMarketplaces,
+    energyRecoveryEnabled: currentEnergyRecoveryToggleState
   });
   
   // Save to storage
@@ -277,6 +313,7 @@ async function handleSaveSettings(): Promise<void> {
   await saveEnabledCurrencies(currentEnabledCurrencies);
   await saveMarketplaceSettings(currentMarketplaceToggleState);
   await saveEnabledMarketplaces(currentEnabledMarketplaces);
+  await saveEnergyRecoverySettings(currentEnergyRecoveryToggleState);
   
   // Apply changes immediately by dispatching custom event
   // This allows main.ts to listen and reinitialize components
@@ -285,7 +322,8 @@ async function handleSaveSettings(): Promise<void> {
       converterEnabled: currentToggleState,
       enabledCurrencies: currentEnabledCurrencies,
       marketplaceLinksEnabled: currentMarketplaceToggleState,
-      enabledMarketplaces: currentEnabledMarketplaces
+      enabledMarketplaces: currentEnabledMarketplaces,
+      energyRecoveryEnabled: currentEnergyRecoveryToggleState
     }
   });
   document.dispatchEvent(settingsChangedEvent);
@@ -606,6 +644,58 @@ function createModalBody(): HTMLElement {
   // Marketplace list section (only visible when marketplace links are enabled)
   const marketplaceListSection = createMarketplaceListSection();
   
+  // Settings section for energy recovery info
+  const energyRecoverySettingsSection = document.createElement('div');
+  energyRecoverySettingsSection.classList.add(CONFIG.CSS_CLASSES.SETTINGS_SECTION);
+  energyRecoverySettingsSection.style.marginTop = '20px';
+  
+  // Label for energy recovery toggle
+  const energyRecoveryLabel = document.createElement('label');
+  energyRecoveryLabel.classList.add(CONFIG.CSS_CLASSES.SETTINGS_LABEL);
+  energyRecoveryLabel.textContent = 'Enable Energy Recovery Info';
+  
+  // Energy recovery toggle container
+  const energyRecoveryToggleContainer = document.createElement('div');
+  energyRecoveryToggleContainer.classList.add(CONFIG.CSS_CLASSES.TOGGLE_CONTAINER);
+  
+  // Energy recovery toggle switch (checkbox input)
+  const energyRecoveryToggleInput = document.createElement('input');
+  energyRecoveryToggleInput.type = 'checkbox';
+  energyRecoveryToggleInput.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SWITCH);
+  energyRecoveryToggleInput.checked = currentEnergyRecoveryToggleState;
+  energyRecoveryToggleInput.setAttribute('data-energy-recovery', ''); // Identifier for energy recovery toggle
+  
+  // Energy recovery toggle slider visual element
+  const energyRecoveryToggleSlider = document.createElement('span');
+  energyRecoveryToggleSlider.classList.add(CONFIG.CSS_CLASSES.TOGGLE_SLIDER);
+  
+  // Add energy recovery toggle event listener
+  energyRecoveryToggleInput.addEventListener('change', () => {
+    handleEnergyRecoveryToggleChange(energyRecoveryToggleInput.checked);
+  });
+  
+  // Energy recovery toggle status text
+  const energyRecoveryStatusText = document.createElement('span');
+  energyRecoveryStatusText.classList.add(CONFIG.CSS_CLASSES.TOGGLE_STATUS_TEXT);
+  energyRecoveryStatusText.textContent = currentEnergyRecoveryToggleState ? 'ON' : 'OFF';
+  energyRecoveryStatusText.setAttribute('data-energy-recovery', ''); // Identifier for energy recovery status
+  
+  // Assemble energy recovery toggle
+  energyRecoveryToggleContainer.appendChild(energyRecoveryToggleInput);
+  energyRecoveryToggleContainer.appendChild(energyRecoveryToggleSlider);
+  
+  // Create energy recovery toggle group container
+  const energyRecoveryToggleGroup = document.createElement('div');
+  energyRecoveryToggleGroup.style.display = 'flex';
+  energyRecoveryToggleGroup.style.alignItems = 'center';
+  energyRecoveryToggleGroup.style.gap = '10px';
+  energyRecoveryToggleGroup.appendChild(energyRecoveryToggleContainer);
+  energyRecoveryToggleGroup.appendChild(energyRecoveryStatusText);
+  
+  // Assemble energy recovery settings section
+  energyRecoverySettingsSection.appendChild(energyRecoveryLabel);
+  energyRecoverySettingsSection.appendChild(energyRecoveryToggleGroup);
+  
   // Modal footer with save button
   const footer = document.createElement('div');
   footer.classList.add(CONFIG.CSS_CLASSES.MODAL_FOOTER);
@@ -626,6 +716,7 @@ function createModalBody(): HTMLElement {
   body.appendChild(currencyListSection);
   body.appendChild(marketplaceSettingsSection);
   body.appendChild(marketplaceListSection);
+  body.appendChild(energyRecoverySettingsSection);
   body.appendChild(footer);
   
   return body;
