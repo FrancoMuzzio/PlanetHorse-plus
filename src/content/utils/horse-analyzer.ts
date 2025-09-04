@@ -13,20 +13,21 @@ const ANALYSIS_COOLDOWN = 3000; // 3 seconds cooldown between analyses
 
 /**
  * Main function to analyze all horses on the page
+ * @returns Promise<HorseInfo[]> Fresh analysis data from current DOM
  */
-export function analyzeHorses(): void {
+export async function analyzeHorses(): Promise<HorseInfo[]> {
   // Find all horse elements using the dynamic class pattern
   const horseElements = document.querySelectorAll('[class*="styles_singleHorse__"]');
   
   // Only proceed if horses are found (silent return if not)
   if (horseElements.length === 0) {
-    return;
+    return [];
   }
   
   // Check cooldown to avoid duplicate analyses
   const now = Date.now();
   if (now - lastAnalysisTimestamp < ANALYSIS_COOLDOWN) {
-    return;
+    return [];
   }
   lastAnalysisTimestamp = now;
   
@@ -46,7 +47,7 @@ export function analyzeHorses(): void {
   
   if (horses.length === 0) {
     debugLog('No horse data could be extracted');
-    return;
+    return [];
   }
   
   // Output to console - simple table
@@ -66,9 +67,12 @@ export function analyzeHorses(): void {
   (window as any).__horseAnalysisData = analysisData;
   
   // Save to persistent storage
-  saveHorseAnalysisData(analysisData as StoredHorseAnalysis);
+  await saveHorseAnalysisData(analysisData as StoredHorseAnalysis);
   
   debugLog('Horse analysis complete. Data stored in memory and storage');
+  
+  // Return fresh analysis data
+  return horses;
 }
 
 /**

@@ -1,9 +1,8 @@
 import { CONFIG, debugLog, getConversionDisplayText, type ConversionKey } from './config';
 import { getConvertedPrice } from './api';
-import { getCurrentConversion, setCurrentConversion, setIsReconnecting, setHasBeenAuthenticated } from './state';
+import { getCurrentConversion, setCurrentConversion } from './state';
 import { formatPrice } from './utils/formatting';
 import { createDropdownOptions, createDropdownButton, setupDropdownToggle, type DropdownCallbacks } from './utils/dropdown';
-import { restartHorseAnalyzer } from './main';
 
 // Removed WeakMap cache - elements recreate frequently in SPA navigation
 
@@ -95,16 +94,15 @@ export function createCurrencyConversionUI(ctx: any) {
           // Detect user disconnection: balance changes from > 0 to 0
           const lastBalanceNum = parseFloat(lastBalance) || 0;
           const currentBalanceNum = parseFloat(currentBalance) || 0;
+          
+          // Simple logging for connection status changes
           if (lastBalanceNum > 0 && currentBalanceNum === 0) {
             debugLog('User disconnection detected - balance changed from positive to zero');
-            setHasBeenAuthenticated(false); // Reset authentication state using centralized flag
           }
           
-          // Detect user reconnection: balance changes from 0 to positive
           if (lastBalanceNum === 0 && currentBalanceNum > 0) {
             debugLog('User reconnection detected - balance changed from zero to positive');
-            setIsReconnecting(true); // Set reconnection flag for coordination
-            // The horse analyzer will check this flag and handle reconnection appropriately
+            // The observer will automatically handle any new horse elements
           }
           
           lastBalance = currentBalance;
