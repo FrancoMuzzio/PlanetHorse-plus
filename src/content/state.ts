@@ -12,6 +12,11 @@ import { isValidConversion, createConversionValidationError, isConversionEnabled
 // Private state - not exported to prevent direct access
 let currentConversion: ConversionKey = CONFIG.DEFAULT_CURRENCY;
 
+// Coordination flags to prevent redundant initializations
+let isInitializing = false;
+let isReconnecting = false;
+let hasBeenAuthenticated = false;
+
 /**
  * Gets the current conversion state
  * @returns Current conversion key (e.g., 'usd', 'eur', 'ron')
@@ -85,5 +90,70 @@ export async function initializeConversionState(): Promise<void> {
   } catch (error) {
     debugLog('Error initializing conversion state:', error);
     currentConversion = CONFIG.DEFAULT_CURRENCY;
+  }
+}
+
+// ============= COORDINATION FLAGS MANAGEMENT =============
+
+/**
+ * Gets the current initialization state
+ * @returns true if extension is currently initializing
+ */
+export function getIsInitializing(): boolean {
+  return isInitializing;
+}
+
+/**
+ * Sets the initialization state
+ * @param value - true if extension is initializing, false otherwise
+ */
+export function setIsInitializing(value: boolean): void {
+  isInitializing = value;
+  if (value) {
+    debugLog('Extension initialization started');
+  } else {
+    debugLog('Extension initialization completed');
+  }
+}
+
+/**
+ * Gets the current reconnection state
+ * @returns true if user is currently reconnecting
+ */
+export function getIsReconnecting(): boolean {
+  return isReconnecting;
+}
+
+/**
+ * Sets the reconnection state
+ * @param value - true if user is reconnecting, false otherwise
+ */
+export function setIsReconnecting(value: boolean): void {
+  isReconnecting = value;
+  if (value) {
+    debugLog('User reconnection detected');
+  } else {
+    debugLog('User reconnection handling completed');
+  }
+}
+
+/**
+ * Gets the current authentication state
+ * @returns true if user has been authenticated at least once
+ */
+export function getHasBeenAuthenticated(): boolean {
+  return hasBeenAuthenticated;
+}
+
+/**
+ * Sets the authentication state
+ * @param value - true if user has been authenticated, false to reset
+ */
+export function setHasBeenAuthenticated(value: boolean): void {
+  hasBeenAuthenticated = value;
+  if (value) {
+    debugLog('User wallet authenticated');
+  } else {
+    debugLog('User authentication state reset');
   }
 }

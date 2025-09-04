@@ -1,7 +1,16 @@
 // ============= MAIN ORCHESTRATION =============
 import { CONFIG, debugLog } from './config';
 import { fetchAllTokenPrices } from './api';
-import { initializeConversionState, ensureCurrentConversionIsEnabled } from './state';
+import { 
+  initializeConversionState, 
+  ensureCurrentConversionIsEnabled,
+  getIsInitializing,
+  setIsInitializing,
+  getIsReconnecting,
+  setIsReconnecting,
+  getHasBeenAuthenticated,
+  setHasBeenAuthenticated
+} from './state';
 import { 
   createCurrencyConversionUI
 } from './ui';
@@ -10,12 +19,20 @@ import {
   cleanupSettingsModal 
 } from './modals/settings-modal';
 import { loadAllSettings, type AllSettings } from './storage';
-import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupMarketplaceButtons, addEnergyRecoveryInfo, cleanupEnergyRecoveryInfo, cleanupTooltips } from './utils/horse-analyzer';
+import { 
+  analyzeHorses, 
+  initializeHorseAnalyzer, 
+  getHorses,
+  cleanupMarketplaceButtons, 
+  cleanupEnergyRecoveryInfo, 
+  cleanupTooltips 
+} from './utils/horse-analyzer';
+import { addMarketplaceButtons } from './utils/marketplace-buttons';
+import { addEnergyRecoveryInfo } from './utils/energy-recovery';
 
 // Window interface extension removed - no longer needed without manual timeout management
 
 let currencyUI: any = null;
-let hasBeenAuthenticated = false;
 let wxtContext: any = null;
 
 /**
@@ -53,13 +70,21 @@ async function runHorseAnalyzerWithRetry(settings?: AllSettings): Promise<void> 
       if (horseElements.length > 0) {
         foundHorses = true;
         
-        // Detect first wallet authentication
+        // Check if this is a reconnection scenario
+        const isReconnecting = getIsReconnecting();
+        const hasBeenAuthenticated = getHasBeenAuthenticated();
+        
+        // Handle first-time authentication
         if (!hasBeenAuthenticated && wxtContext) {
-          hasBeenAuthenticated = true;
-          debugLog('Wallet authenticated - reinitializing extension');
-          setTimeout(() => {
-            reinitializeComponents(wxtContext);
-          }, 500);
+          setHasBeenAuthenticated(true);
+          debugLog('Wallet authenticated - adding horse features without full reinit');
+          // Don't reinitialize components - just add the horse-specific features
+        }
+        
+        // Handle reconnection scenario  
+        if (isReconnecting) {
+          setIsReconnecting(false); // Clear the reconnection flag
+          debugLog('Reconnection detected - restarting horse features');
         }
         
         // Cancel remaining timeouts since we found horses
@@ -67,11 +92,12 @@ async function runHorseAnalyzerWithRetry(settings?: AllSettings): Promise<void> 
         
         // Add marketplace buttons and energy recovery info after successful analysis
         setTimeout(async () => {
-          addMarketplaceButtons();
+          const horses = await getHorses();
+          await addMarketplaceButtons(horses);
           
           // Only add energy recovery info if enabled in settings
           if (settings!.energyRecoveryEnabled) {
-            addEnergyRecoveryInfo();
+            await addEnergyRecoveryInfo(horses);
           }
         }, 100);
       }
@@ -126,17 +152,29 @@ async function createUIComponents(ctx: any, settings?: AllSettings): Promise<voi
  * @param ctx - WXT content script context
  */
 async function reinitializeComponents(ctx: any): Promise<void> {
-  // Clean up existing components first
-  cleanupUIComponents();
+  // Prevent simultaneous reinitializations
+  if (getIsInitializing()) {
+    debugLog('Extension currently initializing - skipping reinit');
+    return;
+  }
   
-  // Load all settings once for efficiency
-  const settings = await loadAllSettings();
+  setIsInitializing(true);
   
-  // Create all UI components using shared function
-  await createUIComponents(ctx, settings);
-  
-  // Run horse analyzer (always enabled)
-  runHorseAnalyzerWithRetry(settings);
+  try {
+    // Clean up existing components first
+    cleanupUIComponents();
+    
+    // Load all settings once for efficiency
+    const settings = await loadAllSettings();
+    
+    // Create all UI components using shared function
+    await createUIComponents(ctx, settings);
+    
+    // Run horse analyzer (always enabled)
+    runHorseAnalyzerWithRetry(settings);
+  } finally {
+    setIsInitializing(false);
+  }
 }
 
 
@@ -145,31 +183,43 @@ async function reinitializeComponents(ctx: any): Promise<void> {
  * Loads user preferences and sets up WXT UI components with automatic SPA navigation
  */
 async function initialize(ctx: any): Promise<void> {
-  // Store context for later use
-  wxtContext = ctx;
-  
-  // Load user's preferred currency first (always needed for state)
-  await initializeConversionState();
-  
-  // Load all settings once for efficiency
-  const settings = await loadAllSettings();
-  
-  // Initialize horse analyzer and load persisted data (always enabled)
-  await initializeHorseAnalyzer();
-  
-  try {
-    // Fetch all token prices in single API call to populate cache
-    await fetchAllTokenPrices();
-  } catch (error) {
-    debugLog('Error fetching token prices:', error);
-    // Continue initialization - UI will handle connection errors
+  // Prevent multiple simultaneous initializations
+  if (getIsInitializing()) {
+    debugLog('Extension already initializing - skipping duplicate initialization');
+    return;
   }
   
-  // Create all UI components using shared function (DRY principle)
-  await createUIComponents(ctx, settings);
+  setIsInitializing(true);
   
-  // Run horse analyzer (always enabled)
-  runHorseAnalyzerWithRetry(settings);
+  try {
+    // Store context for later use
+    wxtContext = ctx;
+    
+    // Load user's preferred currency first (always needed for state)
+    await initializeConversionState();
+    
+    // Load all settings once for efficiency
+    const settings = await loadAllSettings();
+    
+    // Initialize horse analyzer and load persisted data (always enabled)
+    await initializeHorseAnalyzer();
+    
+    try {
+      // Fetch all token prices in single API call to populate cache
+      await fetchAllTokenPrices();
+    } catch (error) {
+      debugLog('Error fetching token prices:', error);
+      // Continue initialization - UI will handle connection errors
+    }
+    
+    // Create all UI components using shared function (DRY principle)
+    await createUIComponents(ctx, settings);
+    
+    // Run horse analyzer (always enabled)
+    runHorseAnalyzerWithRetry(settings);
+  } finally {
+    setIsInitializing(false);
+  }
   
   // Add SPA navigation detection via click events on specific buttons
   // More efficient than MutationObserver or wxt:locationchange
@@ -214,16 +264,11 @@ export async function applySettingsChanges(ctx: any): Promise<void> {
  * Called when user reconnection is detected
  */
 export function restartHorseAnalyzer(): void {
-  runHorseAnalyzerWithRetry();
-}
-
-/**
- * Resets the authentication state when user disconnects
- * Called from UI components when disconnection is detected
- */
-export function resetAuthenticationState(): void {
-  hasBeenAuthenticated = false;
-  debugLog('Authentication state reset - user disconnected');
+  // Only restart if not currently reconnecting to avoid duplicates
+  if (!getIsReconnecting()) {
+    debugLog('Manually restarting horse analyzer');
+    runHorseAnalyzerWithRetry();
+  }
 }
 
 // Export initialize function for WXT entrypoint
