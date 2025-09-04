@@ -3,8 +3,8 @@
 
 import { CONFIG, debugLog } from '../config';
 import { extractHorseData, type HorseInfo } from './horse-data-extractor';
-import { addMarketplaceButtons } from './marketplace-buttons';
-import { addEnergyRecoveryInfo } from './energy-recovery';
+import { addMarketplaceButtons, cleanupMarketplaceButtons } from './marketplace-buttons';
+import { addEnergyRecoveryInfo, cleanupEnergyRecoveryInfo } from './energy-recovery';
 import { loadAllSettings } from '../storage';
 
 // WeakMap para trackear elementos ya procesados
@@ -242,12 +242,35 @@ function processExistingHorses(): void {
  */
 export async function updateObserverSettings(): Promise<void> {
   const settings = await loadAllSettings();
+  
+  // Store old settings to compare changes
+  const oldSettings = { ...cachedSettings };
+  
+  // Update cached settings
   cachedSettings = {
     marketplaceLinksEnabled: settings.marketplaceLinksEnabled,
     energyRecoveryEnabled: settings.energyRecoveryEnabled,
     enabledMarketplaces: settings.enabledMarketplaces
   };
-  debugLog('Observer settings updated');
+  
+  debugLog('Observer settings updated', { oldSettings, newSettings: cachedSettings });
+  
+  // If marketplace links were disabled, clean up existing buttons
+  if (oldSettings.marketplaceLinksEnabled && !cachedSettings.marketplaceLinksEnabled) {
+    debugLog('Marketplace links disabled - cleaning up existing buttons');
+    cleanupMarketplaceButtons();
+  }
+  
+  // If energy recovery was disabled, clean up existing energy recovery info
+  if (oldSettings.energyRecoveryEnabled && !cachedSettings.energyRecoveryEnabled) {
+    debugLog('Energy recovery disabled - cleaning up existing info');
+    cleanupEnergyRecoveryInfo();
+  }
+  
+  // Force reprocessing of existing horses when settings change
+  // This ensures immediate application of new settings
+  debugLog('Forcing reprocessing of existing horses with new settings');
+  processExistingHorses();
 }
 
 /**

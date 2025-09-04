@@ -266,27 +266,63 @@ function handleEnergyRecoveryToggleChange(enabled: boolean): void {
  * Handles save button click - saves settings and applies changes
  */
 async function handleSaveSettings(): Promise<void> {
+  const saveButton = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.SAVE_BUTTON}`) as HTMLButtonElement;
+  const originalButtonText = saveButton?.textContent || 'Save';
   
-  // Save all settings to storage in parallel for efficiency
-  await Promise.all([
-    saveConverterSettings(currentSettings.converterEnabled),
-    saveEnabledCurrencies(currentSettings.enabledCurrencies),
-    saveMarketplaceSettings(currentSettings.marketplaceLinksEnabled),
-    saveEnabledMarketplaces(currentSettings.enabledMarketplaces),
-    saveEnergyRecoverySettings(currentSettings.energyRecoveryEnabled)
-  ]);
-  
-  // Apply changes immediately by dispatching custom event
-  // This allows main.ts to listen and reinitialize components
-  const settingsChangedEvent = new CustomEvent('phorseSettingsChanged', {
-    detail: currentSettings
-  });
-  document.dispatchEvent(settingsChangedEvent);
-  
-  // Close modal after saving
-  hideSettingsModal();
-  
-  debugLog('Settings saved and applied');
+  try {
+    // Show loading state
+    if (saveButton) {
+      saveButton.disabled = true;
+      saveButton.textContent = 'Saving...';
+      saveButton.style.opacity = '0.7';
+    }
+    
+    // Save all settings to storage in parallel for efficiency
+    await Promise.all([
+      saveConverterSettings(currentSettings.converterEnabled),
+      saveEnabledCurrencies(currentSettings.enabledCurrencies),
+      saveMarketplaceSettings(currentSettings.marketplaceLinksEnabled),
+      saveEnabledMarketplaces(currentSettings.enabledMarketplaces),
+      saveEnergyRecoverySettings(currentSettings.energyRecoveryEnabled)
+    ]);
+    
+    // Show success state briefly
+    if (saveButton) {
+      saveButton.textContent = '✓ Saved!';
+      saveButton.style.backgroundColor = '#4CAF50';
+    }
+    
+    // Apply changes immediately by dispatching custom event
+    // This allows main.ts to listen and reinitialize components
+    const settingsChangedEvent = new CustomEvent('phorseSettingsChanged', {
+      detail: currentSettings
+    });
+    document.dispatchEvent(settingsChangedEvent);
+    
+    debugLog('Settings saved and applied successfully');
+    
+    // Close modal after brief success display
+    setTimeout(() => {
+      hideSettingsModal();
+    }, 500);
+    
+  } catch (error) {
+    debugLog('Error saving settings:', error);
+    
+    // Show error state
+    if (saveButton) {
+      saveButton.textContent = '✗ Error - Try Again';
+      saveButton.style.backgroundColor = '#f44336';
+      saveButton.disabled = false;
+      saveButton.style.opacity = '1';
+      
+      // Reset button after error display
+      setTimeout(() => {
+        saveButton.textContent = originalButtonText;
+        saveButton.style.backgroundColor = '';
+      }, 2000);
+    }
+  }
 }
 
 /**
