@@ -15,6 +15,8 @@ import { analyzeHorses, initializeHorseAnalyzer, addMarketplaceButtons, cleanupM
 // Window interface extension removed - no longer needed without manual timeout management
 
 let currencyUI: any = null;
+let hasBeenAuthenticated = false;
+let wxtContext: any = null;
 
 /**
  * Runs horse analyzer with smart retry logic that stops once horses are found
@@ -29,6 +31,12 @@ async function runHorseAnalyzerWithRetry(settings?: AllSettings): Promise<void> 
   // Use smart retry logic that stops once horses are found
   let foundHorses = false;
   const retryDelays = [100, 500, 1000, 2000];
+  
+  // Add long retries for wallet detection (2s x 300 = 10 minutes)
+  for (let i = 0; i < 300; i++) {
+    retryDelays.push(2000);
+  }
+  
   const timeoutIds: NodeJS.Timeout[] = [];
   
   retryDelays.forEach((delay, index) => {
@@ -44,6 +52,15 @@ async function runHorseAnalyzerWithRetry(settings?: AllSettings): Promise<void> 
       const horseElements = document.querySelectorAll('[class*="styles_singleHorse__"]');
       if (horseElements.length > 0) {
         foundHorses = true;
+        
+        // Detect first wallet authentication
+        if (!hasBeenAuthenticated && wxtContext) {
+          hasBeenAuthenticated = true;
+          debugLog('Wallet authenticated - reinitializing extension');
+          setTimeout(() => {
+            reinitializeComponents(wxtContext);
+          }, 500);
+        }
         
         // Cancel remaining timeouts since we found horses
         timeoutIds.slice(index + 1).forEach(id => clearTimeout(id));
@@ -68,8 +85,6 @@ async function runHorseAnalyzerWithRetry(settings?: AllSettings): Promise<void> 
  * Cleans up existing WXT UI components
  */
 function cleanupUIComponents(): void {
-  debugLog('Cleaning up existing UI components...');
-  
   if (currencyUI) {
     currencyUI.remove();
     currencyUI = null;
@@ -81,8 +96,6 @@ function cleanupUIComponents(): void {
   // Clean up marketplace buttons and energy recovery info
   cleanupMarketplaceButtons();
   cleanupEnergyRecoveryInfo();
-  
-  debugLog('UI components cleaned up');
 }
 
 /**
@@ -98,15 +111,13 @@ async function createUIComponents(ctx: any, settings?: AllSettings): Promise<voi
   
   // Create settings modal first (always needed to change settings)
   await createSettingsModal(ctx);
-  debugLog('Settings modal created and mounted');
   
   // Create currency conversion UI only if enabled
   if (settings.converterEnabled) {
     currencyUI = createCurrencyConversionUI(ctx);
     currencyUI.autoMount();
-    debugLog('Currency conversion UI created and mounted');
   } else {
-    debugLog('Price converter is disabled via settings - skipping converter UI creation');
+    debugLog('Price converter is disabled via settings');
   }
 }
 
@@ -115,8 +126,6 @@ async function createUIComponents(ctx: any, settings?: AllSettings): Promise<voi
  * @param ctx - WXT content script context
  */
 async function reinitializeComponents(ctx: any): Promise<void> {
-  debugLog('Re-initializing components after SPA navigation...');
-  
   // Clean up existing components first
   cleanupUIComponents();
   
@@ -136,6 +145,9 @@ async function reinitializeComponents(ctx: any): Promise<void> {
  * Loads user preferences and sets up WXT UI components with automatic SPA navigation
  */
 async function initialize(ctx: any): Promise<void> {
+  // Store context for later use
+  wxtContext = ctx;
+  
   // Load user's preferred currency first (always needed for state)
   await initializeConversionState();
   
@@ -166,8 +178,6 @@ async function initialize(ctx: any): Promise<void> {
     
     // Check if clicked element is a navigation button
     if (target.matches('[class*="styles_buyButton__"], [class*="styles_racingButton__"]')) {
-      debugLog('Navigation button clicked, scheduling component re-initialization...');
-      
       // Delay re-initialization to allow SPA navigation to complete
       setTimeout(() => {
         reinitializeComponents(ctx);
@@ -187,7 +197,6 @@ async function initialize(ctx: any): Promise<void> {
     await reinitializeComponents(ctx);
   });
   
-  debugLog('SPA navigation detection and settings change listeners set up');
 }
 
 /**
@@ -196,8 +205,25 @@ async function initialize(ctx: any): Promise<void> {
  * @param ctx - WXT content script context
  */
 export async function applySettingsChanges(ctx: any): Promise<void> {
-  debugLog('Applying settings changes immediately...');
   await reinitializeComponents(ctx);
+}
+
+// Export initialize function for WXT entrypoint
+/**
+ * Restarts the horse analyzer retry loop
+ * Called when user reconnection is detected
+ */
+export function restartHorseAnalyzer(): void {
+  runHorseAnalyzerWithRetry();
+}
+
+/**
+ * Resets the authentication state when user disconnects
+ * Called from UI components when disconnection is detected
+ */
+export function resetAuthenticationState(): void {
+  hasBeenAuthenticated = false;
+  debugLog('Authentication state reset - user disconnected');
 }
 
 // Export initialize function for WXT entrypoint

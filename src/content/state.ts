@@ -36,7 +36,6 @@ export function setCurrentConversion(newConversion: ConversionKey): void {
   // Persist user preference using WXT storage (non-blocking)
   const storageItem = getUserPreferredCurrencyStorageItem();
   storageItem.setValue(newConversion).catch(error => {
-    debugLog('Failed to save user preferred currency:', error);
   });
 }
 
@@ -49,17 +48,14 @@ export async function ensureCurrentConversionIsEnabled(): Promise<void> {
     const isCurrentEnabled = await isConversionEnabled(currentConversion);
     
     if (!isCurrentEnabled) {
-      debugLog('Current conversion is not enabled:', currentConversion);
       const fallbackConversion = await getFirstEnabledConversion();
       currentConversion = fallbackConversion;
       
       // Persist the fallback choice
       const storageItem = getUserPreferredCurrencyStorageItem();
       storageItem.setValue(fallbackConversion).catch(error => {
-        debugLog('Failed to save fallback currency:', error);
       });
       
-      debugLog('Switched to fallback conversion:', fallbackConversion);
     }
   } catch (error) {
     debugLog('Error ensuring conversion is enabled:', error);

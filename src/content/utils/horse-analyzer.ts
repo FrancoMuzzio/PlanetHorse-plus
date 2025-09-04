@@ -283,7 +283,6 @@ export function analyzeHorses(): void {
   
   // Output to console - simple table
   console.log(`🐴 Found ${horses.length} horses`);
-  console.table(horses.map(formatHorseForConsole));
   
   // Store analysis data
   const analysisData = {
@@ -513,9 +512,7 @@ export async function addMarketplaceButtons(): Promise<void> {
     if (buttonsContainer.children.length > 0) {
       // Add both text and buttons to the ID element
       idElement.appendChild(idTextSpan);
-      idElement.appendChild(buttonsContainer);
-      
-      debugLog(`Added marketplace buttons for horse ${horse.id} (Gen ${horse.generation}) - enabled:`, enabledMarketplaces);
+      idElement.appendChild(buttonsContainer); 
     } else {
       // Just add the text back if no buttons are enabled
       idElement.appendChild(idTextSpan);
@@ -718,9 +715,7 @@ export async function addEnergyRecoveryInfo(): Promise<void> {
     energyDescriptionElement.appendChild(energyLabelText);        // "ENERGY: " (plain text)
     energyDescriptionElement.appendChild(energyNumbersSpan);     // "1/72" (bold)
     energyDescriptionElement.appendChild(recoverySpan);          // " +15" (colored)
-    
-    debugLog(`Added energy recovery info for horse ${horse.id}: +${recoveryPer6h}/6h`);
-  });
+    });
   
   debugLog('Energy recovery info setup complete');
 }
@@ -753,7 +748,6 @@ export function cleanupEnergyRecoveryInfo(): void {
         // Restore the original HTML content to preserve formatting (bold, etc.)
         energyContainer.innerHTML = originalHTML;
         
-        debugLog(`Cleaned up energy recovery info, restored original HTML with formatting preserved`);
       } else {
         // Fallback to text-based cleanup for elements that don't have stored HTML
         let originalText = '';
@@ -777,7 +771,6 @@ export function cleanupEnergyRecoveryInfo(): void {
           // Restore the original simple text content (fallback)
           energyContainer.innerHTML = originalText;
           
-          debugLog(`Cleaned up energy recovery info (fallback): ${originalText}`);
         }
       }
     });
@@ -836,7 +829,6 @@ export function cleanupMarketplaceButtons(): void {
         // Restore the original simple text content
         idElement.innerHTML = originalText;
         
-        debugLog(`Cleaned up marketplace buttons for horse ID: ${originalText}`);
       }
     });
     

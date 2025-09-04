@@ -486,10 +486,8 @@ export function getConversionDisplayText(conversionKey: ConversionKey, infoKey: 
 export function findElementByClassPrefix(prefix: string): HTMLElement | null {
   try {
     const element = document.querySelector(`[class*="${prefix}"]`) as HTMLElement | null;
-    debugLog(`findElementByClassPrefix("${prefix}"):`, element ? 'Found' : 'Not found');
     return element;
   } catch (error) {
-    debugLog(`Error in findElementByClassPrefix("${prefix}"):`, error);
     return null;
   }
 }

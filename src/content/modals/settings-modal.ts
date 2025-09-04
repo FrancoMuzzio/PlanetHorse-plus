@@ -35,7 +35,6 @@ export async function showSettingsModal(): Promise<void> {
   // Mount modal if not already mounted
   if (modalUI && !modalContainer) {
     modalUI.mount();
-    debugLog('Modal mounted');
   }
   
   if (modalContainer && !isModalVisible) {
@@ -55,11 +54,6 @@ export async function showSettingsModal(): Promise<void> {
     // Update energy recovery toggle state in UI
     updateEnergyRecoveryToggleUI();
     
-    // Log computed z-index for debugging
-    const computedStyle = window.getComputedStyle(modalContainer);
-    debugLog(`Modal z-index: ${computedStyle.zIndex}`);
-    
-    debugLog('Modal shown with current settings:', currentSettings);
   }
 }
 
@@ -71,12 +65,9 @@ export function hideSettingsModal(): void {
     modalContainer.classList.remove('visible');
     isModalVisible = false;
     
-    debugLog('Modal hidden');
-    
     // Unmount modal to clean up DOM
     if (modalUI) {
       modalUI.remove();
-      debugLog('Modal unmounted');
     }
   }
 }
@@ -90,12 +81,10 @@ function updateToggleUI(): void {
   
   if (toggleInput) {
     toggleInput.checked = currentSettings.converterEnabled;
-    debugLog('Updated toggle UI state:', currentSettings.converterEnabled);
   }
   
   if (statusText) {
     statusText.textContent = currentSettings.converterEnabled ? 'ON' : 'OFF';
-    debugLog('Updated toggle status text:', statusText.textContent);
   }
 }
 
@@ -106,7 +95,6 @@ function updateCurrencyListVisibility(): void {
   const currencyListSection = modalContainer?.querySelector(`.${CONFIG.CSS_CLASSES.CURRENCY_LIST_SECTION}`);
   if (currencyListSection) {
     currencyListSection.style.display = currentSettings.converterEnabled ? 'block' : 'none';
-    debugLog('Updated currency list visibility:', currentSettings.converterEnabled ? 'visible' : 'hidden');
   }
 }
 
@@ -121,7 +109,6 @@ function updateCurrencyCheckboxes(): void {
       checkbox.checked = currentSettings.enabledCurrencies.includes(currencyKey);
     }
   });
-  debugLog('Updated currency checkboxes for enabled currencies:', currentSettings.enabledCurrencies);
 }
 
 /**
@@ -145,12 +132,9 @@ function handleCurrencyToggle(currencyKey: ConversionKey, enabled: boolean): voi
   
   // Auto-disable converter if all currencies are unchecked
   if (currentSettings.enabledCurrencies.length === 0 && currentSettings.converterEnabled) {
-    debugLog('All currencies disabled - automatically turning OFF converter');
     handleToggleChange(false);
   }
   
-  debugLog('Currency toggle changed:', currencyKey, enabled ? 'enabled' : 'disabled');
-  debugLog('Current enabled currencies:', currentSettings.enabledCurrencies);
 }
 
 /**
@@ -162,14 +146,12 @@ function handleToggleChange(enabled: boolean): void {
   
   // Auto-enable default currencies when turning ON with no selections
   if (enabled && currentSettings.enabledCurrencies.length === 0) {
-    debugLog('Converter enabled with no currencies - auto-enabling default currencies');
     currentSettings.enabledCurrencies = DEFAULT_ENABLED_CURRENCIES.slice();
     updateCurrencyCheckboxes();
   }
   
   updateToggleUI();
   updateCurrencyListVisibility();
-  debugLog('Toggle state changed:', enabled);
 }
 
 /**
@@ -181,12 +163,10 @@ function updateMarketplaceToggleUI(): void {
   
   if (toggleInput) {
     toggleInput.checked = currentSettings.marketplaceLinksEnabled;
-    debugLog('Updated marketplace toggle UI state:', currentSettings.marketplaceLinksEnabled);
   }
   
   if (statusText) {
     statusText.textContent = currentSettings.marketplaceLinksEnabled ? 'ON' : 'OFF';
-    debugLog('Updated marketplace toggle status text:', statusText.textContent);
   }
 }
 
@@ -197,7 +177,6 @@ function updateMarketplaceListVisibility(): void {
   const marketplaceListSection = modalContainer?.querySelector(`[data-marketplace-section]`);
   if (marketplaceListSection) {
     marketplaceListSection.style.display = currentSettings.marketplaceLinksEnabled ? 'block' : 'none';
-    debugLog('Updated marketplace list visibility:', currentSettings.marketplaceLinksEnabled ? 'visible' : 'hidden');
   }
 }
 
@@ -212,7 +191,6 @@ function updateMarketplaceCheckboxes(): void {
       checkbox.checked = currentSettings.enabledMarketplaces.includes(marketplaceKey);
     }
   });
-  debugLog('Updated marketplace checkboxes for enabled marketplaces:', currentSettings.enabledMarketplaces);
 }
 
 /**
@@ -236,12 +214,9 @@ function handleMarketplaceToggle(marketplaceKey: string, enabled: boolean): void
   
   // Auto-disable marketplace links if all marketplaces are unchecked
   if (currentSettings.enabledMarketplaces.length === 0 && currentSettings.marketplaceLinksEnabled) {
-    debugLog('All marketplaces disabled - automatically turning OFF marketplace links');
     handleMarketplaceToggleChange(false);
   }
   
-  debugLog('Marketplace toggle changed:', marketplaceKey, enabled ? 'enabled' : 'disabled');
-  debugLog('Current enabled marketplaces:', currentSettings.enabledMarketplaces);
 }
 
 /**
@@ -253,14 +228,12 @@ function handleMarketplaceToggleChange(enabled: boolean): void {
   
   // Auto-enable default marketplaces when turning ON with no selections
   if (enabled && currentSettings.enabledMarketplaces.length === 0) {
-    debugLog('Marketplace links enabled with no marketplaces - auto-enabling default marketplaces');
     currentSettings.enabledMarketplaces = DEFAULT_ENABLED_MARKETPLACES.slice();
     updateMarketplaceCheckboxes();
   }
   
   updateMarketplaceToggleUI();
   updateMarketplaceListVisibility();
-  debugLog('Marketplace toggle state changed:', enabled);
 }
 
 /**
@@ -272,12 +245,10 @@ function updateEnergyRecoveryToggleUI(): void {
   
   if (toggleInput) {
     toggleInput.checked = currentSettings.energyRecoveryEnabled;
-    debugLog('Updated energy recovery toggle UI state:', currentSettings.energyRecoveryEnabled);
   }
   
   if (statusText) {
     statusText.textContent = currentSettings.energyRecoveryEnabled ? 'ON' : 'OFF';
-    debugLog('Updated energy recovery toggle status text:', statusText.textContent);
   }
 }
 
@@ -289,14 +260,12 @@ function handleEnergyRecoveryToggleChange(enabled: boolean): void {
   currentSettings.energyRecoveryEnabled = enabled;
   
   updateEnergyRecoveryToggleUI();
-  debugLog('Energy recovery toggle state changed:', enabled);
 }
 
 /**
  * Handles save button click - saves settings and applies changes
  */
 async function handleSaveSettings(): Promise<void> {
-  debugLog('Saving settings...', currentSettings);
   
   // Save all settings to storage in parallel for efficiency
   await Promise.all([
@@ -705,12 +674,10 @@ function createSettingsButton(ctx: any): void {
         button.addEventListener('click', async (e) => {
           e.stopPropagation();
           e.preventDefault();
-          debugLog('Settings button clicked');
           await showSettingsModal();
         });
         
         container.appendChild(button);
-        debugLog('Settings button mounted');
       }
     });
 
@@ -748,10 +715,8 @@ function createModal(ctx: any): void {
         // Create and append modal content
         container.appendChild(createModalContent());
         
-        debugLog('Modal UI created and ready');
       },
       onRemove: () => {
-        debugLog('Modal onRemove triggered');
         modalContainer = null;
         isModalVisible = false;
       }
@@ -773,14 +738,12 @@ export async function createSettingsModal(ctx: any): Promise<void> {
   createModal(ctx);
   createSettingsButton(ctx);
   
-  debugLog('Settings modal system created');
 }
 
 /**
  * Cleans up settings modal components
  */
 export function cleanupSettingsModal(): void {
-  debugLog('Cleaning up settings modal components...');
   
   if (buttonUI) {
     buttonUI.remove();
@@ -796,5 +759,4 @@ export function cleanupSettingsModal(): void {
   isModalVisible = false;
   wxtContext = null;
   
-  debugLog('Settings modal components cleaned up');
 }

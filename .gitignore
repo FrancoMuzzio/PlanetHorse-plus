@@ -6,4 +6,4 @@ node_modules/
 .output/
 *.zip
 npm-debug.log
-.analysis/wxt-migration-opportunities.md
+.analysis/

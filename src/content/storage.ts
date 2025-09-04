@@ -90,16 +90,13 @@ export async function loadUserPreferredCurrency(): Promise<ConversionKey> {
     
     // Validate that saved currency is still valid (business logic validation)
     if (isValidConversion(savedCurrency)) {
-      debugLog('Loaded user preferred currency:', savedCurrency);
       return savedCurrency;
     } else {
-      debugLog('Invalid saved currency:', savedCurrency, 'falling back to default');
       // Reset to default if invalid
       await userPreferredCurrency.setValue(CONFIG.DEFAULT_CURRENCY);
       return CONFIG.DEFAULT_CURRENCY;
     }
   } catch (error) {
-    debugLog('Error loading user preferred currency:', error);
     return CONFIG.DEFAULT_CURRENCY;
   }
 }
@@ -111,9 +108,7 @@ export async function loadUserPreferredCurrency(): Promise<ConversionKey> {
 export async function saveUserPreferredCurrency(currency: ConversionKey): Promise<void> {
   try {
     await userPreferredCurrency.setValue(currency);
-    debugLog('Saved user preferred currency:', currency);
   } catch (error) {
-    debugLog('Error saving user preferred currency:', error);
     // Non-critical error - extension continues to function without persistence
   }
 }
@@ -124,9 +119,7 @@ export async function saveUserPreferredCurrency(currency: ConversionKey): Promis
 export async function clearUserPreferredCurrency(): Promise<void> {
   try {
     await userPreferredCurrency.removeValue();
-    debugLog('Cleared user preferred currency - will use fallback:', CONFIG.DEFAULT_CURRENCY);
   } catch (error) {
-    debugLog('Error clearing user preferred currency:', error);
   }
 }
 
@@ -145,10 +138,8 @@ export function getUserPreferredCurrencyStorageItem() {
 export async function loadConverterSettings(): Promise<boolean> {
   try {
     const isEnabled = await priceConverterEnabled.getValue();
-    debugLog('Loaded price converter setting:', isEnabled);
     return isEnabled;
   } catch (error) {
-    debugLog('Error loading price converter setting:', error);
     return true; // Default to enabled
   }
 }
@@ -160,9 +151,7 @@ export async function loadConverterSettings(): Promise<boolean> {
 export async function saveConverterSettings(enabled: boolean): Promise<void> {
   try {
     await priceConverterEnabled.setValue(enabled);
-    debugLog('Saved price converter setting:', enabled);
   } catch (error) {
-    debugLog('Error saving price converter setting:', error);
   }
 }
 
@@ -181,10 +170,8 @@ export function getConverterSettingsStorageItem() {
 export async function loadEnabledCurrencies(): Promise<ConversionKey[]> {
   try {
     const enabled = await enabledCurrencies.getValue();
-    debugLog('Loaded enabled currencies:', enabled);
     return enabled;
   } catch (error) {
-    debugLog('Error loading enabled currencies:', error);
     return ['usd', 'ron']; // Default fallback
   }
 }
@@ -196,9 +183,7 @@ export async function loadEnabledCurrencies(): Promise<ConversionKey[]> {
 export async function saveEnabledCurrencies(currencies: ConversionKey[]): Promise<void> {
   try {
     await enabledCurrencies.setValue(currencies);
-    debugLog('Saved enabled currencies:', currencies);
   } catch (error) {
-    debugLog('Error saving enabled currencies:', error);
   }
 }
 
@@ -217,9 +202,7 @@ export function getEnabledCurrenciesStorageItem() {
 export async function saveHorseAnalysisData(data: StoredHorseAnalysis): Promise<void> {
   try {
     await horseAnalysisData.setValue(data);
-    debugLog('Saved horse analysis data:', data.horses.length, 'horses');
   } catch (error) {
-    debugLog('Error saving horse analysis data:', error);
   }
 }
 
@@ -230,12 +213,8 @@ export async function saveHorseAnalysisData(data: StoredHorseAnalysis): Promise<
 export async function loadHorseAnalysisData(): Promise<StoredHorseAnalysis | null> {
   try {
     const data = await horseAnalysisData.getValue();
-    if (data) {
-      debugLog('Loaded horse analysis data:', data.horses.length, 'horses from', data.timestamp);
-    }
     return data;
   } catch (error) {
-    debugLog('Error loading horse analysis data:', error);
     return null;
   }
 }
@@ -246,9 +225,7 @@ export async function loadHorseAnalysisData(): Promise<StoredHorseAnalysis | nul
 export async function clearHorseAnalysisData(): Promise<void> {
   try {
     await horseAnalysisData.removeValue();
-    debugLog('Cleared horse analysis data');
   } catch (error) {
-    debugLog('Error clearing horse analysis data:', error);
   }
 }
 
@@ -259,10 +236,8 @@ export async function clearHorseAnalysisData(): Promise<void> {
 export async function loadMarketplaceSettings(): Promise<boolean> {
   try {
     const isEnabled = await marketplaceLinksEnabled.getValue();
-    debugLog('Loaded marketplace links setting:', isEnabled);
     return isEnabled;
   } catch (error) {
-    debugLog('Error loading marketplace links setting:', error);
     return true; // Default to enabled
   }
 }
@@ -274,9 +249,7 @@ export async function loadMarketplaceSettings(): Promise<boolean> {
 export async function saveMarketplaceSettings(enabled: boolean): Promise<void> {
   try {
     await marketplaceLinksEnabled.setValue(enabled);
-    debugLog('Saved marketplace links setting:', enabled);
   } catch (error) {
-    debugLog('Error saving marketplace links setting:', error);
   }
 }
 
@@ -295,10 +268,8 @@ export function getMarketplaceSettingsStorageItem() {
 export async function loadEnabledMarketplaces(): Promise<string[]> {
   try {
     const enabled = await enabledMarketplaces.getValue();
-    debugLog('Loaded enabled marketplaces:', enabled);
     return enabled;
   } catch (error) {
-    debugLog('Error loading enabled marketplaces:', error);
     return ['ronin', 'opensea']; // Default fallback
   }
 }
@@ -310,9 +281,7 @@ export async function loadEnabledMarketplaces(): Promise<string[]> {
 export async function saveEnabledMarketplaces(marketplaces: string[]): Promise<void> {
   try {
     await enabledMarketplaces.setValue(marketplaces);
-    debugLog('Saved enabled marketplaces:', marketplaces);
   } catch (error) {
-    debugLog('Error saving enabled marketplaces:', error);
   }
 }
 
@@ -331,10 +300,8 @@ export function getEnabledMarketplacesStorageItem() {
 export async function loadEnergyRecoverySettings(): Promise<boolean> {
   try {
     const isEnabled = await energyRecoveryEnabled.getValue();
-    debugLog('Loaded energy recovery setting:', isEnabled);
     return isEnabled;
   } catch (error) {
-    debugLog('Error loading energy recovery setting:', error);
     return true; // Default to enabled
   }
 }
@@ -346,9 +313,7 @@ export async function loadEnergyRecoverySettings(): Promise<boolean> {
 export async function saveEnergyRecoverySettings(enabled: boolean): Promise<void> {
   try {
     await energyRecoveryEnabled.setValue(enabled);
-    debugLog('Saved energy recovery setting:', enabled);
   } catch (error) {
-    debugLog('Error saving energy recovery setting:', error);
   }
 }
 
@@ -367,10 +332,8 @@ export function getEnergyRecoverySettingsStorageItem() {
 export async function loadSettingsModalSettings(): Promise<boolean> {
   try {
     const isEnabled = await settingsModalEnabled.getValue();
-    debugLog('Loaded settings modal setting:', isEnabled);
     return isEnabled;
   } catch (error) {
-    debugLog('Error loading settings modal setting:', error);
     return true; // Default to enabled
   }
 }
@@ -382,9 +345,7 @@ export async function loadSettingsModalSettings(): Promise<boolean> {
 export async function saveSettingsModalSettings(enabled: boolean): Promise<void> {
   try {
     await settingsModalEnabled.setValue(enabled);
-    debugLog('Saved settings modal setting:', enabled);
   } catch (error) {
-    debugLog('Error saving settings modal setting:', error);
   }
 }
 
@@ -403,10 +364,8 @@ export function getSettingsModalSettingsStorageItem() {
 export async function loadHorseAnalyzerSettings(): Promise<boolean> {
   try {
     const isEnabled = await horseAnalyzerEnabled.getValue();
-    debugLog('Loaded horse analyzer setting:', isEnabled);
     return isEnabled;
   } catch (error) {
-    debugLog('Error loading horse analyzer setting:', error);
     return true; // Default to enabled
   }
 }
@@ -418,9 +377,7 @@ export async function loadHorseAnalyzerSettings(): Promise<boolean> {
 export async function saveHorseAnalyzerSettings(enabled: boolean): Promise<void> {
   try {
     await horseAnalyzerEnabled.setValue(enabled);
-    debugLog('Saved horse analyzer setting:', enabled);
   } catch (error) {
-    debugLog('Error saving horse analyzer setting:', error);
   }
 }
 
@@ -471,10 +428,8 @@ export async function loadAllSettings(): Promise<AllSettings> {
       energyRecoveryEnabled
     };
 
-    debugLog('Loaded all settings:', settings);
     return settings;
   } catch (error) {
-    debugLog('Error loading all settings:', error);
     // Return default fallback settings
     return {
       converterEnabled: true,

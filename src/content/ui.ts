@@ -3,6 +3,7 @@ import { getConvertedPrice } from './api';
 import { getCurrentConversion, setCurrentConversion } from './state';
 import { formatPrice } from './utils/formatting';
 import { createDropdownOptions, createDropdownButton, setupDropdownToggle, type DropdownCallbacks } from './utils/dropdown';
+import { resetAuthenticationState, restartHorseAnalyzer } from './main';
 
 // Removed WeakMap cache - elements recreate frequently in SPA navigation
 
@@ -91,6 +92,20 @@ export function createCurrencyConversionUI(ctx: any) {
       const balancePoller = setInterval(() => {
         const currentBalance = balanceElement.textContent || '0';
         if (currentBalance !== lastBalance) {
+          // Detect user disconnection: balance changes from > 0 to 0
+          const lastBalanceNum = parseFloat(lastBalance) || 0;
+          const currentBalanceNum = parseFloat(currentBalance) || 0;
+          if (lastBalanceNum > 0 && currentBalanceNum === 0) {
+            debugLog('User disconnection detected - balance changed from positive to zero');
+            resetAuthenticationState();
+          }
+          
+          // Detect user reconnection: balance changes from 0 to positive
+          if (lastBalanceNum === 0 && currentBalanceNum > 0) {
+            debugLog('User reconnection detected - balance changed from zero to positive');
+            restartHorseAnalyzer(); // Restart the horse analyzer retry loop
+          }
+          
           lastBalance = currentBalance;
           // Update converted price when balance changes
           const newConvertedValue = getConvertedPrice(getCurrentConversion(), currentBalance);
