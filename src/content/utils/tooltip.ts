@@ -90,7 +90,7 @@ export class Tooltip {
       const descriptionElement = document.createElement('div');
       descriptionElement.innerHTML = this.options.content.description;
       portal.appendChild(descriptionElement);
-    }
+    } 
 
     if (this.options.content.usesLeft) {
       const usesElement = document.createElement('span');
