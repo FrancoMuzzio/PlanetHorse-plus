@@ -57,12 +57,18 @@ export async function initializeHorseObserver(): Promise<void> {
     if (now - lastProcessTime < PROCESS_THROTTLE) return;
     lastProcessTime = now;
     
-    // Find new horse elements in mutations
+    // Handle different types of mutations
     const newHorses = findNewHorseElements(mutations);
+    const energyChanges = findEnergyChanges(mutations);
     
     if (newHorses.length > 0) {
       debugLog(`Observer detected ${newHorses.length} new horse element(s)`);
       processNewHorses(newHorses);
+    }
+    
+    if (energyChanges.length > 0) {
+      debugLog(`Observer detected ${energyChanges.length} energy change(s)`);
+      processEnergyChanges(energyChanges);
     }
   });
   
@@ -71,7 +77,8 @@ export async function initializeHorseObserver(): Promise<void> {
     childList: true,
     subtree: true,
     attributes: false, // We don't need attribute changes
-    characterData: false // We don't need text changes
+    characterData: true, // We need to detect energy text changes
+    characterDataOldValue: true // To compare old vs new values
   });
   
   debugLog('Horse observer started - watching for DOM changes');
@@ -144,6 +151,68 @@ function findNewHorseElements(mutations: MutationRecord[]): HTMLElement[] {
   });
   
   return newHorses;
+}
+
+/**
+ * Find energy changes in mutation records
+ */
+function findEnergyChanges(mutations: MutationRecord[]): HTMLElement[] {
+  const elementsWithEnergyChanges: HTMLElement[] = [];
+  
+  mutations.forEach(mutation => {
+    // Only process characterData mutations (text content changes)
+    if (mutation.type !== 'characterData') return;
+    
+    const textNode = mutation.target;
+    const parentElement = textNode.parentElement;
+    
+    if (!parentElement) return;
+    
+    // Check if this is an energy description element
+    if (isEnergyDescriptionElement(parentElement)) {
+      // Find the horse element that contains this energy element
+      const horseElement = parentElement.closest('[class*="styles_singleHorse__"]') as HTMLElement;
+      if (horseElement && !elementsWithEnergyChanges.includes(horseElement)) {
+        elementsWithEnergyChanges.push(horseElement);
+      }
+    }
+  });
+  
+  return elementsWithEnergyChanges;
+}
+
+/**
+ * Check if an element is an energy description element
+ */
+function isEnergyDescriptionElement(element: HTMLElement): boolean {
+  const text = element.textContent?.trim() || '';
+  return text.startsWith('ENERGY:') && element.className?.includes('styles_horseItemDescription__');
+}
+
+/**
+ * Process energy changes by refreshing energy info for affected horses
+ */
+function processEnergyChanges(horseElements: HTMLElement[]): void {
+  if (!cachedSettings.energyRecoveryEnabled) {
+    debugLog('Energy recovery disabled - skipping energy change processing');
+    return;
+  }
+  
+  const horseDataArray: HorseInfo[] = [];
+  
+  horseElements.forEach(element => {
+    const data = extractHorseData(element);
+    if (data) {
+      horseDataArray.push(data);
+      debugLog(`Energy changed for horse ${data.id}: ${data.stats.energy.current}/${data.stats.energy.max}`);
+    }
+  });
+  
+  if (horseDataArray.length > 0) {
+    addEnergyRecoveryInfo(horseDataArray).catch(err => {
+      debugLog('Error refreshing energy recovery info:', err);
+    });
+  }
 }
 
 /**
