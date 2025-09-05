@@ -4,7 +4,7 @@
 import { CONFIG, debugLog } from '../config';
 import { extractHorseData, type HorseInfo } from './horse-data-extractor';
 import { addMarketplaceButtons, cleanupMarketplaceButtons } from './marketplace-buttons';
-import { addEnergyRecoveryInfo, cleanupEnergyRecoveryInfo } from './energy-recovery';
+import { addEnergyRecoveryInfo, cleanupEnergyRecoveryInfo, startEnergyPolling, stopEnergyPolling } from './energy-recovery';
 import { loadAllSettings } from '../storage';
 
 // WeakMap para trackear elementos ya procesados
@@ -276,6 +276,9 @@ function processNewHorses(elements: HTMLElement[]): void {
     addEnergyRecoveryInfo(horseDataArray).catch(err => {
       debugLog('Error adding energy recovery info:', err);
     });
+    
+    // Start energy polling after processing horses with energy recovery info
+    startEnergyPolling();
   }
   
   debugLog(`Processed ${horseDataArray.length} horses with features`);
@@ -334,6 +337,7 @@ export async function updateObserverSettings(): Promise<void> {
   if (oldSettings.energyRecoveryEnabled && !cachedSettings.energyRecoveryEnabled) {
     debugLog('Energy recovery disabled - cleaning up existing info');
     cleanupEnergyRecoveryInfo();
+    stopEnergyPolling();
   }
   
   // Force reprocessing of existing horses when settings change
@@ -366,4 +370,7 @@ export function stopHorseObserver(): void {
     featureCheckInterval = null;
     debugLog('Feature check interval stopped');
   }
+  
+  // Stop energy polling system
+  stopEnergyPolling();
 }

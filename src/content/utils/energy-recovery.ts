@@ -4,10 +4,11 @@
 import { CONFIG, debugLog, calculateEnergyRecoveryPer6Hours } from '../config';
 import { loadEnergyRecoverySettings } from '../storage';
 import { createTooltip, type Tooltip } from './tooltip';
-import type { HorseInfo } from './horse-data-extractor';
+import { extractHorseData, type HorseInfo } from './horse-data-extractor';
 
 // Track tooltip instances for cleanup
 const activeTooltips: Tooltip[] = [];
+
 
 /**
  * Determines if a horse is actively losing energy (racing/working)
@@ -55,6 +56,72 @@ function findEnergyElement(horseElement: HTMLElement): HTMLElement | null {
 }
 
 /**
+ * Creates a recovery span element with proper calculation and styling
+ * @param horse - Horse data object
+ * @param currentEnergy - Current energy value
+ * @param maxEnergy - Maximum energy value
+ * @returns Configured span element with recovery info
+ */
+function createRecoverySpan(horse: HorseInfo, currentEnergy: number, maxEnergy: number): HTMLSpanElement {
+  const recoveryPer6h = horse.stats?.energyRecovery6h || calculateEnergyRecoveryPer6Hours(horse.stats?.level || 1);
+  const status = horse.status || 'UNKNOWN';
+  
+  const recoverySpan = document.createElement('span');
+  recoverySpan.setAttribute('data-horse-id', horse.id.toString());
+  
+  // Determine recovery info based on horse state
+  if (isHorseActivelyLosingEnergy(horse)) {
+    // Horse is actively losing energy - show estimated loss
+    const estimatedLoss = Math.floor(recoveryPer6h * 0.5);
+    recoverySpan.textContent = ` –${estimatedLoss}`;
+    recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE;
+    
+    // Create tooltip
+    const lossTooltip = createTooltip(recoverySpan, {
+      title: 'Energy Loss',
+      description: `Will lose approximately ${estimatedLoss} energy on next recharge.<br>Horse status: <strong>${status}</strong>.`,
+      additionalInfo: `Energy loss occurs while horse is <strong>${status.toLowerCase()}</strong>`
+    });
+    activeTooltips.push(lossTooltip);
+  } else {
+    // Horse is recovering - calculate actual recovery and waste
+    const energyNeeded = maxEnergy - currentEnergy;
+    const actualRecovery = Math.min(recoveryPer6h, energyNeeded);
+    const wastedRecovery = recoveryPer6h - actualRecovery;
+    
+    debugLog(`Recovery calculation for horse ${horse.id}: energy=${currentEnergy}/${maxEnergy}, recovery=${recoveryPer6h}, needed=${energyNeeded}, actual=${actualRecovery}, waste=${wastedRecovery}`);
+    
+    if (wastedRecovery > 0) {
+      // Can't use all recovery → show waste as negative
+      recoverySpan.textContent = ` –${wastedRecovery}`;
+      recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE;
+      
+      // Create tooltip
+      const wasteTooltip = createTooltip(recoverySpan, {
+        title: 'Energy Waste',
+        description: `${wastedRecovery} energy will be wasted on next recharge.<br>Horse will recover ${actualRecovery} and reach ${currentEnergy + actualRecovery}/${maxEnergy}.`,
+        additionalInfo: `Consider using this horse to prevent energy waste!`
+      });
+      activeTooltips.push(wasteTooltip);
+    } else {
+      // Can use all recovery → show full recovery as positive
+      recoverySpan.textContent = ` +${recoveryPer6h}`;
+      recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT;
+      
+      // Create tooltip
+      const recoveryTooltip = createTooltip(recoverySpan, {
+        title: 'Energy Recovery',
+        description: `Will recover ${recoveryPer6h} energy with no waste on next recharge.`,
+        additionalInfo: `This horse is efficiently recovering energy!`
+      });
+      activeTooltips.push(recoveryTooltip);
+    }
+  }
+  
+  return recoverySpan;
+}
+
+/**
  * Adds energy recovery information to horse cards (NON-INVASIVE VERSION)
  * Appends recovery info without modifying original energy display
  */
@@ -85,20 +152,11 @@ export async function addEnergyRecoveryInfo(horses: HorseInfo[]): Promise<void> 
  * @param horse - Horse data object
  */
 function addEnergyRecoveryInfoToSingleHorse(horse: HorseInfo): void {
-  // Find the horse element
-  const horseElements = document.querySelectorAll('[class*="styles_singleHorse__"]');
-  let targetHorseElement: HTMLElement | null = null;
-  
-  horseElements.forEach(element => {
-    const idElement = element.querySelector('[class*="styles_horseId__"]');
-    const elementId = parseInt(idElement?.textContent?.trim() || '0');
-    if (elementId === horse.id) {
-      targetHorseElement = element as HTMLElement;
-    }
-  });
+  // Use the horse element directly from the horse object if available
+  const targetHorseElement = horse.element;
   
   if (!targetHorseElement) {
-    debugLog(`Could not find horse element for ID ${horse.id}`);
+    debugLog(`No element provided for horse ${horse.id}`);
     return;
   }
   
@@ -109,72 +167,20 @@ function addEnergyRecoveryInfoToSingleHorse(horse: HorseInfo): void {
     return;
   }
   
-  // Remove any existing recovery span first (for refresh scenarios)
-  const existingRecoverySpan = energyDescriptionElement.querySelector(
-    `.${CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT}, .${CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE}`
-  );
+  // Remove any existing recovery span using the unique data-horse-id
+  const existingRecoverySpan = document.querySelector(`[data-horse-id="${horse.id}"]`);
   if (existingRecoverySpan) {
     existingRecoverySpan.remove();
   }
   
-  // Get current energy values directly from DOM (game-controlled)
-  const currentEnergyText = energyDescriptionElement.textContent || '';
-  const { current: currentEnergy, max: maxEnergy } = extractEnergyFromText(currentEnergyText);
+  // Use the energy values directly from the horse stats
+  const currentEnergy = horse.stats.energy.current;
+  const maxEnergy = horse.stats.energy.max;
   
-  // Calculate recovery based on horse level
-  const recoveryPer6h = horse.stats?.energyRecovery6h || calculateEnergyRecoveryPer6Hours(horse.stats?.level || 1);
-  const status = horse.status || 'UNKNOWN';
+  debugLog(`Adding recovery info for horse ${horse.id}: ${currentEnergy}/${maxEnergy}`);
   
-  // Create recovery span
-  const recoverySpan = document.createElement('span');
-  
-  // Determine recovery info based on horse state
-  if (isHorseActivelyLosingEnergy(horse)) {
-    // Horse is actively losing energy - show estimated loss
-    const estimatedLoss = Math.floor(recoveryPer6h * 0.5);
-    recoverySpan.textContent = ` –${estimatedLoss}`;
-    recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE;
-    
-    // Create tooltip for energy loss due to active status
-    const lossTooltip = createTooltip(recoverySpan, {
-      title: 'Energy Loss',
-      description: `Will lose approximately ${estimatedLoss} energy on next recharge.<br>Horse status: <strong>${status}</strong>.`,
-      additionalInfo: `Energy loss occurs while horse is <strong>${status.toLowerCase()}</strong>`
-    });
-    activeTooltips.push(lossTooltip);
-  } else {
-    // Horse is recovering - check for energy waste
-    const energyAfterRecovery = currentEnergy + recoveryPer6h;
-    const wastedEnergy = Math.max(0, energyAfterRecovery - maxEnergy);
-    
-    if (wastedEnergy > 0) {
-      // Show wasted energy in red (negative)
-      recoverySpan.textContent = ` –${wastedEnergy}`;
-      recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE;
-      
-      // Create tooltip for energy waste
-      const wasteTooltip = createTooltip(recoverySpan, {
-        title: 'Energy Waste',
-        description: `${wastedEnergy} energy will be wasted on next recharge.<br>Horse will reach maximum capacity (${maxEnergy}).`,
-        additionalInfo: `Consider using this horse to prevent energy waste!`
-      });
-      activeTooltips.push(wasteTooltip);
-    } else {
-      // Show full recovery in green (positive)
-      recoverySpan.textContent = ` +${recoveryPer6h}`;
-      recoverySpan.className = CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT;
-      
-      // Create tooltip for normal energy recovery
-      const recoveryTooltip = createTooltip(recoverySpan, {
-        title: 'Energy Recovery',
-        description: `Will recover ${recoveryPer6h} energy with no waste on next recharge.`,
-        additionalInfo: `This horse is efficiently recovering energy!`
-      });
-      activeTooltips.push(recoveryTooltip);
-    }
-  }
-  
-  // APPEND recovery span (NON-INVASIVE)
+  // Create and append recovery span using the helper function
+  const recoverySpan = createRecoverySpan(horse, currentEnergy, maxEnergy);
   energyDescriptionElement.appendChild(recoverySpan);
   
   debugLog(`Added energy recovery info to horse ${horse.id}: ${currentEnergy}/${maxEnergy} ${recoverySpan.textContent}`);
@@ -191,10 +197,11 @@ export function cleanupEnergyRecoveryInfo(): void {
     // First cleanup all tooltips
     cleanupTooltips();
     
-    // Find and remove all energy recovery spans
-    const recoverySpans = document.querySelectorAll(
-      `.${CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT}, .${CONFIG.CSS_CLASSES.ENERGY_RECOVERY_TEXT_NEGATIVE}`
-    );
+    // Stop energy polling system
+    stopEnergyPolling();
+    
+    // Find and remove all energy recovery spans using data-horse-id
+    const recoverySpans = document.querySelectorAll('[data-horse-id]');
     
     recoverySpans.forEach(span => {
       span.remove();
@@ -225,5 +232,88 @@ export function cleanupTooltips(): void {
     debugLog('Tooltips cleanup complete');
   } catch (error) {
     debugLog('Error cleaning up tooltips:', error);
+  }
+}
+
+// ============= ENERGY POLLING SYSTEM =============
+// Cache for previous energy values to detect changes
+const energyCache = new Map<number, number>();
+let pollingInterval: number | null = null;
+const POLLING_INTERVAL = 500; // Check every 500ms
+
+/**
+ * Polls for energy changes and updates recovery info when detected
+ * Ultra-simple solution that works regardless of how the game updates energy
+ */
+function pollEnergyChanges(): void {
+  // Find all horses with energy recovery spans (already processed)
+  const recoverySpans = document.querySelectorAll('[data-horse-id]');
+  
+  if (recoverySpans.length === 0) {
+    // No horses to monitor, stop polling
+    stopEnergyPolling();
+    return;
+  }
+  
+  recoverySpans.forEach(span => {
+    const horseIdStr = span.getAttribute('data-horse-id');
+    if (!horseIdStr) return;
+    
+    const horseId = parseInt(horseIdStr);
+    
+    // Find the horse element and energy description
+    const horseElement = span.closest('[class*="styles_singleHorse__"]') as HTMLElement;
+    if (!horseElement) return;
+    
+    const energyElement = findEnergyElement(horseElement);
+    if (!energyElement) return;
+    
+    // Extract current energy from DOM
+    const energyText = energyElement.textContent?.trim() || '';
+    const currentEnergy = extractEnergyFromText(energyText).current;
+    
+    // Compare with cached value
+    const previousEnergy = energyCache.get(horseId);
+    
+    if (previousEnergy !== undefined && previousEnergy !== currentEnergy) {
+      debugLog(`Energy change detected for horse ${horseId}: ${previousEnergy} → ${currentEnergy}`);
+      
+      // Extract full horse data and refresh energy info
+      const extractedHorseData = extractHorseData(horseElement);
+      if (extractedHorseData) {
+        // Update just this horse's energy recovery info
+        addEnergyRecoveryInfoToSingleHorse(extractedHorseData);
+      }
+    }
+    
+    // Update cache
+    energyCache.set(horseId, currentEnergy);
+  });
+}
+
+/**
+ * Starts the energy polling system
+ * Called after horses are initially processed
+ */
+export function startEnergyPolling(): void {
+  // Don't start multiple intervals
+  if (pollingInterval !== null) {
+    return;
+  }
+  
+  debugLog('Starting energy polling system');
+  pollingInterval = setInterval(pollEnergyChanges, POLLING_INTERVAL);
+}
+
+/**
+ * Stops the energy polling system
+ * Called during cleanup or when no horses are present
+ */
+export function stopEnergyPolling(): void {
+  if (pollingInterval !== null) {
+    debugLog('Stopping energy polling system');
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+    energyCache.clear();
   }
 }
