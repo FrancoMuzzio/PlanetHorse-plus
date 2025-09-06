@@ -1,0 +1,378 @@
+/**
+ * Modal System Styles
+ * Migrated from config.ts CSS_STYLES to improve maintainability
+ * Used for settings modal and other modal interfaces
+ */
+
+/* Modal overlay container (full screen backdrop) */
+.phorse-modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  width: 100vw;
+  height: 100vh;
+  display: none; /* Hidden by default */
+  align-items: center;
+  justify-content: center;
+  z-index: 9998 !important; /* Just below cursor (9999) but above game elements */
+}
+
+/* Show modal when visible class is added */
+.phorse-modal-container.visible {
+  display: flex;
+}
+
+/* Modal content box - necesita position: relative */
+.phorse-modal-content {
+  background: #582c25;
+  border: 3px solid #3a1a15;
+  border-radius: 8px;
+  width: 100vh;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  position: relative; /* AGREGAR ESTO */
+  min-height: 400px; /* AGREGAR altura mínima */
+}
+
+/* Modal header section */
+.phorse-modal-header {
+  padding: 15px 20px; 
+  border-bottom: 2px solid #3a1a15; 
+  font-size: 18px; 
+  font-weight: bold; 
+  background: #582c25; 
+  color: white; 
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+}
+
+/* Modal close button */
+.phorse-modal-close-button {
+  cursor: pointer;
+  background: transparent; 
+  border: none; 
+  padding: 4px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 24px; 
+  height: 24px; 
+  position: relative;
+}
+
+/* Modal close button hover effect */
+.phorse-modal-close-button:hover {
+  opacity: 0.7;
+}
+
+/* Modal close icon styling */
+.phorse-modal-close-icon {
+  position: absolute; 
+  inset: 0px; 
+  box-sizing: border-box; 
+  padding: 0px; 
+  border: none; 
+  margin: auto; 
+  display: block; 
+  width: 0px; 
+  height: 0px; 
+  min-width: 100%; 
+  max-width: 100%; 
+  min-height: 100%; 
+  max-height: 100%; 
+}
+
+/* Modal body - agregar padding bottom para el footer */
+.phorse-modal-body {
+  padding: 20px; 
+  min-height: 100px; 
+  background: #582c25; 
+  color: white; 
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif; 
+  border-radius: 0 0 8px 8px;
+  padding-bottom: 80px; /* AGREGAR espacio para el footer */
+}
+
+/* Settings Button and Related Styles */
+
+/* Transparent container for WXT UI integration */
+.phorse-transparent-container {
+  background: transparent !important; 
+  border: none !important; 
+  padding: 0 !important; 
+  margin: 0 !important;
+}
+
+/* Settings button styling */
+.phorse-settings-button {
+  cursor: pointer;
+  background: transparent !important; 
+  border: none !important; 
+  border-radius: 6px !important; 
+  width: 40px !important; 
+  height: 40px !important; 
+  display: flex !important; 
+  align-items: center !important; 
+  justify-content: center !important; 
+  transition: background-color 0.2s !important; 
+  outline: none !important;
+}
+
+/* Settings button hover effect */
+.phorse-settings-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  cursor: pointer;
+}
+
+/* Gear icon styling */
+.phorse-gear-icon {
+  width: 24px; 
+  height: 24px; 
+  pointer-events: none;
+}
+
+/* Gear icon hover effect */
+.phorse-settings-button:hover .phorse-gear-icon {
+  filter: brightness(1.2) !important;
+}
+
+/* Ensure game cursor stays above modal */
+.cursor_cursor__5j_Wi {
+  z-index: 10000 !important;
+}
+
+/* Settings Modal Content Styles */
+
+/* Settings section container */
+.phorse-settings-section {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Settings label styling */
+.phorse-settings-label {
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  margin: 0;
+}
+
+/* Toggle container */
+.phorse-toggle-container {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+/* Toggle switch (hidden checkbox) */
+.phorse-toggle-switch {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Toggle slider */
+.phorse-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #3a1a15;
+  border: 2px solid #582c25;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+/* Toggle slider before (the circle) */
+.phorse-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 4px;
+  transition: transform 0.2s;
+}
+
+/* Toggle when checked */
+.phorse-toggle-switch:checked + .phorse-toggle-slider {
+  background-color: #6b3529;
+}
+
+/* Toggle slider when checked - move circle to right */
+.phorse-toggle-switch:checked + .phorse-toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Toggle slider hover effect */
+.phorse-toggle-slider:hover {
+  background-color: #4a2118;
+}
+
+.phorse-toggle-switch:checked + .phorse-toggle-slider:hover {
+  background-color: #7a3e2d;
+}
+
+/* Toggle status text */
+.phorse-toggle-status-text {
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  margin-left: 2px;
+}
+
+/* Modal footer - posicionar fijo en la parte inferior */
+.phorse-modal-footer {
+  padding: 15px 20px;
+  border-top: 2px solid #3a1a15;
+  background: #582c25;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  justify-content: flex-end;
+  position: absolute; /* AGREGAR */
+  bottom: 0; /* AGREGAR */
+  left: 0; /* AGREGAR */
+  right: 0; /* AGREGAR */
+  width: calc(100% - 6px); /* AGREGAR - ajustar por el border */
+}
+
+/* Save button */
+.phorse-save-button {
+  background: #6b3529;
+  border: 2px solid #3a1a15;
+  border-radius: 5px;
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* Save button hover effect */
+.phorse-save-button:hover {
+  background-color: #7a3e2d;
+}
+
+/* Currency List Section Styles */
+
+/* Currency list section container */
+.phorse-currency-list-section {
+  margin-top: 20px;
+  padding: 15px 0;
+  border-top: 1px solid #3a1a15;
+}
+
+/* Currency list container */
+.phorse-currency-list-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px 16px;
+  margin-top: 12px;
+}
+
+/* Individual currency item */
+.phorse-currency-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+/* Currency checkbox container */
+.phorse-currency-checkbox-container {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+}
+
+/* Currency checkbox (hidden input) */
+.phorse-currency-checkbox {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* Currency checkbox visual element */
+.phorse-currency-checkbox-container:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background-color: #3a1a15;
+  border: 2px solid #582c25;
+  border-radius: 4px;
+  transition: all 0.2s;
+  pointer-events: none;
+}
+
+/* Currency checkbox when checked */
+.phorse-currency-checkbox-container:has(.phorse-currency-checkbox:checked):after {
+  background-color: #6b3529;
+  border-color: #7a3e2d;
+}
+
+/* Currency checkbox checkmark */
+.phorse-currency-checkbox-container:has(.phorse-currency-checkbox:checked):before {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Currency checkbox hover effect */
+.phorse-currency-checkbox-container:hover:after {
+  border-color: #6b3529;
+}
+
+/* Currency label text */
+.phorse-currency-label-text {
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+/* Botón cuando dropdown está abierto - solo redondeado arriba */
+.phorse-dropdown-button.open {
+  border-radius: 5px 5px 0 0;
+}
+
+/* Opciones - solo redondeadas abajo */
+.phorse-dropdown-options {
+  border-radius: 0 0 5px 5px;
+}

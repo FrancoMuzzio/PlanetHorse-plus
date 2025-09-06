@@ -3,10 +3,24 @@
 // All business logic remains in src/content/ (unchanged)
 
 import { defineContentScript } from '#imports';
+// Import CSS styles for the extension
+import '../src/content/styles/dropdown.css';
+import '../src/content/styles/grid.css';
+import '../src/content/styles/modal.css';
+import '../src/content/styles/marketplace.css';
+import '../src/content/styles/tooltip.css';
+
 export default defineContentScript({
-  matches: ['https://planethorse.io/game*'],
-  async main() {
+  matches: ['*://planethorse.io/*'],
+  async main(ctx) {
     // Import and execute the main content script logic
-    await import('../src/content/main.js');
+    const { initialize } = await import('../src/content/main');
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => initialize(ctx));
+    } else {
+      initialize(ctx);
+    }
   },
 });

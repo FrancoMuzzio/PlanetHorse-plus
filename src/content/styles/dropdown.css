@@ -1,0 +1,103 @@
+/**
+ * Dropdown Component Styles
+ * Migrated from config.ts CSS_STYLES to improve maintainability
+ */
+
+/* Main dropdown container */
+.phorse-dropdown-container {
+  text-align: center;
+  position: relative;
+}
+
+/* Grid positioning for dropdown within currency conversion layout */
+.phorse-dropdown-container.phorse-grid-dropdown {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+/* Dropdown button (main button that shows current selection) */
+.phorse-dropdown-button {
+  border-radius: 5px;
+  background: transparent !important;
+  background-color: transparent !important;
+  color: white;
+  font-size: 10px;
+  max-height: 28px;
+  max-width: 160px;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  display: flex;
+  align-items: center;
+  cursor: pointer !important;
+  border: none;
+  padding: 0px !important;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+/* Dropdown button hover effect - change children backgrounds */
+.phorse-dropdown-button:hover .phorse-dropdown-current-selection {
+  background-color: #6b3529 !important;
+}
+
+.phorse-dropdown-button:hover .phorse-dropdown-arrow {
+  background-color: #6b3529 !important;
+}
+
+/* Dropdown arrow */
+.phorse-dropdown-arrow {
+  font-size: 10px;
+  margin: 0 !important;
+  padding: 4px 8px !important;
+  border-radius: 0 5px 5px 0 !important;
+  background-color: #582c25 !important;
+  transition: background-color 0.2s ease !important;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Dropdown current selection span */
+.phorse-dropdown-current-selection {
+  margin: 0 !important;
+  padding: 4px 8px 4px 10px !important;
+  border-radius: 5px 0 0 5px !important;
+  background-color: #582c25 !important;
+  transition: background-color 0.2s ease !important;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Options container (dropdown list) */
+.phorse-dropdown-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #582c25;
+  border: 1px solid #3a1a15;
+  border-radius: 0 0 4px 4px;
+  border-top: none;
+  max-height: 120px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+}
+
+/* Individual dropdown option */
+.phorse-dropdown-option {
+  padding: 6px 8px;
+  color: white;
+  font-family: "SpaceHorse", system-ui, -apple-system, sans-serif;
+  border-bottom: 1px solid #3a1a15;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Dropdown option hover effect */
+.phorse-dropdown-option:hover {
+  background-color: #6b3529;
+}
+
+/* Remove border from last option */
+.phorse-dropdown-option:last-child {
+  border-bottom: none;
+}

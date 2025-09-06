@@ -1,7 +1,7 @@
 {
   "name": "planet-horse-extension",
   "version": "2.0.0",
-  "description": "Real-time multi-currency value converter for PH tokens on [Planet Horse](https://planethorse.io).",
+  "description": "Complete horse analysis, energy recovery, marketplace integration, and multi-currency conversion tool for Planet Horse (planethorse.io)",
   "main": "background.js",
   "devDependencies": {
     "@types/chrome": "^0.1.4",
@@ -13,7 +13,8 @@
     "dev": "wxt",
     "build": "wxt build",
     "build:prod": "wxt build --mode production",
-    "zip": "wxt zip"
+    "zip": "wxt zip",
+    "postinstall": "wxt prepare"
   },
   "repository": {
     "type": "git",
